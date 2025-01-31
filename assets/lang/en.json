@@ -17,10 +17,11 @@
     "cancel": "Cancel",
     "create": "Create",
     "messages": {
-      "register_error": "Registration failed. Please try again."
+      "register_error": "Registration failed. Please try again.",
+      "register_success": "Registration successful."
     }
   },
-  "event_feed": {
+  "event_feed_screen": {
     "title": "Event Feed",
     "no_events": "No events available",
     "messages": {}
@@ -37,7 +38,7 @@
       "fill_all_fields": "Please fill in all fields"
     }
   },
-  "event_detail": {
+  "event_detail_screen": {
     "title": "Event Details",
     "date": "Date",
     "location": "Location",

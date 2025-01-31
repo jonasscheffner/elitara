@@ -17,7 +17,8 @@
     "cancel": "Abbrechen",
     "create": "Erstellen",
     "messages": {
-      "register_error": "Registrierung fehlgeschlagen. Bitte versuche es erneut."
+      "register_error": "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
+      "register_success": "Registrierung erfolgreich."
     }
   },
   "event_feed_screen": {
