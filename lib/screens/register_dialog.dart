@@ -35,14 +35,24 @@ class _RegisterDialogState extends State<RegisterDialog> {
         passwordController.text,
       );
       Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              localeProvider.translate(section, 'messages.register_success')),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       setState(() {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
-                localeProvider.translate(section, 'messages.register_error'))),
+          content: Text(
+              localeProvider.translate(section, 'messages.register_error')),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
