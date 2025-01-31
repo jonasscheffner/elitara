@@ -22,13 +22,20 @@ class LocaleProvider {
     try {
       var keys = key.split('.');
       var translation = localizedStrings[section];
+
       for (var k in keys) {
-        translation = translation[k];
-        if (translation == null) {
+        if (translation is Map<String, dynamic>) {
+          translation = translation[k];
+        } else {
           return 'Translation not found';
         }
       }
-      return translation;
+
+      if (translation is String) {
+        return translation;
+      } else {
+        return 'Translation not found';
+      }
     } catch (e) {
       print('Translation error: $e');
       return 'Translation not found';
