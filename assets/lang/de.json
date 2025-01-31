@@ -1,0 +1,48 @@
+{
+  "login_screen": {
+    "login": "Mit Elitara Account Anmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "forgot_password": "Dein Passwort vergessen?",
+    "create_account": "Elitara Account erstellen",
+    "messages": {
+      "login_error": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten."
+    }
+  },
+  "register_dialog": {
+    "create_account": "Erstelle dein Elitara Account",
+    "email": "E-Mail",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "cancel": "Abbrechen",
+    "create": "Erstellen",
+    "messages": {
+      "register_error": "Registrierung fehlgeschlagen. Bitte versuche es erneut."
+    }
+  },
+  "event_feed_screen": {
+    "title": "Event Feed",
+    "no_events": "Keine Events verfügbar",
+    "messages": {}
+  },
+  "create_event_screen": {
+    "create_event_title": "Event erstellen",
+    "title": "Titel",
+    "description": "Beschreibung",
+    "location": "Standort",
+    "select_date": "Datum auswählen",
+    "create_event": "Ereignis erstellen",
+    "messages": {
+      "event_created": "Event erfolgreich erstellt",
+      "fill_all_fields": "Bitte füllen Sie alle Felder aus"
+    }
+  },
+  "event_detail_screen": {
+    "title": "Eventdetails",
+    "date": "Datum",
+    "location": "Standort",
+    "join": "Event beitreten",
+    "registered": "Du hast dich für das Event registriert",
+    "messages": {}
+  }
+}
