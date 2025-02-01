@@ -20,19 +20,25 @@ class LocaleProvider {
 
   String translate(String section, String key) {
     try {
-      var keys = key.split('.');
-      var translation = localizedStrings[section];
-
-      for (var k in keys) {
-        if (translation is Map<String, dynamic>) {
-          translation = translation[k];
+      List<String> sectionKeys = section.split('.');
+      dynamic current = localizedStrings;
+      for (var sk in sectionKeys) {
+        if (current is Map<String, dynamic> && current.containsKey(sk)) {
+          current = current[sk];
         } else {
           return 'Translation not found';
         }
       }
-
-      if (translation is String) {
-        return translation;
+      List<String> keyParts = key.split('.');
+      for (var k in keyParts) {
+        if (current is Map<String, dynamic> && current.containsKey(k)) {
+          current = current[k];
+        } else {
+          return 'Translation not found';
+        }
+      }
+      if (current is String) {
+        return current;
       } else {
         return 'Translation not found';
       }
