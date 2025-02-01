@@ -44,9 +44,11 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
             foregroundColor: Colors.blue,
-            textStyle: TextStyle(color: Colors.black)),
+            textStyle: const TextStyle(color: Colors.black)),
       ),
-      cardTheme: CardTheme(color: Colors.grey[200]));
+      cardTheme: CardTheme(color: Colors.grey[200]),
+      progressIndicatorTheme:
+          const ProgressIndicatorThemeData(color: Colors.blue));
 
   static final ThemeData darkTheme = ThemeData(
       brightness: Brightness.dark,
@@ -91,10 +93,12 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
         ),
       ),
-      cardTheme: CardTheme(color: Colors.grey[850]));
+      cardTheme: CardTheme(color: Colors.grey[850]),
+      progressIndicatorTheme:
+          const ProgressIndicatorThemeData(color: Colors.blue));
 
   static ThemeData get defaultTheme => darkTheme;
 }

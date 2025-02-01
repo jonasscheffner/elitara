@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'localization/locale_provider.dart';
+import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/event_feed_screen.dart';
 import 'screens/event_detail_screen.dart';
@@ -54,10 +55,13 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         LocaleProvider.delegate,
       ],
-      initialRoute: '/',
+      initialRoute: '/welcome',
       onGenerateRoute: (settings) {
         switch (settings.name) {
-          case '/':
+          case '/welcome':
+            return MaterialPageRoute(
+                builder: (context) => const WelcomeScreen());
+          case '/login':
             return MaterialPageRoute(builder: (context) => LoginScreen());
           case '/eventFeed':
             return MaterialPageRoute(builder: (context) => EventFeedScreen());
@@ -67,8 +71,7 @@ class MyApp extends StatelessWidget {
             if (settings.arguments is String) {
               final String eventId = settings.arguments as String;
               return MaterialPageRoute(
-                builder: (context) => EventDetailScreen(eventId: eventId),
-              );
+                  builder: (context) => EventDetailScreen(eventId: eventId));
             }
             return _errorRoute();
           default:
@@ -80,7 +83,7 @@ class MyApp extends StatelessWidget {
 
   static Route<dynamic> _errorRoute() {
     return MaterialPageRoute(
-      builder: (context) => Scaffold(
+      builder: (context) => const Scaffold(
         body: Center(child: Text("Seite nicht gefunden")),
       ),
     );
