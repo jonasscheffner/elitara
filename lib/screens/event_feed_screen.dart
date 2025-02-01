@@ -1,3 +1,4 @@
+import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -38,16 +39,22 @@ class EventFeedScreen extends StatelessWidget {
             itemCount: events.length,
             itemBuilder: (context, index) {
               var event = events[index];
+              final DateTime dateTime = event['date'].toDate();
               return Card(
                 margin: const EdgeInsets.all(10),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15)),
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(15),
-                  title: Text(event['title'],
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  subtitle: Text(event['date'].toDate().toString()),
+                  title: Text(
+                    event['title'],
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    LocalizedDateTimeFormatter.getFormattedDateTime(
+                        context, dateTime),
+                  ),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () => Navigator.pushNamed(
                     context,

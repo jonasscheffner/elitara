@@ -43,6 +43,7 @@
   "event_detail_screen": {
     "title": "Eventdetails",
     "date": "Datum",
+    "time": "Uhrzeit",
     "location": "Standort",
     "join": "Event beitreten",
     "registered": "Du hast dich für das Event registriert",

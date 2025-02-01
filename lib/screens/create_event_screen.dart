@@ -1,4 +1,5 @@
 import 'package:elitara/localization/locale_provider.dart';
+import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -22,9 +23,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         _descriptionController.text.isEmpty ||
         _locationController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                  .translate(section, 'messages.fill_all_fields'))));
+        content: Text(Localizations.of<LocaleProvider>(context, LocaleProvider)!
+            .translate(section, 'messages.fill_all_fields')),
+        backgroundColor: Colors.yellow,
+      ));
       return;
     }
 
@@ -42,9 +44,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       'participants': [],
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
         content: Text(Localizations.of<LocaleProvider>(context, LocaleProvider)!
-            .translate(section, 'messages.event_created'))));
+            .translate(section, 'messages.event_created')),
+        backgroundColor: Colors.green,
+      ),
+    );
     Navigator.pop(context);
   }
 
@@ -146,7 +152,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 child: AbsorbPointer(
                   child: TextField(
                     controller: TextEditingController(
-                        text: DateFormat.yMd().format(_selectedDate)),
+                      text: LocalizedDateTimeFormatter.getFormattedDate(
+                          context, _selectedDate),
+                    ),
                     decoration: InputDecoration(
                       labelText:
                           localeProvider.translate(section, 'select_date'),
@@ -165,7 +173,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 onTap: () => _selectTime(context),
                 child: AbsorbPointer(
                   child: TextField(
-                    controller: TextEditingController(text: formattedTime),
+                    controller: TextEditingController(
+                      text: LocalizedDateTimeFormatter.getFormattedTime(
+                          context, _selectedDate),
+                    ),
                     decoration: InputDecoration(
                       labelText:
                           localeProvider.translate(section, 'select_time'),

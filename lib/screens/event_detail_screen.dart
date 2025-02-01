@@ -1,3 +1,4 @@
+import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -24,6 +25,7 @@ class EventDetailScreen extends StatelessWidget {
           }
 
           var eventData = snapshot.data!;
+          final DateTime dateTime = eventData['date'].toDate();
           return Padding(
             padding: EdgeInsets.all(16.0),
             child: Column(
@@ -34,10 +36,15 @@ class EventDetailScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 10),
-                Text(eventData['description'], style: TextStyle(fontSize: 16)),
+                Text(
+                  eventData['description'],
+                  style: TextStyle(fontSize: 16),
+                ),
                 SizedBox(height: 10),
                 Text(
-                    "${localeProvider.translate(section, 'date')}: ${eventData['date'].toDate()}"),
+                    "${localeProvider.translate(section, 'date')}: ${LocalizedDateTimeFormatter.getFormattedDate(context, dateTime)}"),
+                Text(
+                    "${localeProvider.translate(section, 'time')}: ${LocalizedDateTimeFormatter.getFormattedTime(context, dateTime)}"),
                 Text(
                     "${localeProvider.translate(section, 'location')}: ${eventData['location']}"),
                 SizedBox(height: 20),
@@ -51,8 +58,11 @@ class EventDetailScreen extends StatelessWidget {
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                          content: Text(
-                              localeProvider.translate(section, 'registered'))),
+                        content: Text(
+                          localeProvider.translate(section, 'registered'),
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
                     );
                   },
                   child: Text(localeProvider.translate(section, 'join')),

@@ -64,8 +64,10 @@ class _LoginScreenState extends State<LoginScreen>
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(localeProvider.translate(section, 'messages.login_error')),
+          content: Text(
+            localeProvider.translate(section, 'messages.login_error'),
+          ),
+          backgroundColor: Colors.red,
         ),
       );
     }
