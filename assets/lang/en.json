@@ -48,5 +48,38 @@
     "join": "Join Event",
     "registered": "You have been registered for the event",
     "messages": {}
+  },
+  "settings": {
+    "menu_screen": {
+      "title": "Settings",
+      "account_settings": "Account",
+      "membership": "Membership",
+      "notifications": "Notifications",
+      "app_info": "App Info",
+      "sign_out": "Sign Out"
+    },
+    "account_screen": {
+      "title": "Account Settings",
+      "username": "Username",
+      "username_required": "Please enter a username",
+      "email": "Email",
+      "email_required": "Please enter an email",
+      "password_hint": "Password (leave blank if unchanged)",
+      "save_changes": "Save Changes",
+      "profile_updated": "Profile updated successfully",
+      "profile_update_error": "Error updating profile: "
+    },
+    "membership_screen": {
+      "title": "Membership",
+      "coming_soon": "Membership management coming soon"
+    },
+    "notifications_screen": {
+      "title": "Notifications",
+      "coming_soon": "Notification settings coming soon"
+    },
+    "app_info_screen": {
+      "title": "App Info",
+      "coming_soon": "App information coming soon"
+    }
   }
 }

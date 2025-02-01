@@ -48,7 +48,9 @@ class AppTheme {
       ),
       cardTheme: CardTheme(color: Colors.grey[200]),
       progressIndicatorTheme:
-          const ProgressIndicatorThemeData(color: Colors.blue));
+          const ProgressIndicatorThemeData(color: Colors.blue),
+      floatingActionButtonTheme:
+          const FloatingActionButtonThemeData(backgroundColor: Colors.blue));
 
   static final ThemeData darkTheme = ThemeData(
       brightness: Brightness.dark,
@@ -98,7 +100,9 @@ class AppTheme {
       ),
       cardTheme: CardTheme(color: Colors.grey[850]),
       progressIndicatorTheme:
-          const ProgressIndicatorThemeData(color: Colors.blue));
+          const ProgressIndicatorThemeData(color: Colors.blue),
+      floatingActionButtonTheme:
+          const FloatingActionButtonThemeData(backgroundColor: Colors.blue));
 
   static ThemeData get defaultTheme => darkTheme;
 }

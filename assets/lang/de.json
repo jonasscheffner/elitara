@@ -48,5 +48,38 @@
     "join": "Event beitreten",
     "registered": "Du hast dich für das Event registriert",
     "messages": {}
+  },
+  "settings": {
+    "menu_screen": {
+      "title": "Einstellungen",
+      "account_settings": "Account",
+      "membership": "Mitgliedschaft",
+      "notifications": "Benachrichtigungen",
+      "app_info": "App-Info",
+      "sign_out": "Abmelden"
+    },
+    "account_screen": {
+      "title": "Kontoeinstellungen",
+      "username": "Benutzername",
+      "username_required": "Bitte geben Sie einen Benutzernamen ein",
+      "email": "E-Mail",
+      "email_required": "Bitte geben Sie eine E-Mail-Adresse ein",
+      "password_hint": "Passwort (leer lassen, wenn unverändert)",
+      "save_changes": "Änderungen speichern",
+      "profile_updated": "Profil erfolgreich aktualisiert",
+      "profile_update_error": "Fehler beim Aktualisieren des Profils: "
+    },
+    "membership_screen": {
+      "title": "Mitgliedschaft",
+      "coming_soon": "Mitgliedschaftsverwaltung demnächst verfügbar"
+    },
+    "notifications_screen": {
+      "title": "Benachrichtigungen",
+      "coming_soon": "Benachrichtigungseinstellungen demnächst verfügbar"
+    },
+    "app_info_screen": {
+      "title": "App-Info",
+      "coming_soon": "App-Informationen demnächst verfügbar"
+    }
   }
 }

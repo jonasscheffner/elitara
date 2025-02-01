@@ -1,27 +1,24 @@
-import 'package:elitara/utils/localized_date_time_formatter.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
+import 'package:elitara/utils/localized_date_time_formatter.dart';
 
 class EventFeedScreen extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  String section = 'event_feed_screen';
+  final String section = 'event_feed_screen';
 
   @override
   Widget build(BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(localeProvider.translate(section, 'title')),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pushNamed(context, '/createEvent'),
-            child: Text(
-              localeProvider.translate(section, 'create_event'),
-            ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => Navigator.pushNamed(context, '/settingsMenu'),
           ),
         ],
       ),
@@ -33,7 +30,8 @@ class EventFeedScreen extends StatelessWidget {
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(
-                child: Text(localeProvider.translate(section, 'no_events')));
+              child: Text(localeProvider.translate(section, 'no_events')),
+            );
           }
           var events = snapshot.data!.docs;
           return ListView.builder(
@@ -44,7 +42,8 @@ class EventFeedScreen extends StatelessWidget {
               return Card(
                 margin: const EdgeInsets.all(10),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15)),
+                  borderRadius: BorderRadius.circular(15),
+                ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(15),
                   title: Text(
@@ -57,16 +56,18 @@ class EventFeedScreen extends StatelessWidget {
                         context, dateTime),
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios),
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    '/eventDetail',
-                    arguments: event.id,
-                  ),
+                  onTap: () => Navigator.pushNamed(context, '/eventDetail',
+                      arguments: event.id),
                 ),
               );
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.pushNamed(context, '/createEvent'),
+        label: Text(localeProvider.translate(section, 'create_event')),
+        icon: const Icon(Icons.add),
       ),
     );
   }

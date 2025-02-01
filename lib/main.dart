@@ -1,3 +1,8 @@
+import 'package:elitara/screens/settings/account_settings_screen.dart';
+import 'package:elitara/screens/settings/settings_menu_screen.dart';
+import 'package:elitara/screens/settings/membership_settings_screen.dart';
+import 'package:elitara/screens/settings/notifications_screen.dart';
+import 'package:elitara/screens/settings/app_info_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,10 +51,7 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       locale: Locale(languageCode),
-      supportedLocales: const [
-        Locale('en', 'US'),
-        Locale('de', 'DE'),
-      ],
+      supportedLocales: const [Locale('en', 'US'), Locale('de', 'DE')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -74,6 +76,21 @@ class MyApp extends StatelessWidget {
                   builder: (context) => EventDetailScreen(eventId: eventId));
             }
             return _errorRoute();
+          case '/settingsMenu':
+            return MaterialPageRoute(
+                builder: (context) => const SettingsMenuScreen());
+          case '/accountSettings':
+            return MaterialPageRoute(
+                builder: (context) => const AccountSettingsScreen());
+          case '/membership':
+            return MaterialPageRoute(
+                builder: (context) => const MembershipScreen());
+          case '/notifications':
+            return MaterialPageRoute(
+                builder: (context) => const NotificationsScreen());
+          case '/appInfo':
+            return MaterialPageRoute(
+                builder: (context) => const AppInfoScreen());
           default:
             return _errorRoute();
         }
