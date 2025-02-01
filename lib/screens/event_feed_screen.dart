@@ -14,6 +14,7 @@ class EventFeedScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(localeProvider.translate(section, 'title')),
         actions: [
           TextButton(
