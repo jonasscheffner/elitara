@@ -12,12 +12,22 @@ class EventFeedScreen extends StatelessWidget {
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(localeProvider.translate(section, 'title'))),
+      appBar: AppBar(
+        title: Text(localeProvider.translate(section, 'title')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pushNamed(context, '/createEvent'),
+            child: Text(
+              localeProvider.translate(section, 'create_event'),
+            ),
+          ),
+        ],
+      ),
       body: StreamBuilder(
         stream: _firestore.collection('events').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(
@@ -28,13 +38,22 @@ class EventFeedScreen extends StatelessWidget {
             itemCount: events.length,
             itemBuilder: (context, index) {
               var event = events[index];
-              return ListTile(
-                title: Text(event['title']),
-                subtitle: Text(event['date'].toDate().toString()),
-                onTap: () => Navigator.pushNamed(
-                  context,
-                  '/eventDetail',
-                  arguments: event.id,
+              return Card(
+                margin: const EdgeInsets.all(10),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15)),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(15),
+                  title: Text(event['title'],
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  subtitle: Text(event['date'].toDate().toString()),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    '/eventDetail',
+                    arguments: event.id,
+                  ),
                 ),
               );
             },

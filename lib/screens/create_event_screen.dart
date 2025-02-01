@@ -1,6 +1,7 @@
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class CreateEventScreen extends StatefulWidget {
   @override
@@ -11,7 +12,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
+
   String section = 'create_event_screen';
 
   void _createEvent() async {
@@ -29,14 +32,52 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       'title': _titleController.text,
       'description': _descriptionController.text,
       'location': _locationController.text,
-      'date': Timestamp.fromDate(_selectedDate),
-      'participants': []
+      'date': Timestamp.fromDate(DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      )),
+      'participants': [],
     });
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(Localizations.of<LocaleProvider>(context, LocaleProvider)!
-            .translate(section, 'messsages.event_created'))));
+            .translate(section, 'messages.event_created'))));
     Navigator.pop(context);
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
   }
 
   @override
@@ -44,47 +85,114 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
 
+    String formattedTime = DateFormat.jm().format(DateTime(
+      2022,
+      1,
+      1,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    ));
+
     return Scaffold(
       appBar: AppBar(
-          title: Text(localeProvider.translate(section, 'create_event_title'))),
+        title: Text(localeProvider.translate(section, 'create_event_title')),
+      ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 16),
+              TextField(
                 controller: _titleController,
                 decoration: InputDecoration(
-                    labelText: localeProvider.translate(section, 'title'))),
-            TextField(
+                  labelText: localeProvider.translate(section, 'title'),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
-                    labelText:
-                        localeProvider.translate(section, 'description'))),
-            TextField(
+                  labelText: localeProvider.translate(section, 'description'),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+              TextField(
                 controller: _locationController,
                 decoration: InputDecoration(
-                    labelText: localeProvider.translate(section, 'location'))),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () async {
-                DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: _selectedDate,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime(2100),
-                );
-                if (pickedDate != null)
-                  setState(() => _selectedDate = pickedDate);
-              },
-              child: Text(
-                  "${localeProvider.translate(section, 'select_date')}: ${_selectedDate.toLocal()}"
-                      .split(' ')[0]),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
+                  labelText: localeProvider.translate(section, 'location'),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _selectDate(context),
+                child: AbsorbPointer(
+                  child: TextField(
+                    controller: TextEditingController(
+                        text: DateFormat.yMd().format(_selectedDate)),
+                    decoration: InputDecoration(
+                      labelText:
+                          localeProvider.translate(section, 'select_date'),
+                      suffixIcon: const Icon(Icons.calendar_today),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16.0, horizontal: 12.0),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _selectTime(context),
+                child: AbsorbPointer(
+                  child: TextField(
+                    controller: TextEditingController(text: formattedTime),
+                    decoration: InputDecoration(
+                      labelText:
+                          localeProvider.translate(section, 'select_time'),
+                      suffixIcon: const Icon(Icons.access_time),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16.0, horizontal: 12.0),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
                 onPressed: _createEvent,
-                child: Text(localeProvider.translate(section, 'create_event'))),
-          ],
+                style: ButtonStyle(
+                  padding: WidgetStateProperty.all(
+                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30)),
+                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12))),
+                ),
+                child: Text(localeProvider.translate(section, 'create_event'),
+                    style: const TextStyle(fontSize: 18)),
+              ),
+            ],
+          ),
         ),
       ),
     );

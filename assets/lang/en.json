@@ -24,6 +24,7 @@
   "event_feed_screen": {
     "title": "Event Feed",
     "no_events": "No events available",
+    "create_event": "Create Event",
     "messages": {}
   },
   "create_event_screen": {
@@ -32,6 +33,7 @@
     "description": "Description",
     "location": "Location",
     "select_date": "Select Date",
+    "select_time": "Select Time",
     "create_event": "Create Event",
     "messages": {
       "event_created": "Event created successfully",

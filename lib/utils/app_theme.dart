@@ -43,8 +43,8 @@ class AppTheme {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: Colors.blue,
-      ),
+          foregroundColor: Colors.blue,
+          textStyle: TextStyle(color: Colors.black)),
     ),
   );
 
@@ -91,6 +91,7 @@ class AppTheme {
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: Colors.blue,
+        textStyle: TextStyle(color: Colors.white),
       ),
     ),
   );
