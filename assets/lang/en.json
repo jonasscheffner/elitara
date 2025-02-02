@@ -3,11 +3,14 @@
     "login": "Sign in with Elitara Account",
     "email": "Email",
     "password": "Password",
-    "forgotten_password": "Forgotten your password?",
+    "forgotten_password": "Forgot your password?",
     "create_account": "Create Elitara Account",
     "messages": {
       "login_error": "Login failed. Please check your credentials."
-    }
+    },
+    "enter_email_for_reset": "Please enter your email to reset your password.",
+    "reset_email_sent": "Password reset email has been sent.",
+    "reset_email_error": "E-Mail zum Zurücksetzen des Passworts konnte nicht gesendet werden."
   },
   "register_dialog": {
     "create_account": "Create Your Elitara Account",

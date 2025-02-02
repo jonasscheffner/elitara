@@ -7,7 +7,10 @@
     "create_account": "Elitara Account erstellen",
     "messages": {
       "login_error": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten."
-    }
+    },
+    "enter_email_for_reset": "Bitte geben Sie Ihre E-Mail ein, um das Passwort zurückzusetzen.",
+    "reset_email_sent": "Eine E-Mail zum Zurücksetzen des Passworts wurde gesendet.",
+    "reset_email_error": "Passwort-Zurücksetzung fehlgeschlagen."
   },
   "register_dialog": {
     "create_account": "Erstelle dein Elitara Account",

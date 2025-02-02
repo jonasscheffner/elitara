@@ -73,6 +73,41 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  Future<void> _forgotPassword() async {
+    final email = emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text(localeProvider.translate(section, 'enter_email_for_reset')),
+        ),
+      );
+      return;
+    }
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(localeProvider.translate(section, 'reset_email_sent')),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(localeProvider.translate(section, 'reset_email_error')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _openRegisterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => RegisterDialog(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen>
               ),
               const SizedBox(height: 24),
               TextButton(
-                onPressed: () {},
+                onPressed: _forgotPassword,
                 child: Text(
                     localeProvider.translate(section, 'forgotten_password')),
               ),
@@ -154,13 +189,6 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ),
       ),
-    );
-  }
-
-  void _openRegisterDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => RegisterDialog(),
     );
   }
 }
