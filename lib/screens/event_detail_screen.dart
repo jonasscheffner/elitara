@@ -99,7 +99,7 @@ class EventDetailScreen extends StatelessWidget {
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold)),
                                   Text(
-                                    " (${localeProvider.translate(section, 'host')})",
+                                    " (${localeProvider.translate(section, 'host_label')})",
                                     style: const TextStyle(fontSize: 16),
                                   ),
                                 ],

@@ -65,6 +65,7 @@
     "edit_event": "Edit Event",
     "registered": "You have been registered for the event",
     "host": "Host",
+    "host_label": "host",
     "participants": "Participants",
     "messages": {}
   },
