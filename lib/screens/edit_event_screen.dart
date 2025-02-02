@@ -161,6 +161,38 @@ class _EditEventScreenState extends State<EditEventScreen> {
     Navigator.pop(context);
   }
 
+  Future<void> _confirmCancelEvent() async {
+    bool confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(
+                Localizations.of<LocaleProvider>(context, LocaleProvider)!
+                    .translate(section, 'confirmation_dialog.title')),
+            content: Text(
+                Localizations.of<LocaleProvider>(context, LocaleProvider)!
+                    .translate(section, 'confirmation_dialog.content')),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(
+                    Localizations.of<LocaleProvider>(context, LocaleProvider)!
+                        .translate(section, 'confirmation_dialog.no')),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(
+                    Localizations.of<LocaleProvider>(context, LocaleProvider)!
+                        .translate(section, 'confirmation_dialog.yes')),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (confirmed) {
+      _cancelEvent();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final localeProvider =
@@ -279,7 +311,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _cancelEvent,
+                onPressed: _confirmCancelEvent,
                 style: ButtonStyle(
                   padding: WidgetStateProperty.all(
                       const EdgeInsets.symmetric(vertical: 15, horizontal: 30)),

@@ -25,7 +25,7 @@
     "title": "Event Feed",
     "no_events": "Keine Events verfügbar",
     "create_event": "Event erstellen",
-    "hosted_by": "Veranstalted von",
+    "hosted_by": "Veranstaltet von",
     "messages": {}
   },
   "create_event_screen": {
@@ -54,6 +54,12 @@
       "fill_all_fields": "Bitte füllen Sie alle Felder aus",
       "event_updated": "Event erfolgreich aktualisiert",
       "event_canceled": "Event wurde abgesagt"
+    },
+    "confirmation_dialog": {
+      "title": "Event absagen",
+      "content": "Möchten Sie dieses Event wirklich absagen?",
+      "yes": "Ja",
+      "no": "Nein"
     }
   },
   "event_detail_screen": {
@@ -65,6 +71,7 @@
     "edit_event": "Event bearbeiten",
     "registered": "Du hast dich für das Event registriert",
     "host": "Veranstalter",
+    "host_label": "Veranstalter",
     "participants": "Teilnehmer",
     "messages": {}
   },
