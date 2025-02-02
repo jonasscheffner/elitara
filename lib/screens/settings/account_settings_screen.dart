@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:elitara/localization/locale_provider.dart';
+import 'package:elitara/services/user_service.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({super.key});
@@ -14,17 +15,36 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   late TextEditingController _emailController;
   final TextEditingController _passwordController = TextEditingController();
   bool _isSaving = false;
+  bool _hasChanged = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _currentUser;
   final String section = 'settings.account_screen';
+  final UserService _userService = UserService();
+  String _initialUsername = '';
+  String _initialEmail = '';
 
   @override
   void initState() {
     super.initState();
     _currentUser = _auth.currentUser;
-    _usernameController =
-        TextEditingController(text: _currentUser?.displayName ?? '');
-    _emailController = TextEditingController(text: _currentUser?.email ?? '');
+    _initialUsername = _currentUser?.displayName ?? '';
+    _initialEmail = _currentUser?.email ?? '';
+    _usernameController = TextEditingController(text: _initialUsername);
+    _emailController = TextEditingController(text: _initialEmail);
+    _usernameController.addListener(_checkForChanges);
+    _emailController.addListener(_checkForChanges);
+    _passwordController.addListener(_checkForChanges);
+  }
+
+  void _checkForChanges() {
+    bool changed = _usernameController.text != _initialUsername ||
+        _emailController.text != _initialEmail ||
+        _passwordController.text.isNotEmpty;
+    if (changed != _hasChanged) {
+      setState(() {
+        _hasChanged = changed;
+      });
+    }
   }
 
   @override
@@ -53,6 +73,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       }
       await _currentUser?.reload();
       _currentUser = _auth.currentUser;
+      await _userService.updateUser(_currentUser!.uid, {
+        'displayName': _usernameController.text,
+        'email': _emailController.text,
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -60,6 +84,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   .translate(section, 'profile_updated')),
         ),
       );
+      _initialUsername = _usernameController.text;
+      _initialEmail = _emailController.text;
+      _passwordController.clear();
+      setState(() {
+        _hasChanged = false;
+      });
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -71,6 +101,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     setState(() {
       _isSaving = false;
     });
+    Navigator.pop(context);
   }
 
   @override
@@ -129,7 +160,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isSaving
+                  onPressed: (!_hasChanged || _isSaving)
                       ? null
                       : () {
                           if (_formKey.currentState!.validate()) {

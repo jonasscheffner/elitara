@@ -141,8 +141,8 @@ class _LoginScreenState extends State<LoginScreen>
               const SizedBox(height: 24),
               TextButton(
                 onPressed: () {},
-                child:
-                    Text(localeProvider.translate(section, 'forgot_password')),
+                child: Text(
+                    localeProvider.translate(section, 'forgotten_password')),
               ),
               const SizedBox(height: 8),
               TextButton(

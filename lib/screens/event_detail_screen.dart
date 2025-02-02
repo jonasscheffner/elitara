@@ -1,73 +1,178 @@
+import 'package:elitara/screens/user_display_name.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/localization/locale_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EventDetailScreen extends StatelessWidget {
   final String eventId;
-  String section = 'event_detail_screen';
+  final String section = 'event_detail_screen';
 
-  EventDetailScreen({required this.eventId});
+  EventDetailScreen({Key? key, required this.eventId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
-
     return Scaffold(
-      appBar: AppBar(title: Text(localeProvider.translate(section, 'title'))),
-      body: FutureBuilder<DocumentSnapshot>(
-        future:
-            FirebaseFirestore.instance.collection('events').doc(eventId).get(),
+      appBar: AppBar(
+        title: Text(localeProvider.translate(section, 'title')),
+        centerTitle: true,
+      ),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('events')
+            .doc(eventId)
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
-
           var eventData = snapshot.data!;
           final DateTime dateTime = eventData['date'].toDate();
-          return Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  eventData['title'],
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  eventData['description'],
-                  style: TextStyle(fontSize: 16),
-                ),
-                SizedBox(height: 10),
-                Text(
-                    "${localeProvider.translate(section, 'date')}: ${LocalizedDateTimeFormatter.getFormattedDate(context, dateTime)}"),
-                Text(
-                    "${localeProvider.translate(section, 'time')}: ${LocalizedDateTimeFormatter.getFormattedTime(context, dateTime)}"),
-                Text(
-                    "${localeProvider.translate(section, 'location')}: ${eventData['location']}"),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    FirebaseFirestore.instance
-                        .collection('events')
-                        .doc(eventId)
-                        .update({
-                      'participants': FieldValue.arrayUnion(['testUser'])
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          localeProvider.translate(section, 'registered'),
+          final String hostId = eventData['host'] as String? ?? '';
+          final List<dynamic> participantsDynamic =
+              eventData['participants'] ?? [];
+          List<String> participantIds =
+              participantsDynamic.map((p) => p.toString()).toList();
+          participantIds.remove(hostId);
+          participantIds.insert(0, hostId);
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    eventData['title'],
+                    style: const TextStyle(
+                        fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    eventData['description'],
+                    style: const TextStyle(fontSize: 16, height: 1.4),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "${localeProvider.translate(section, 'date')}: ${LocalizedDateTimeFormatter.getFormattedDate(context, dateTime)}",
+                          style: const TextStyle(fontSize: 16),
                         ),
-                        backgroundColor: Colors.green,
                       ),
-                    );
-                  },
-                  child: Text(localeProvider.translate(section, 'join')),
-                ),
-              ],
+                      Expanded(
+                        child: Text(
+                          "${localeProvider.translate(section, 'time')}: ${LocalizedDateTimeFormatter.getFormattedTime(context, dateTime)}",
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "${localeProvider.translate(section, 'location')}: ${eventData['location']}",
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${localeProvider.translate(section, 'participants')}: ",
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      Flexible(
+                        child: Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          children: participantIds.map((uid) {
+                            if (uid == hostId) {
+                              return Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  UserDisplayName(
+                                      uid: uid,
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold)),
+                                  Text(
+                                    " (${localeProvider.translate(section, 'host')})",
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ],
+                              );
+                            }
+                            return UserDisplayName(
+                                uid: uid, style: const TextStyle(fontSize: 16));
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  Center(
+                    child: Builder(
+                      builder: (context) {
+                        final currentUser = FirebaseAuth.instance.currentUser;
+                        bool isHost =
+                            currentUser != null && currentUser.uid == hostId;
+                        if (isHost) {
+                          return ElevatedButton(
+                            onPressed: () => Navigator.pushNamed(
+                                context, '/editEvent',
+                                arguments: eventId),
+                            style: ElevatedButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40),
+                              textStyle: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: Text(localeProvider.translate(
+                                section, 'edit_event')),
+                          );
+                        } else {
+                          return ElevatedButton(
+                            onPressed: () async {
+                              final currentUser =
+                                  FirebaseAuth.instance.currentUser;
+                              if (currentUser != null) {
+                                await FirebaseFirestore.instance
+                                    .collection('events')
+                                    .doc(eventId)
+                                    .update({
+                                  'participants':
+                                      FieldValue.arrayUnion([currentUser.uid])
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(localeProvider.translate(
+                                        section, 'registered')),
+                                  ),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40),
+                              textStyle: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child:
+                                Text(localeProvider.translate(section, 'join')),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },

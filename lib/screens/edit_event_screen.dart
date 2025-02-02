@@ -1,63 +1,79 @@
-import 'package:elitara/localization/locale_provider.dart';
-import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:elitara/localization/locale_provider.dart';
+import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:intl/intl.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-class CreateEventScreen extends StatefulWidget {
+class EditEventScreen extends StatefulWidget {
+  final String eventId;
+  const EditEventScreen({super.key, required this.eventId});
+
   @override
-  _CreateEventScreenState createState() => _CreateEventScreenState();
+  _EditEventScreenState createState() => _EditEventScreenState();
 }
 
-class _CreateEventScreenState extends State<CreateEventScreen> {
+class _EditEventScreenState extends State<EditEventScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
+  DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
-  String section = 'create_event_screen';
+  bool _isLoading = true;
+  bool _hasChanged = false;
+  Map<String, dynamic>? eventData;
+  String section = 'edit_event_screen';
+  late String _initialTitle;
+  late String _initialDescription;
+  late String _initialLocation;
+  late DateTime _initialDate;
+  late TimeOfDay _initialTime;
 
-  void _createEvent() async {
-    if (_titleController.text.isEmpty ||
-        _descriptionController.text.isEmpty ||
-        _locationController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                .translate(section, 'messages.fill_all_fields'),
-          ),
-        ),
-      );
-      return;
+  @override
+  void initState() {
+    super.initState();
+    _loadEventData();
+  }
+
+  Future<void> _loadEventData() async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('events')
+        .doc(widget.eventId)
+        .get();
+    eventData = doc.data() as Map<String, dynamic>?;
+    if (eventData != null) {
+      _titleController.text = eventData!['title'] ?? '';
+      _descriptionController.text = eventData!['description'] ?? '';
+      _locationController.text = eventData!['location'] ?? '';
+      Timestamp ts = eventData!['date'];
+      DateTime dt = ts.toDate();
+      _selectedDate = dt;
+      _selectedTime = TimeOfDay(hour: dt.hour, minute: dt.minute);
+      _initialTitle = _titleController.text;
+      _initialDescription = _descriptionController.text;
+      _initialLocation = _locationController.text;
+      _initialDate = _selectedDate;
+      _initialTime = _selectedTime;
+      _titleController.addListener(_checkForChanges);
+      _descriptionController.addListener(_checkForChanges);
+      _locationController.addListener(_checkForChanges);
     }
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) return;
-    await FirebaseFirestore.instance.collection('events').add({
-      'title': _titleController.text,
-      'description': _descriptionController.text,
-      'location': _locationController.text,
-      'date': Timestamp.fromDate(DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _selectedTime.hour,
-        _selectedTime.minute,
-      )),
-      'host': currentUser.uid,
-      'participants': [currentUser.uid],
-      'status': 'active'
+    setState(() {
+      _isLoading = false;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          Localizations.of<LocaleProvider>(context, LocaleProvider)!
-              .translate(section, 'messages.event_created'),
-        ),
-      ),
-    );
-    Navigator.pop(context);
+  }
+
+  void _checkForChanges() {
+    bool changed = _titleController.text != _initialTitle ||
+        _descriptionController.text != _initialDescription ||
+        _locationController.text != _initialLocation ||
+        !_selectedDate.isAtSameMomentAs(_initialDate) ||
+        (_selectedTime.hour != _initialTime.hour ||
+            _selectedTime.minute != _initialTime.minute);
+    if (changed != _hasChanged) {
+      setState(() {
+        _hasChanged = changed;
+      });
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -71,6 +87,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       setState(() {
         _selectedDate = picked;
       });
+      _checkForChanges();
     }
   }
 
@@ -89,18 +106,73 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       setState(() {
         _selectedTime = picked;
       });
+      _checkForChanges();
     }
+  }
+
+  Future<void> _updateEvent() async {
+    if (_titleController.text.isEmpty ||
+        _descriptionController.text.isEmpty ||
+        _locationController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              Localizations.of<LocaleProvider>(context, LocaleProvider)!
+                  .translate(section, 'messages.fill_all_fields')),
+        ),
+      );
+      return;
+    }
+    await FirebaseFirestore.instance
+        .collection('events')
+        .doc(widget.eventId)
+        .update({
+      'title': _titleController.text,
+      'description': _descriptionController.text,
+      'location': _locationController.text,
+      'date': Timestamp.fromDate(DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      )),
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(Localizations.of<LocaleProvider>(context, LocaleProvider)!
+            .translate(section, 'messages.event_updated')),
+      ),
+    );
+    Navigator.pop(context);
+  }
+
+  Future<void> _cancelEvent() async {
+    await FirebaseFirestore.instance
+        .collection('events')
+        .doc(widget.eventId)
+        .update({'status': 'canceled'});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(Localizations.of<LocaleProvider>(context, LocaleProvider)!
+            .translate(section, 'messages.event_canceled')),
+      ),
+    );
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          localeProvider.translate(section, 'create_event_title'),
-        ),
+        title: Text(localeProvider.translate(section, 'edit_event_title')),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -191,15 +263,34 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _createEvent,
+                onPressed: (!_hasChanged || _isLoading) ? null : _updateEvent,
                 style: ButtonStyle(
                   padding: WidgetStateProperty.all(
                       const EdgeInsets.symmetric(vertical: 15, horizontal: 30)),
-                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12))),
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
                 child: Text(
-                  localeProvider.translate(section, 'create_event'),
+                  localeProvider.translate(section, 'update_event'),
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _cancelEvent,
+                style: ButtonStyle(
+                  padding: WidgetStateProperty.all(
+                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30)),
+                  backgroundColor: WidgetStateProperty.all(Colors.red),
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                child: Text(
+                  localeProvider.translate(section, 'cancel_event'),
                   style: const TextStyle(fontSize: 18),
                 ),
               ),

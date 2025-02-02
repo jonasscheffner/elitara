@@ -1,3 +1,4 @@
+import 'package:elitara/screens/edit_event_screen.dart';
 import 'package:elitara/screens/settings/account_settings_screen.dart';
 import 'package:elitara/screens/settings/settings_menu_screen.dart';
 import 'package:elitara/screens/settings/membership_settings_screen.dart';
@@ -74,6 +75,13 @@ class MyApp extends StatelessWidget {
               final String eventId = settings.arguments as String;
               return MaterialPageRoute(
                   builder: (context) => EventDetailScreen(eventId: eventId));
+            }
+            return _errorRoute();
+          case '/editEvent':
+            if (settings.arguments is String) {
+              final String eventId = settings.arguments as String;
+              return MaterialPageRoute(
+                  builder: (context) => EditEventScreen(eventId: eventId));
             }
             return _errorRoute();
           case '/settingsMenu':
