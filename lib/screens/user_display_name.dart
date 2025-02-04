@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:elitara/services/user_service.dart';
 
 class UserDisplayName extends StatelessWidget {
   final String uid;
@@ -8,12 +8,11 @@ class UserDisplayName extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-      stream:
-          FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+    return StreamBuilder<Map<String, dynamic>>(
+      stream: UserService().streamUser(uid),
       builder: (context, snapshot) {
-        if (snapshot.hasData && snapshot.data!.exists) {
-          final data = snapshot.data!.data() as Map<String, dynamic>;
+        if (snapshot.hasData) {
+          final data = snapshot.data!;
           return Text(data['displayName'] ?? 'Unknown', style: style);
         }
         return Text('...', style: style);

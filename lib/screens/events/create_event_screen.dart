@@ -2,10 +2,11 @@ import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CreateEventScreen extends StatefulWidget {
+  const CreateEventScreen({super.key});
+
   @override
   _CreateEventScreenState createState() => _CreateEventScreenState();
 }

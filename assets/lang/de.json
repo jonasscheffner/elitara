@@ -28,8 +28,8 @@
     "title": "Event Feed",
     "no_events": "Keine Events verfügbar",
     "create_event": "Event erstellen",
-    "hosted_by": "Veranstaltet von",
-    "messages": {}
+    "hosted_by": "Veranstalter",
+    "search": "Events durchsuchen..."
   },
   "create_event_screen": {
     "create_event_title": "Event erstellen",
@@ -75,8 +75,7 @@
     "registered": "Du hast dich für das Event registriert",
     "host": "Veranstalter",
     "host_label": "Veranstalter",
-    "participants": "Teilnehmer",
-    "messages": {}
+    "participants": "Teilnehmer"
   },
   "settings": {
     "menu_screen": {

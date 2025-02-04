@@ -19,4 +19,12 @@ class UserService {
   Future<void> updateUser(String uid, Map<String, dynamic> data) async {
     await _firestore.collection('users').doc(uid).update(data);
   }
+
+  Stream<Map<String, dynamic>> streamUser(String uid) {
+    return _firestore
+        .collection('users')
+        .doc(uid)
+        .snapshots()
+        .map((doc) => doc.data() as Map<String, dynamic>);
+  }
 }
