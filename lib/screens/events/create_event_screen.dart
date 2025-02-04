@@ -93,6 +93,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     }
   }
 
+  DateTime _combineDateAndTime() {
+    return DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final localeProvider =
@@ -175,7 +185,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   child: TextField(
                     controller: TextEditingController(
                       text: LocalizedDateTimeFormatter.getFormattedTime(
-                          context, _selectedDate),
+                          context, _combineDateAndTime()),
                     ),
                     decoration: InputDecoration(
                       labelText:
@@ -196,8 +206,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 style: ButtonStyle(
                   padding: WidgetStateProperty.all(
                       const EdgeInsets.symmetric(vertical: 15, horizontal: 30)),
-                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12))),
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
                 child: Text(
                   localeProvider.translate(section, 'create_event'),
