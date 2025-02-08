@@ -26,6 +26,7 @@ class MembershipScreen extends StatelessWidget {
               ],
               color: Colors.blueGrey.shade600,
               icon: Icons.event,
+              textColor: Colors.white,
             ),
             const SizedBox(height: 16),
             _buildMembershipCard(
@@ -38,6 +39,7 @@ class MembershipScreen extends StatelessWidget {
               ],
               color: Colors.amber.shade300,
               icon: Icons.star,
+              textColor: Colors.white,
             ),
             const SizedBox(height: 16),
             _buildMembershipCard(
@@ -48,13 +50,14 @@ class MembershipScreen extends StatelessWidget {
                 localeProvider.translate(section, 'platinum_feature_2'),
                 localeProvider.translate(section, 'platinum_feature_3'),
               ],
-              color: Colors.grey.shade500,
+              color: Colors.grey.shade400,
               gradient: LinearGradient(
-                colors: [Colors.grey.shade400, Colors.grey.shade600],
+                colors: [Colors.grey.shade300, Colors.grey.shade600],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               icon: Icons.diamond,
+              textColor: Colors.black87,
             ),
           ],
         ),
@@ -67,7 +70,8 @@ class MembershipScreen extends StatelessWidget {
       required List<String> features,
       required Color color,
       Gradient? gradient,
-      required IconData icon}) {
+      required IconData icon,
+      required Color textColor}) {
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -90,9 +94,10 @@ class MembershipScreen extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
                   ),
                 ),
@@ -110,7 +115,7 @@ class MembershipScreen extends StatelessWidget {
                       Expanded(
                         child: Text(
                           feature,
-                          style: const TextStyle(fontSize: 14),
+                          style: TextStyle(fontSize: 14, color: textColor),
                         ),
                       ),
                     ],
