@@ -48,9 +48,9 @@ class MembershipScreen extends StatelessWidget {
                 localeProvider.translate(section, 'platinum_feature_2'),
                 localeProvider.translate(section, 'platinum_feature_3'),
               ],
-              color: Colors.grey.shade600,
+              color: Colors.grey.shade500,
               gradient: LinearGradient(
-                colors: [Colors.grey.shade500, Colors.grey.shade700],
+                colors: [Colors.grey.shade400, Colors.grey.shade600],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
