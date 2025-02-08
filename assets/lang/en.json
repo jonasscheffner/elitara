@@ -98,8 +98,18 @@
       "profile_update_error": "Error updating profile: "
     },
     "membership_screen": {
-      "title": "Membership",
-      "coming_soon": "Membership management coming soon"
+      "title": "Membership Options",
+      "guest_title": "Guest Membership – Your Access to the Event World",
+      "guest_feature_1": "Experience exclusive events",
+      "guest_feature_2": "Join as a guest & expand your network",
+      "gold_title": "Gold Membership – Become an Exclusive Organizer",
+      "gold_feature_1": "Create up to 5 events per month",
+      "gold_feature_2": "Send private messages to members",
+      "gold_feature_3": "Take an active role in others' events & invite members into exclusive circles",
+      "platinum_title": "Platinum Membership – The Ultimate Event Elite",
+      "platinum_feature_1": "Unlimited event creation",
+      "platinum_feature_2": "Monetize events with paid access",
+      "platinum_feature_3": "Exclusive Platinum Organizer Badge"
     },
     "notifications_screen": {
       "title": "Notifications",
