@@ -1,4 +1,4 @@
-import 'package:elitara/screens/user_display_name.dart';
+import 'package:elitara/screens/events/widgets/user_display_name.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

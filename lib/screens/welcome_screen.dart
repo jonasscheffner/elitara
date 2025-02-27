@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'login_screen.dart';
+import 'login/login_screen.dart';
 import 'events/event_feed_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {

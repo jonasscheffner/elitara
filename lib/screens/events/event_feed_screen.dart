@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/screens/events/filters/event_search_filter.dart';
-import 'package:elitara/screens/user_display_name.dart';
+import 'package:elitara/screens/events/widgets/user_display_name.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:elitara/services/user_service.dart';

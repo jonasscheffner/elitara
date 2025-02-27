@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'localization/locale_provider.dart';
 import 'screens/welcome_screen.dart';
-import 'screens/login_screen.dart';
+import 'screens/login/login_screen.dart';
 import 'screens/events/event_feed_screen.dart';
 import 'screens/events/event_detail_screen.dart';
 import 'screens/events/create_event_screen.dart';

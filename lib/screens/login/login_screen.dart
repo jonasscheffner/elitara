@@ -1,4 +1,4 @@
-import 'package:elitara/screens/register_dialog.dart';
+import 'package:elitara/screens/login/widgets/register_dialog.dart';
 import 'package:elitara/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
