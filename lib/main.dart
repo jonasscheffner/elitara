@@ -92,7 +92,7 @@ class MyApp extends StatelessWidget {
                 builder: (context) => const AccountSettingsScreen());
           case '/membership':
             return MaterialPageRoute(
-                builder: (context) => const MembershipScreen());
+                builder: (context) => const MembershipSettingsScreen());
           case '/notifications':
             return MaterialPageRoute(
                 builder: (context) => const NotificationsScreen());

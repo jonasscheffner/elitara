@@ -98,7 +98,7 @@
       "profile_update_error": "Error updating profile: "
     },
     "membership_screen": {
-      "title": "Membership Options",
+      "title": "Membership Management",
       "guest_title": "Guest Membership – Your Access to the Event World",
       "guest_feature_1": "Experience exclusive events",
       "guest_feature_2": "Join as a guest & expand your network",
@@ -109,7 +109,19 @@
       "platinum_title": "Platinum Membership – The Ultimate Event Elite",
       "platinum_feature_1": "Unlimited event creation",
       "platinum_feature_2": "Monetize events with paid access",
-      "platinum_feature_3": "Exclusive Platinum Organizer Badge"
+      "platinum_feature_3": "Exclusive Platinum Organizer Badge",
+      "cancel_button": "Cancel Membership",
+      "membership_updated": "Your membership has been successfully updated.",
+      "membership_canceled": "Your membership has been successfully canceled.",
+      "cancel_title": "Cancel Membership",
+      "cancel_confirmation": "Are you sure you want to cancel your membership? All benefits of this membership will be revoked immediately.",
+      "cancel_yes": "Yes, Cancel",
+      "cancel_no": "No, Keep Membership",
+      "current_membership": "Your current membership:",
+      "select_membership": "Choose a membership",
+      "change_membership": "Change Membership",
+      "confirm_upgrade": "Are you sure you want to upgrade to {membership} membership?",
+      "confirm_downgrade": "Are you sure you want to switch to {membership} membership? Some features may be restricted."
     },
     "notifications_screen": {
       "title": "Notifications",

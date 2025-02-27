@@ -98,7 +98,7 @@
       "profile_update_error": "Fehler beim Aktualisieren des Profils: "
     },
     "membership_screen": {
-      "title": "Mitgliedschaftsoptionen",
+      "title": "Mitgliedschaftsverwaltung",
       "guest_title": "Guest-Mitgliedschaft – Dein Zugang zur Event-Welt",
       "guest_feature_1": "Exklusive Events erleben",
       "guest_feature_2": "Teilnahme als Gast & Netzwerk erweitern",
@@ -109,7 +109,19 @@
       "platinum_title": "Platin-Mitgliedschaft – Die ultimative Event-Elite",
       "platinum_feature_1": "Unbegrenzte Event-Erstellung",
       "platinum_feature_2": "Events monetarisieren mit kostenpflichtigem Zugang",
-      "platinum_feature_3": "Exklusives Platin-Veranstalter-Badge"
+      "platinum_feature_3": "Exklusives Platin-Veranstalter-Badge",
+      "cancel_button": "Mitgliedschaft kündigen",
+      "membership_updated": "Deine Mitgliedschaft wurde erfolgreich aktualisiert.",
+      "membership_canceled": "Deine Mitgliedschaft wurde erfolgreich gekündigt.",
+      "cancel_title": "Mitgliedschaft kündigen",
+      "cancel_confirmation": "Bist du sicher, dass du deine Mitgliedschaft kündigen möchtest? Alle Vorteile dieser Mitgliedschaft werden sofort aufgehoben.",
+      "cancel_yes": "Ja, kündigen",
+      "cancel_no": "Nein, behalten",
+      "current_membership": "Deine aktuelle Mitgliedschaft:",
+      "select_membership": "Wähle eine Mitgliedschaft",
+      "change_membership": "Mitgliedschaft wechseln",
+      "confirm_upgrade": "Möchtest du wirklich auf die {membership} Mitgliedschaft upgraden?",
+      "confirm_downgrade": "Möchtest du wirklich auf die {membership} Mitgliedschaft wechseln? Dein Zugang zu bestimmten Funktionen könnte eingeschränkt werden."
     },
     "notifications_screen": {
       "title": "Benachrichtigungen",
