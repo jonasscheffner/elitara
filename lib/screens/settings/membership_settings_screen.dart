@@ -106,6 +106,19 @@ class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            if (_currentMembership == null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Text(
+                  localeProvider.translate(
+                      widget.section, 'no_membership_message'),
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             _buildMembershipCard(
               context,
               title: localeProvider.translate(widget.section, 'guest_title'),

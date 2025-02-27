@@ -114,14 +114,10 @@
       "membership_updated": "Your membership has been successfully updated.",
       "membership_canceled": "Your membership has been successfully canceled.",
       "cancel_title": "Cancel Membership",
-      "cancel_confirmation": "Are you sure you want to cancel your membership? All benefits of this membership will be revoked immediately.",
-      "cancel_yes": "Yes, Cancel",
-      "cancel_no": "No, Keep Membership",
-      "current_membership": "Your current membership:",
-      "select_membership": "Choose a membership",
-      "change_membership": "Change Membership",
-      "confirm_upgrade": "Are you sure you want to upgrade to {membership} membership?",
-      "confirm_downgrade": "Are you sure you want to switch to {membership} membership? Some features may be restricted."
+      "cancel_confirmation": "Are you sure you want to cancel your membership? This action cannot be undone.",
+      "cancel_no": "Cancel",
+      "cancel_yes": "Yes, cancel",
+      "no_membership_message": "You currently have no active membership. Choose one to gain access to exclusive benefits."
     },
     "notifications_screen": {
       "title": "Notifications",

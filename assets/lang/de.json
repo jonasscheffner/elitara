@@ -114,14 +114,10 @@
       "membership_updated": "Deine Mitgliedschaft wurde erfolgreich aktualisiert.",
       "membership_canceled": "Deine Mitgliedschaft wurde erfolgreich gekündigt.",
       "cancel_title": "Mitgliedschaft kündigen",
-      "cancel_confirmation": "Bist du sicher, dass du deine Mitgliedschaft kündigen möchtest? Alle Vorteile dieser Mitgliedschaft werden sofort aufgehoben.",
+      "cancel_confirmation": "Bist du sicher, dass du deine Mitgliedschaft kündigen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "cancel_no": "Abbrechen",
       "cancel_yes": "Ja, kündigen",
-      "cancel_no": "Nein, behalten",
-      "current_membership": "Deine aktuelle Mitgliedschaft:",
-      "select_membership": "Wähle eine Mitgliedschaft",
-      "change_membership": "Mitgliedschaft wechseln",
-      "confirm_upgrade": "Möchtest du wirklich auf die {membership} Mitgliedschaft upgraden?",
-      "confirm_downgrade": "Möchtest du wirklich auf die {membership} Mitgliedschaft wechseln? Dein Zugang zu bestimmten Funktionen könnte eingeschränkt werden."
+      "no_membership_message": "Du hast derzeit keine aktive Mitgliedschaft. Wähle eine aus, um Zugriff auf exklusive Vorteile zu erhalten."
     },
     "notifications_screen": {
       "title": "Benachrichtigungen",
