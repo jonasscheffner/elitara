@@ -7,6 +7,8 @@ import 'package:elitara/services/user_service.dart';
 import 'package:elitara/services/event_service.dart';
 import 'package:flutter/material.dart';
 
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
 class EventFeedScreen extends StatefulWidget {
   const EventFeedScreen({super.key});
 
@@ -14,7 +16,7 @@ class EventFeedScreen extends StatefulWidget {
   _EventFeedScreenState createState() => _EventFeedScreenState();
 }
 
-class _EventFeedScreenState extends State<EventFeedScreen> {
+class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   final EventService _eventService = EventService(itemsPerPage: 10);
   final String section = 'event_feed_screen';
   final ScrollController _scrollController = ScrollController();
@@ -39,6 +41,24 @@ class _EventFeedScreenState extends State<EventFeedScreen> {
         _loadMoreEvents();
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)! as PageRoute);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    _loadEvents();
   }
 
   Future<void> _loadEvents() async {
@@ -131,12 +151,6 @@ class _EventFeedScreenState extends State<EventFeedScreen> {
   }
 
   @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
@@ -183,6 +197,15 @@ class _EventFeedScreenState extends State<EventFeedScreen> {
                       } else if (hostData is Map) {
                         hostId = hostData['uid'] as String? ?? '';
                       }
+                      final String accessType =
+                          (data.containsKey('accessType') &&
+                                  data['accessType'] is String)
+                              ? data['accessType'] as String
+                              : "public";
+                      String accessText = accessType == "invite_only"
+                          ? localeProvider.translate(
+                              section, 'access_invite_only')
+                          : localeProvider.translate(section, 'access_public');
                       return Card(
                         margin: const EdgeInsets.all(10),
                         shape: RoundedRectangleBorder(
@@ -210,16 +233,34 @@ class _EventFeedScreenState extends State<EventFeedScreen> {
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                   UserDisplayName(
-                                      uid: hostId,
-                                      style: const TextStyle(fontSize: 14)),
+                                    uid: hostId,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Text(
+                                    "${localeProvider.translate(section, 'access')}: ",
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  Text(
+                                    accessText,
+                                    style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold),
+                                  ),
                                 ],
                               ),
                             ],
                           ),
                           trailing: const Icon(Icons.arrow_forward_ios),
-                          onTap: () => Navigator.pushNamed(
-                              context, '/eventDetail',
-                              arguments: event.id),
+                          onTap: () async {
+                            await Navigator.pushNamed(context, '/eventDetail',
+                                arguments: event.id);
+                            _loadEvents();
+                          },
                         ),
                       );
                     },

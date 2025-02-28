@@ -29,16 +29,24 @@
     "no_events": "Keine Events verfügbar",
     "create_event": "Event erstellen",
     "hosted_by": "Veranstalter",
-    "search": "Events durchsuchen..."
+    "search": "Events durchsuchen...",
+    "access": "Zugriff",
+    "access_public": "Öffentlich",
+    "access_invite_only": "Nur per Einladung"
   },
-  "create_event_screen": {
-    "create_event_title": "Event erstellen",
+  "event_form": {
     "title": "Titel",
     "description": "Beschreibung",
     "location": "Standort",
     "participant_limit": "Teilnehmerlimit",
     "select_date": "Datum auswählen",
     "select_time": "Uhrzeit auswählen",
+    "access": "Zugriff",
+    "access_public": "Öffentlich",
+    "access_invite_only": "Nur per Einladung"
+  },
+  "create_event_screen": {
+    "create_event_title": "Event erstellen",
     "create_event": "Ereignis erstellen",
     "messages": {
       "event_created": "Event erfolgreich erstellt",
@@ -48,12 +56,6 @@
   },
   "edit_event_screen": {
     "edit_event_title": "Event bearbeiten",
-    "title": "Titel",
-    "description": "Beschreibung",
-    "location": "Standort",
-    "participant_limit": "Teilnehmerlimit",
-    "select_date": "Datum auswählen",
-    "select_time": "Uhrzeit auswählen",
     "update_event": "Event aktualisieren",
     "cancel_event": "Event absagen",
     "messages": {
@@ -79,7 +81,10 @@
     "registered": "Du hast dich für das Event registriert",
     "host": "Veranstalter",
     "host_label": "Veranstalter",
-    "participants": "Teilnehmer"
+    "participants": "Teilnehmer",
+    "access": "Zugriff",
+    "access_public": "Öffentlich",
+    "access_invite_only": "Nur per Einladung"
   },
   "settings": {
     "menu_screen": {

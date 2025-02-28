@@ -1,10 +1,9 @@
 import 'package:elitara/localization/locale_provider.dart';
-import 'package:elitara/utils/localized_date_time_formatter.dart';
-import 'package:elitara/widgets/required_field_label.dart';
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:elitara/screens/events/widgets/event_form.dart';
 import 'package:elitara/services/event_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
@@ -22,6 +21,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
+  String _accessType = "public";
+
   String section = 'create_event_screen';
   final EventService _eventService = EventService();
 
@@ -74,6 +75,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       'host': currentUser.uid,
       'participants': [currentUser.uid],
       'status': 'active',
+      'accessType': _accessType,
     };
     if (participantLimit != null) {
       eventData['participantLimit'] = participantLimit;
@@ -138,115 +140,21 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 16),
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  label: RequiredFieldLabel(
-                    label: localeProvider.translate(section, 'title'),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  label: RequiredFieldLabel(
-                    label: localeProvider.translate(section, 'description'),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _locationController,
-                decoration: InputDecoration(
-                  label: RequiredFieldLabel(
-                    label: localeProvider.translate(section, 'location'),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _participantLimitController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText:
-                      localeProvider.translate(section, 'participant_limit'),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
-              ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => _selectDate(context),
-                child: AbsorbPointer(
-                  child: TextField(
-                    controller: TextEditingController(
-                      text: LocalizedDateTimeFormatter.getFormattedDate(
-                          context, _selectedDate),
-                    ),
-                    decoration: InputDecoration(
-                      label: RequiredFieldLabel(
-                        label: localeProvider.translate(section, 'select_date'),
-                      ),
-                      suffixIcon: const Icon(Icons.calendar_today),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0, horizontal: 12.0),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => _selectTime(context),
-                child: AbsorbPointer(
-                  child: TextField(
-                    controller: TextEditingController(
-                      text: LocalizedDateTimeFormatter.getFormattedTime(
-                          context,
-                          DateTime(
-                            _selectedDate.year,
-                            _selectedDate.month,
-                            _selectedDate.day,
-                            _selectedTime.hour,
-                            _selectedTime.minute,
-                          )),
-                    ),
-                    decoration: InputDecoration(
-                      label: RequiredFieldLabel(
-                        label: localeProvider.translate(section, 'select_time'),
-                      ),
-                      suffixIcon: const Icon(Icons.access_time),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0, horizontal: 12.0),
-                    ),
-                  ),
-                ),
+              EventForm(
+                titleController: _titleController,
+                descriptionController: _descriptionController,
+                locationController: _locationController,
+                participantLimitController: _participantLimitController,
+                selectedDate: _selectedDate,
+                selectedTime: _selectedTime,
+                onSelectDate: () => _selectDate(context),
+                onSelectTime: () => _selectTime(context),
+                accessType: _accessType,
+                onAccessTypeChanged: (value) {
+                  setState(() {
+                    _accessType = value ?? "public";
+                  });
+                },
               ),
               const SizedBox(height: 20),
               ElevatedButton(

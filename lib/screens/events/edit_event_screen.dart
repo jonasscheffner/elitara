@@ -1,8 +1,7 @@
-import 'package:elitara/widgets/required_field_label.dart';
+import 'package:elitara/screens/events/widgets/event_form.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/localization/locale_provider.dart';
-import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:elitara/services/event_service.dart';
 
 class EditEventScreen extends StatefulWidget {
@@ -32,6 +31,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   int? _initialParticipantLimit;
   late DateTime _initialDate;
   late TimeOfDay _initialTime;
+  String _accessType = "public";
 
   final EventService _eventService = EventService();
 
@@ -53,6 +53,10 @@ class _EditEventScreenState extends State<EditEventScreen> {
           : null;
       _participantLimitController.text =
           _initialParticipantLimit?.toString() ?? '';
+      String accessType = eventData!['accessType'] is String
+          ? eventData!['accessType'] as String
+          : "public";
+      _accessType = accessType;
       Timestamp ts = eventData!['date'];
       DateTime dt = ts.toDate();
       _selectedDate = dt;
@@ -84,7 +88,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
         participantLimitChanged ||
         !_selectedDate.isAtSameMomentAs(_initialDate) ||
         (_selectedTime.hour != _initialTime.hour ||
-            _selectedTime.minute != _initialTime.minute);
+            _selectedTime.minute != _initialTime.minute) ||
+        (_accessType != (eventData?['accessType'] as String? ?? "public"));
     if (changed != _hasChanged) {
       setState(() {
         _hasChanged = changed;
@@ -165,6 +170,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
         _selectedTime.hour,
         _selectedTime.minute,
       )),
+      'accessType': _accessType,
     };
     if (_participantLimitController.text.isNotEmpty) {
       updatedData['participantLimit'] = participantLimit;
@@ -243,102 +249,22 @@ class _EditEventScreenState extends State<EditEventScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 16),
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  label: RequiredFieldLabel(
-                    label: localeProvider.translate(section, 'title'),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'description'),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _locationController,
-                decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'location'),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _participantLimitController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText:
-                      localeProvider.translate(section, 'participant_limit'),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
-              ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => _selectDate(context),
-                child: AbsorbPointer(
-                  child: TextField(
-                    controller: TextEditingController(
-                      text: LocalizedDateTimeFormatter.getFormattedDate(
-                          context, _selectedDate),
-                    ),
-                    decoration: InputDecoration(
-                      labelText:
-                          localeProvider.translate(section, 'select_date'),
-                      suffixIcon: const Icon(Icons.calendar_today),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0, horizontal: 12.0),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => _selectTime(context),
-                child: AbsorbPointer(
-                  child: TextField(
-                    controller: TextEditingController(
-                      text: LocalizedDateTimeFormatter.getFormattedTime(
-                          context, _selectedDate),
-                    ),
-                    decoration: InputDecoration(
-                      labelText:
-                          localeProvider.translate(section, 'select_time'),
-                      suffixIcon: const Icon(Icons.access_time),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0, horizontal: 12.0),
-                    ),
-                  ),
-                ),
+              EventForm(
+                titleController: _titleController,
+                descriptionController: _descriptionController,
+                locationController: _locationController,
+                participantLimitController: _participantLimitController,
+                selectedDate: _selectedDate,
+                selectedTime: _selectedTime,
+                onSelectDate: () => _selectDate(context),
+                onSelectTime: () => _selectTime(context),
+                accessType: _accessType,
+                onAccessTypeChanged: (value) {
+                  setState(() {
+                    _accessType = value ?? "public";
+                    _checkForChanges();
+                  });
+                },
               ),
               const SizedBox(height: 20),
               ElevatedButton(

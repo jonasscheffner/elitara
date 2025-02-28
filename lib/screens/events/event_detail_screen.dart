@@ -19,6 +19,12 @@ class EventDetailScreen extends StatelessWidget {
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context, true);
+          },
+        ),
         title: Text(localeProvider.translate(section, 'title')),
         centerTitle: true,
       ),
@@ -41,11 +47,19 @@ class EventDetailScreen extends StatelessWidget {
           participantIds.insert(0, hostId);
 
           final int? participantLimit =
-              eventMap.containsKey('participantLimit') &&
-                      eventMap['participantLimit'] is int
+              (eventMap.containsKey('participantLimit') &&
+                      eventMap['participantLimit'] is int)
                   ? eventMap['participantLimit'] as int
                   : null;
           final int currentCount = participantIds.length;
+
+          final String accessType = (eventMap.containsKey('accessType') &&
+                  eventMap['accessType'] is String)
+              ? eventMap['accessType'] as String
+              : "public";
+          String accessText = accessType == "invite_only"
+              ? localeProvider.translate(section, 'access_invite_only')
+              : localeProvider.translate(section, 'access_public');
 
           return SingleChildScrollView(
             child: Padding(
@@ -89,6 +103,11 @@ class EventDetailScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        "${localeProvider.translate(section, 'access')}: $accessText",
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
                       Text(
                         participantLimit != null
                             ? "${localeProvider.translate(section, 'participants')} ($currentCount / $participantLimit):"
@@ -139,7 +158,7 @@ class EventDetailScreen extends StatelessWidget {
                           return ElevatedButton(
                             onPressed: () => Navigator.pushNamed(
                                 context, '/editEvent',
-                                arguments: eventId),
+                                arguments: eventData.id),
                             style: ElevatedButton.styleFrom(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 40),
