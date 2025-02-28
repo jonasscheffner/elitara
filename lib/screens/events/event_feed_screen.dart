@@ -4,6 +4,7 @@ import 'package:elitara/screens/events/widgets/user_display_name.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:elitara/services/user_service.dart';
+import 'package:elitara/services/event_service.dart';
 import 'package:flutter/material.dart';
 
 class EventFeedScreen extends StatefulWidget {
@@ -14,9 +15,8 @@ class EventFeedScreen extends StatefulWidget {
 }
 
 class _EventFeedScreenState extends State<EventFeedScreen> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final EventService _eventService = EventService(itemsPerPage: 10);
   final String section = 'event_feed_screen';
-  final int itemsPerPage = 10;
   final ScrollController _scrollController = ScrollController();
   List<DocumentSnapshot> _events = [];
   bool _isLoading = true;
@@ -45,17 +45,12 @@ class _EventFeedScreenState extends State<EventFeedScreen> {
     setState(() {
       _isLoading = true;
     });
-    Query query = _firestore
-        .collection('events')
-        .where('status', isEqualTo: 'active')
-        .orderBy('date')
-        .limit(itemsPerPage);
-    QuerySnapshot querySnapshot = await query.get();
+    QuerySnapshot querySnapshot = await _eventService.getInitialEvents();
     _events = querySnapshot.docs;
     if (_events.isNotEmpty) {
       _lastDocument = _events.last;
     }
-    if (_events.length < itemsPerPage) {
+    if (_events.length < _eventService.itemsPerPage) {
       _hasMore = false;
     }
     await _loadHostNamesForEvents(_events);
@@ -65,21 +60,16 @@ class _EventFeedScreenState extends State<EventFeedScreen> {
   }
 
   Future<void> _loadMoreEvents() async {
-    if (!_hasMore) return;
+    if (!_hasMore || _lastDocument == null) return;
     setState(() {
       _isLoadingMore = true;
     });
-    Query query = _firestore
-        .collection('events')
-        .where('status', isEqualTo: 'active')
-        .orderBy('date')
-        .startAfterDocument(_lastDocument!)
-        .limit(itemsPerPage);
-    QuerySnapshot querySnapshot = await query.get();
+    QuerySnapshot querySnapshot =
+        await _eventService.getMoreEvents(_lastDocument!);
     if (querySnapshot.docs.isNotEmpty) {
       _events.addAll(querySnapshot.docs);
       _lastDocument = querySnapshot.docs.last;
-      if (querySnapshot.docs.length < itemsPerPage) {
+      if (querySnapshot.docs.length < _eventService.itemsPerPage) {
         _hasMore = false;
       }
       await _loadHostNamesForEvents(querySnapshot.docs);

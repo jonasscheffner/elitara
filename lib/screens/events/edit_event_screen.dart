@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
+import 'package:elitara/services/event_service.dart';
 
 class EditEventScreen extends StatefulWidget {
   final String eventId;
@@ -27,6 +28,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late DateTime _initialDate;
   late TimeOfDay _initialTime;
 
+  final EventService _eventService = EventService();
+
   @override
   void initState() {
     super.initState();
@@ -34,10 +37,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   }
 
   Future<void> _loadEventData() async {
-    DocumentSnapshot doc = await FirebaseFirestore.instance
-        .collection('events')
-        .doc(widget.eventId)
-        .get();
+    DocumentSnapshot doc = await _eventService.getEvent(widget.eventId);
     eventData = doc.data() as Map<String, dynamic>?;
     if (eventData != null) {
       _titleController.text = eventData!['title'] ?? '';
@@ -122,10 +122,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       );
       return;
     }
-    await FirebaseFirestore.instance
-        .collection('events')
-        .doc(widget.eventId)
-        .update({
+    final Map<String, dynamic> updatedData = {
       'title': _titleController.text,
       'description': _descriptionController.text,
       'location': _locationController.text,
@@ -136,7 +133,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
         _selectedTime.hour,
         _selectedTime.minute,
       )),
-    });
+    };
+    await _eventService.updateEvent(widget.eventId, updatedData);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(Localizations.of<LocaleProvider>(context, LocaleProvider)!
@@ -147,10 +145,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   }
 
   Future<void> _cancelEvent() async {
-    await FirebaseFirestore.instance
-        .collection('events')
-        .doc(widget.eventId)
-        .update({'status': 'canceled'});
+    await _eventService.cancelEvent(widget.eventId);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(Localizations.of<LocaleProvider>(context, LocaleProvider)!
@@ -297,10 +292,12 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 onPressed: (!_hasChanged || _isLoading) ? null : _updateEvent,
                 style: ButtonStyle(
                   padding: WidgetStateProperty.all(
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30)),
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  ),
                   shape: WidgetStateProperty.all(
                     RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 child: Text(
@@ -313,11 +310,13 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 onPressed: _confirmCancelEvent,
                 style: ButtonStyle(
                   padding: WidgetStateProperty.all(
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30)),
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  ),
                   backgroundColor: WidgetStateProperty.all(Colors.red),
                   shape: WidgetStateProperty.all(
                     RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 child: Text(

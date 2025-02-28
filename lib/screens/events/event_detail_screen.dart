@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:elitara/services/event_service.dart';
 
 class EventDetailScreen extends StatelessWidget {
   final String eventId;
   final String section = 'event_detail_screen';
+  final EventService _eventService = EventService();
 
   EventDetailScreen({Key? key, required this.eventId}) : super(key: key);
 
@@ -21,10 +23,7 @@ class EventDetailScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('events')
-            .doc(eventId)
-            .snapshots(),
+        stream: _eventService.getEventStream(eventId),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -141,13 +140,8 @@ class EventDetailScreen extends StatelessWidget {
                               final currentUser =
                                   FirebaseAuth.instance.currentUser;
                               if (currentUser != null) {
-                                await FirebaseFirestore.instance
-                                    .collection('events')
-                                    .doc(eventId)
-                                    .update({
-                                  'participants':
-                                      FieldValue.arrayUnion([currentUser.uid])
-                                });
+                                await _eventService.registerForEvent(
+                                    eventId, currentUser.uid);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(localeProvider.translate(

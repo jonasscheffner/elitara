@@ -3,6 +3,7 @@ import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:elitara/services/event_service.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
@@ -18,6 +19,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
   String section = 'create_event_screen';
+  final EventService _eventService = EventService();
 
   void _createEvent() async {
     if (_titleController.text.isEmpty ||
@@ -35,21 +37,25 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     }
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
-    await FirebaseFirestore.instance.collection('events').add({
+    final DateTime eventDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+    final Map<String, dynamic> eventData = {
       'title': _titleController.text,
       'description': _descriptionController.text,
       'location': _locationController.text,
-      'date': Timestamp.fromDate(DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _selectedTime.hour,
-        _selectedTime.minute,
-      )),
+      'date': Timestamp.fromDate(eventDateTime),
       'host': currentUser.uid,
       'participants': [currentUser.uid],
       'status': 'active'
-    });
+    };
+
+    await _eventService.createEvent(eventData);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -205,10 +211,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 onPressed: _createEvent,
                 style: ButtonStyle(
                   padding: WidgetStateProperty.all(
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30)),
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  ),
                   shape: WidgetStateProperty.all(
                     RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 child: Text(
