@@ -110,14 +110,21 @@
       "platinum_feature_1": "Unlimited event creation",
       "platinum_feature_2": "Monetize events with paid access",
       "platinum_feature_3": "Exclusive Platinum Organizer Badge",
-      "cancel_button": "Cancel Membership",
+      "cancel_membership_button": "Cancel Membership",
       "membership_updated": "Your membership has been successfully updated.",
       "membership_canceled": "Your membership has been successfully canceled.",
       "cancel_title": "Cancel Membership",
       "cancel_confirmation": "Are you sure you want to cancel your membership? This action cannot be undone.",
       "cancel_no": "Cancel",
       "cancel_yes": "Yes, cancel",
-      "no_membership_message": "You currently have no active membership. Choose one to gain access to exclusive benefits."
+      "no_membership_message": "You currently have no active membership. Choose one to gain access to exclusive benefits.",
+      "plan_selection_title": "Select a Plan",
+      "cancel_button": "Cancel",
+      "continue_payment": "Continue to Payment",
+      "plan_period": {
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      }
     },
     "notifications_screen": {
       "title": "Notifications",

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/services/membership_service.dart';
+import 'package:elitara/models/membership_type.dart';
+import 'package:elitara/models/plan_period.dart';
+import 'package:elitara/models/membership_pricing.dart';
 
 class MembershipSettingsScreen extends StatefulWidget {
   const MembershipSettingsScreen({super.key});
@@ -12,8 +15,9 @@ class MembershipSettingsScreen extends StatefulWidget {
 }
 
 class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
-  String? _currentMembership;
+  MembershipType? _currentMembership;
   final MembershipService _membershipService = MembershipService();
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -24,24 +28,135 @@ class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
   Future<void> _loadMembership() async {
     String membership = await _membershipService.getCurrentMembership();
     setState(() {
-      _currentMembership = membership.isNotEmpty ? membership : null;
+      _currentMembership = membership.isNotEmpty
+          ? MembershipTypeExtension.fromString(membership)
+          : null;
+      _isLoading = false;
     });
   }
 
-  Future<void> _changeMembership(String newMembership) async {
+  Future<void> _showPlanSelectionDialog(MembershipType membershipType) async {
+    PlanPeriod selectedPlan = PlanPeriod.monthly;
+    final localeProvider =
+        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(localeProvider.translate(
+                  widget.section, 'plan_selection_title')),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedPlan = PlanPeriod.monthly;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(12.0),
+                            decoration: BoxDecoration(
+                              color: selectedPlan == PlanPeriod.monthly
+                                  ? Colors.green.withOpacity(0.3)
+                                  : Colors.transparent,
+                              border: Border.all(
+                                color: Colors.grey,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(localeProvider.translate(
+                                    widget.section, 'plan_period.monthly')),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "${membershipType.getPrice(PlanPeriod.monthly).toStringAsFixed(2)}€",
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedPlan = PlanPeriod.yearly;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(12.0),
+                            decoration: BoxDecoration(
+                              color: selectedPlan == PlanPeriod.yearly
+                                  ? Colors.green.withOpacity(0.3)
+                                  : Colors.transparent,
+                              border: Border.all(
+                                color: Colors.grey,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(localeProvider.translate(
+                                    widget.section, 'plan_period.yearly')),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "${membershipType.getPrice(PlanPeriod.yearly).toStringAsFixed(2)}€",
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(localeProvider.translate(
+                      widget.section, 'cancel_button')),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _changeMembership(membershipType, plan: selectedPlan);
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(localeProvider.translate(
+                      widget.section, 'continue_payment')),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _changeMembership(MembershipType newMembership,
+      {required PlanPeriod plan}) async {
     if (_currentMembership == newMembership) return;
 
-    await _membershipService.updateMembership(newMembership);
+    await _membershipService.updateMembership(newMembership.name);
     setState(() {
       _currentMembership = newMembership;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          Localizations.of<LocaleProvider>(context, LocaleProvider)!
-              .translate(widget.section, 'membership_updated'),
-        ),
+        content: Text(Localizations.of<LocaleProvider>(context, LocaleProvider)!
+            .translate(widget.section, 'membership_updated')),
+        backgroundColor: Colors.green,
       ),
     );
   }
@@ -61,6 +176,7 @@ class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
           Localizations.of<LocaleProvider>(context, LocaleProvider)!
               .translate(widget.section, 'membership_canceled'),
         ),
+        backgroundColor: Colors.green,
       ),
     );
   }
@@ -104,83 +220,99 @@ class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            if (_currentMembership == null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Text(
-                  localeProvider.translate(
-                      widget.section, 'no_membership_message'),
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
+        child: _isLoading
+            ? const Center(child: const CircularProgressIndicator())
+            : Column(
+                children: [
+                  if (_currentMembership == null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        localeProvider.translate(
+                            widget.section, 'no_membership_message'),
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  _buildMembershipCard(
+                    context,
+                    title:
+                        localeProvider.translate(widget.section, 'guest_title'),
+                    features: [
+                      localeProvider.translate(
+                          widget.section, 'guest_feature_1'),
+                      localeProvider.translate(
+                          widget.section, 'guest_feature_2'),
+                    ],
+                    color: Colors.blueGrey.shade600,
+                    icon: Icons.event,
+                    textColor: Colors.white,
+                    isCurrent: _currentMembership == MembershipType.guest,
+                    onSelect: () =>
+                        _showPlanSelectionDialog(MembershipType.guest),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildMembershipCard(
+                    context,
+                    title:
+                        localeProvider.translate(widget.section, 'gold_title'),
+                    features: [
+                      localeProvider.translate(
+                          widget.section, 'gold_feature_1'),
+                      localeProvider.translate(
+                          widget.section, 'gold_feature_2'),
+                      localeProvider.translate(
+                          widget.section, 'gold_feature_3'),
+                    ],
+                    color: Colors.amber.shade300,
+                    icon: Icons.star,
+                    textColor: Colors.white,
+                    isCurrent: _currentMembership == MembershipType.gold,
+                    onSelect: () =>
+                        _showPlanSelectionDialog(MembershipType.gold),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildMembershipCard(
+                    context,
+                    title: localeProvider.translate(
+                        widget.section, 'platinum_title'),
+                    features: [
+                      localeProvider.translate(
+                          widget.section, 'platinum_feature_1'),
+                      localeProvider.translate(
+                          widget.section, 'platinum_feature_2'),
+                      localeProvider.translate(
+                          widget.section, 'platinum_feature_3'),
+                    ],
+                    color: Colors.grey.shade500,
+                    gradient: LinearGradient(
+                      colors: [Colors.grey.shade300, Colors.grey.shade700],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    icon: Icons.diamond,
+                    textColor: Colors.black87,
+                    isCurrent: _currentMembership == MembershipType.platinum,
+                    onSelect: () =>
+                        _showPlanSelectionDialog(MembershipType.platinum),
+                  ),
+                  const SizedBox(height: 20),
+                  if (_currentMembership != null)
+                    ElevatedButton(
+                      onPressed: _cancelMembership,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 20),
+                      ),
+                      child: Text(localeProvider.translate(
+                          widget.section, 'cancel_membership_button')),
+                    ),
+                ],
               ),
-            _buildMembershipCard(
-              context,
-              title: localeProvider.translate(widget.section, 'guest_title'),
-              features: [
-                localeProvider.translate(widget.section, 'guest_feature_1'),
-                localeProvider.translate(widget.section, 'guest_feature_2'),
-              ],
-              color: Colors.blueGrey.shade600,
-              icon: Icons.event,
-              textColor: Colors.white,
-              isCurrent: _currentMembership == "guest",
-              onSelect: () => _changeMembership("guest"),
-            ),
-            const SizedBox(height: 16),
-            _buildMembershipCard(
-              context,
-              title: localeProvider.translate(widget.section, 'gold_title'),
-              features: [
-                localeProvider.translate(widget.section, 'gold_feature_1'),
-                localeProvider.translate(widget.section, 'gold_feature_2'),
-                localeProvider.translate(widget.section, 'gold_feature_3'),
-              ],
-              color: Colors.amber.shade300,
-              icon: Icons.star,
-              textColor: Colors.white,
-              isCurrent: _currentMembership == "gold",
-              onSelect: () => _changeMembership("gold"),
-            ),
-            const SizedBox(height: 16),
-            _buildMembershipCard(
-              context,
-              title: localeProvider.translate(widget.section, 'platinum_title'),
-              features: [
-                localeProvider.translate(widget.section, 'platinum_feature_1'),
-                localeProvider.translate(widget.section, 'platinum_feature_2'),
-                localeProvider.translate(widget.section, 'platinum_feature_3'),
-              ],
-              color: Colors.grey.shade500,
-              gradient: LinearGradient(
-                colors: [Colors.grey.shade300, Colors.grey.shade700],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              icon: Icons.diamond,
-              textColor: Colors.black87,
-              isCurrent: _currentMembership == "platinum",
-              onSelect: () => _changeMembership("platinum"),
-            ),
-            const SizedBox(height: 20),
-            if (_currentMembership != null)
-              ElevatedButton(
-                onPressed: _cancelMembership,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                ),
-                child: Text(
-                    localeProvider.translate(widget.section, 'cancel_button')),
-              ),
-          ],
-        ),
       ),
     );
   }
@@ -239,8 +371,9 @@ class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
                         const Icon(Icons.check, size: 18, color: Colors.green),
                         const SizedBox(width: 6),
                         Expanded(
-                            child: Text(feature,
-                                style: TextStyle(color: textColor))),
+                          child:
+                              Text(feature, style: TextStyle(color: textColor)),
+                        ),
                       ],
                     ),
                   )),
