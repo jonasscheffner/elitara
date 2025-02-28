@@ -29,14 +29,24 @@ class EventDetailScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           var eventData = snapshot.data!;
-          final DateTime dateTime = eventData['date'].toDate();
-          final String hostId = eventData['host'] as String? ?? '';
+          final Map<String, dynamic> eventMap =
+              eventData.data() as Map<String, dynamic>;
+          final DateTime dateTime = eventMap['date'].toDate();
+          final String hostId = eventMap['host'] as String? ?? '';
           final List<dynamic> participantsDynamic =
-              eventData['participants'] ?? [];
+              eventMap['participants'] ?? [];
           List<String> participantIds =
               participantsDynamic.map((p) => p.toString()).toList();
           participantIds.remove(hostId);
           participantIds.insert(0, hostId);
+
+          final int? participantLimit =
+              eventMap.containsKey('participantLimit') &&
+                      eventMap['participantLimit'] is int
+                  ? eventMap['participantLimit'] as int
+                  : null;
+          final int currentCount = participantIds.length;
+
           return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -44,13 +54,13 @@ class EventDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    eventData['title'],
+                    eventMap['title'],
                     style: const TextStyle(
                         fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    eventData['description'],
+                    eventMap['description'],
                     style: const TextStyle(fontSize: 16, height: 1.4),
                   ),
                   const SizedBox(height: 16),
@@ -72,18 +82,22 @@ class EventDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    "${localeProvider.translate(section, 'location')}: ${eventData['location']}",
+                    "${localeProvider.translate(section, 'location')}: ${eventMap['location']}",
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 16),
-                  Row(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "${localeProvider.translate(section, 'participants')}: ",
+                        participantLimit != null
+                            ? "${localeProvider.translate(section, 'participants')} ($currentCount / $participantLimit):"
+                            : "${localeProvider.translate(section, 'participants')} ($currentCount):",
                         style: const TextStyle(fontSize: 16),
                       ),
-                      Flexible(
+                      const SizedBox(height: 4),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
                         child: Wrap(
                           spacing: 4,
                           runSpacing: 4,
@@ -93,10 +107,11 @@ class EventDetailScreen extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   UserDisplayName(
-                                      uid: uid,
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold)),
+                                    uid: uid,
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  ),
                                   Text(
                                     " (${localeProvider.translate(section, 'host_label')})",
                                     style: const TextStyle(fontSize: 16),
@@ -105,7 +120,9 @@ class EventDetailScreen extends StatelessWidget {
                               );
                             }
                             return UserDisplayName(
-                                uid: uid, style: const TextStyle(fontSize: 16));
+                              uid: uid,
+                              style: const TextStyle(fontSize: 16),
+                            );
                           }).toList(),
                         ),
                       ),

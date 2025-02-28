@@ -1,5 +1,6 @@
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
+import 'package:elitara/widgets/required_field_label.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,6 +17,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _participantLimitController =
+      TextEditingController();
+
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
   String section = 'create_event_screen';
@@ -35,6 +39,24 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       );
       return;
     }
+
+    int? participantLimit;
+    if (_participantLimitController.text.isNotEmpty) {
+      try {
+        participantLimit = int.parse(_participantLimitController.text);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              Localizations.of<LocaleProvider>(context, LocaleProvider)!
+                  .translate(section, 'messages.invalid_participant_limit'),
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
     final DateTime eventDateTime = DateTime(
@@ -51,8 +73,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       'date': Timestamp.fromDate(eventDateTime),
       'host': currentUser.uid,
       'participants': [currentUser.uid],
-      'status': 'active'
+      'status': 'active',
     };
+    if (participantLimit != null) {
+      eventData['participantLimit'] = participantLimit;
+    }
 
     await _eventService.createEvent(eventData);
 
@@ -99,25 +124,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     }
   }
 
-  DateTime _combineDateAndTime() {
-    return DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      _selectedTime.hour,
-      _selectedTime.minute,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          localeProvider.translate(section, 'create_event_title'),
-        ),
+        title: Text(localeProvider.translate(section, 'create_event_title')),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -129,7 +142,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               TextField(
                 controller: _titleController,
                 decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'title'),
+                  label: RequiredFieldLabel(
+                    label: localeProvider.translate(section, 'title'),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                   ),
@@ -141,7 +156,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               TextField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'description'),
+                  label: RequiredFieldLabel(
+                    label: localeProvider.translate(section, 'description'),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                   ),
@@ -154,7 +171,23 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               TextField(
                 controller: _locationController,
                 decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'location'),
+                  label: RequiredFieldLabel(
+                    label: localeProvider.translate(section, 'location'),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _participantLimitController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText:
+                      localeProvider.translate(section, 'participant_limit'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                   ),
@@ -172,8 +205,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           context, _selectedDate),
                     ),
                     decoration: InputDecoration(
-                      labelText:
-                          localeProvider.translate(section, 'select_date'),
+                      label: RequiredFieldLabel(
+                        label: localeProvider.translate(section, 'select_date'),
+                      ),
                       suffixIcon: const Icon(Icons.calendar_today),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.0),
@@ -191,11 +225,19 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   child: TextField(
                     controller: TextEditingController(
                       text: LocalizedDateTimeFormatter.getFormattedTime(
-                          context, _combineDateAndTime()),
+                          context,
+                          DateTime(
+                            _selectedDate.year,
+                            _selectedDate.month,
+                            _selectedDate.day,
+                            _selectedTime.hour,
+                            _selectedTime.minute,
+                          )),
                     ),
                     decoration: InputDecoration(
-                      labelText:
-                          localeProvider.translate(section, 'select_time'),
+                      label: RequiredFieldLabel(
+                        label: localeProvider.translate(section, 'select_time'),
+                      ),
                       suffixIcon: const Icon(Icons.access_time),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.0),

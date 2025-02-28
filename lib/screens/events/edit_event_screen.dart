@@ -1,3 +1,4 @@
+import 'package:elitara/widgets/required_field_label.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -16,6 +17,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _participantLimitController =
+      TextEditingController();
+
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
   bool _isLoading = true;
@@ -25,6 +29,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late String _initialTitle;
   late String _initialDescription;
   late String _initialLocation;
+  int? _initialParticipantLimit;
   late DateTime _initialDate;
   late TimeOfDay _initialTime;
 
@@ -43,6 +48,11 @@ class _EditEventScreenState extends State<EditEventScreen> {
       _titleController.text = eventData!['title'] ?? '';
       _descriptionController.text = eventData!['description'] ?? '';
       _locationController.text = eventData!['location'] ?? '';
+      _initialParticipantLimit = eventData!['participantLimit'] is int
+          ? eventData!['participantLimit'] as int
+          : null;
+      _participantLimitController.text =
+          _initialParticipantLimit?.toString() ?? '';
       Timestamp ts = eventData!['date'];
       DateTime dt = ts.toDate();
       _selectedDate = dt;
@@ -55,6 +65,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       _titleController.addListener(_checkForChanges);
       _descriptionController.addListener(_checkForChanges);
       _locationController.addListener(_checkForChanges);
+      _participantLimitController.addListener(_checkForChanges);
     }
     setState(() {
       _isLoading = false;
@@ -62,9 +73,15 @@ class _EditEventScreenState extends State<EditEventScreen> {
   }
 
   void _checkForChanges() {
+    final String currentLimitText = _participantLimitController.text;
+    final int? currentLimit =
+        currentLimitText.isEmpty ? null : int.tryParse(currentLimitText);
+    bool participantLimitChanged = currentLimit != _initialParticipantLimit;
+
     bool changed = _titleController.text != _initialTitle ||
         _descriptionController.text != _initialDescription ||
         _locationController.text != _initialLocation ||
+        participantLimitChanged ||
         !_selectedDate.isAtSameMomentAs(_initialDate) ||
         (_selectedTime.hour != _initialTime.hour ||
             _selectedTime.minute != _initialTime.minute);
@@ -122,6 +139,21 @@ class _EditEventScreenState extends State<EditEventScreen> {
       );
       return;
     }
+    int? participantLimit;
+    if (_participantLimitController.text.isNotEmpty) {
+      try {
+        participantLimit = int.parse(_participantLimitController.text);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                Localizations.of<LocaleProvider>(context, LocaleProvider)!
+                    .translate(section, 'messages.invalid_participant_limit')),
+          ),
+        );
+        return;
+      }
+    }
     final Map<String, dynamic> updatedData = {
       'title': _titleController.text,
       'description': _descriptionController.text,
@@ -134,6 +166,11 @@ class _EditEventScreenState extends State<EditEventScreen> {
         _selectedTime.minute,
       )),
     };
+    if (_participantLimitController.text.isNotEmpty) {
+      updatedData['participantLimit'] = participantLimit;
+    } else {
+      updatedData['participantLimit'] = FieldValue.delete();
+    }
     await _eventService.updateEvent(widget.eventId, updatedData);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -210,7 +247,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
               TextField(
                 controller: _titleController,
                 decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'title'),
+                  label: RequiredFieldLabel(
+                    label: localeProvider.translate(section, 'title'),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                   ),
@@ -236,6 +275,20 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 controller: _locationController,
                 decoration: InputDecoration(
                   labelText: localeProvider.translate(section, 'location'),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _participantLimitController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText:
+                      localeProvider.translate(section, 'participant_limit'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                   ),

@@ -36,12 +36,14 @@
     "title": "Titel",
     "description": "Beschreibung",
     "location": "Standort",
+    "participant_limit": "Teilnehmerlimit",
     "select_date": "Datum auswählen",
     "select_time": "Uhrzeit auswählen",
     "create_event": "Ereignis erstellen",
     "messages": {
       "event_created": "Event erfolgreich erstellt",
-      "fill_all_fields": "Bitte füllen Sie alle Felder aus"
+      "fill_all_fields": "Bitte füllen Sie alle Felder aus",
+      "invalid_participant_limit": "Ungültiges Teilnehmerlimit"
     }
   },
   "edit_event_screen": {
@@ -49,6 +51,7 @@
     "title": "Titel",
     "description": "Beschreibung",
     "location": "Standort",
+    "participant_limit": "Teilnehmerlimit",
     "select_date": "Datum auswählen",
     "select_time": "Uhrzeit auswählen",
     "update_event": "Event aktualisieren",
@@ -56,11 +59,12 @@
     "messages": {
       "fill_all_fields": "Bitte füllen Sie alle Felder aus",
       "event_updated": "Event erfolgreich aktualisiert",
-      "event_canceled": "Event wurde abgesagt"
+      "event_canceled": "Event wurde abgesagt",
+      "invalid_participant_limit": "Ungültiges Teilnehmerlimit"
     },
     "confirmation_dialog": {
-      "title": "Event absagen",
-      "content": "Möchten Sie dieses Event wirklich absagen?",
+      "title": "Bestätigen",
+      "content": "Möchten Sie das Event wirklich absagen?",
       "yes": "Ja",
       "no": "Nein"
     }
