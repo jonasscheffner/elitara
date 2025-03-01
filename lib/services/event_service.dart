@@ -10,7 +10,7 @@ class EventService {
     Query query = _firestore
         .collection('events')
         .where('status', isEqualTo: 'active')
-        .orderBy('date')
+        .orderBy('date', descending: true)
         .limit(itemsPerPage);
     return await query.get();
   }
@@ -19,7 +19,7 @@ class EventService {
     Query query = _firestore
         .collection('events')
         .where('status', isEqualTo: 'active')
-        .orderBy('date')
+        .orderBy('date', descending: true)
         .startAfterDocument(lastDocument)
         .limit(itemsPerPage);
     return await query.get();
@@ -53,5 +53,15 @@ class EventService {
     await _firestore.collection('events').doc(eventId).update({
       'participants': FieldValue.arrayUnion([uid])
     });
+  }
+
+  Future<QuerySnapshot> getUserHostedEvents(String userId) async {
+    Query query = _firestore
+        .collection('events')
+        .where('status', isEqualTo: 'active')
+        .where('host', isEqualTo: userId)
+        .orderBy('date', descending: true)
+        .limit(itemsPerPage);
+    return await query.get();
   }
 }

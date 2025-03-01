@@ -32,7 +32,8 @@
     "search": "Search events...",
     "access": "Access",
     "access_public": "Public",
-    "access_invite_only": "Invite Only"
+    "access_invite_only": "Invite Only",
+    "filter_own_events": "Show only my events"
   },
   "event_form": {
     "title": "Title",

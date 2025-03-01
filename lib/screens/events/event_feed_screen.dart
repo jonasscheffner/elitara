@@ -5,6 +5,7 @@ import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:elitara/services/user_service.dart';
 import 'package:elitara/services/event_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
@@ -28,6 +29,8 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   String _searchQuery = '';
   final Map<String, String> _hostNames = {};
   final UserService _userService = UserService();
+  bool _showOnlyOwnEvents = false;
+  String _currentUserId = '';
 
   @override
   void initState() {
@@ -65,18 +68,43 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
     setState(() {
       _isLoading = true;
     });
-    QuerySnapshot querySnapshot = await _eventService.getInitialEvents();
-    _events = querySnapshot.docs;
-    if (_events.isNotEmpty) {
-      _lastDocument = _events.last;
+
+    try {
+      if (_currentUserId.isEmpty) {
+        _currentUserId = await _userService.getCurrentUserId();
+      }
+
+      QuerySnapshot querySnapshot;
+      if (_showOnlyOwnEvents) {
+        if (_currentUserId.isNotEmpty) {
+          querySnapshot =
+              await _eventService.getUserHostedEvents(_currentUserId);
+        } else {
+          throw Exception("Empty user id");
+        }
+      } else {
+        querySnapshot = await _eventService.getInitialEvents();
+      }
+
+      _events = querySnapshot.docs;
+      if (_events.isNotEmpty) {
+        _lastDocument = _events.last;
+      }
+      if (_events.length < _eventService.itemsPerPage) {
+        _hasMore = false;
+      }
+      await _loadHostNamesForEvents(_events);
+    } catch (e) {
+      debugPrint("Fehler beim Laden der Events: $e");
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-    if (_events.length < _eventService.itemsPerPage) {
-      _hasMore = false;
-    }
-    await _loadHostNamesForEvents(_events);
-    setState(() {
-      _isLoading = false;
-    });
+  }
+
+  Future<String> getCurrentUserId() async {
+    return FirebaseAuth.instance.currentUser?.uid ?? '';
   }
 
   Future<void> _loadMoreEvents() async {
@@ -174,6 +202,36 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                 _searchQuery = value.toLowerCase();
               });
             },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _showOnlyOwnEvents = !_showOnlyOwnEvents;
+                  });
+                  _loadEvents();
+                },
+                icon: const Icon(
+                  Icons.person,
+                  size: 20,
+                ),
+                label: Text(
+                  localeProvider.translate(section, 'filter_own_events'),
+                  style: const TextStyle(fontSize: 16),
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  backgroundColor:
+                      _showOnlyOwnEvents ? Colors.blue : Colors.grey,
+                ),
+              ),
+            ),
           ),
           Expanded(
             child: _isLoading

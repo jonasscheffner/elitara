@@ -32,7 +32,8 @@
     "search": "Events durchsuchen...",
     "access": "Zugriff",
     "access_public": "Öffentlich",
-    "access_invite_only": "Nur per Einladung"
+    "access_invite_only": "Nur per Einladung",
+    "filter_own_events": "Nur meine Events anzeigen"
   },
   "event_form": {
     "title": "Titel",

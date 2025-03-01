@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -26,5 +27,13 @@ class UserService {
         .doc(uid)
         .snapshots()
         .map((doc) => doc.data() as Map<String, dynamic>);
+  }
+
+  Future<String> getCurrentUserId() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception("Kein Nutzer eingeloggt!");
+    }
+    return user.uid;
   }
 }
