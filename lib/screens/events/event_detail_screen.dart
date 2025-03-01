@@ -157,29 +157,34 @@ class EventDetailScreen extends StatelessWidget {
                         child: Wrap(
                           spacing: 4,
                           runSpacing: 4,
-                          children: participantIds.map((uid) {
-                            if (uid == hostId) {
-                              return Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  UserDisplayName(
-                                    uid: uid,
+                          children: [
+                            ...participantIds.map((uid) {
+                              List<Widget> children = [
+                                UserDisplayName(
+                                  uid: uid,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: uid == hostId
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                                if (uid == hostId)
+                                  Text(
+                                    " (${localeProvider.translate(section, 'host_label')})",
                                     style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold),
                                   ),
-                                  Text(
-                                    " (${localeProvider.translate(section, 'host_label')})",
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                ],
+                                if (uid != participantIds.last)
+                                  const Text(", "),
+                              ];
+                              return Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: children,
                               );
-                            }
-                            return UserDisplayName(
-                              uid: uid,
-                              style: const TextStyle(fontSize: 16),
-                            );
-                          }).toList(),
+                            }),
+                          ],
                         ),
                       ),
                     ],
