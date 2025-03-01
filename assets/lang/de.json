@@ -74,6 +74,7 @@
   },
   "event_detail_screen": {
     "title": "Eventdetails",
+    "description": "Beschreibung",
     "date": "Datum",
     "time": "Uhrzeit",
     "location": "Standort",

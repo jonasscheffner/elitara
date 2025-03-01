@@ -73,46 +73,83 @@ class EventDetailScreen extends StatelessWidget {
                         fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    eventMap['description'],
-                    style: const TextStyle(fontSize: 16, height: 1.4),
-                  ),
-                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          "${localeProvider.translate(section, 'date')}: ${LocalizedDateTimeFormatter.getFormattedDate(context, dateTime)}",
-                          style: const TextStyle(fontSize: 16),
+                        child: Row(
+                          children: [
+                            Text(
+                              "${localeProvider.translate(section, 'date')}: ",
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              LocalizedDateTimeFormatter.getFormattedDate(
+                                  context, dateTime),
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
                         ),
                       ),
                       Expanded(
-                        child: Text(
-                          "${localeProvider.translate(section, 'time')}: ${LocalizedDateTimeFormatter.getFormattedTime(context, dateTime)}",
-                          style: const TextStyle(fontSize: 16),
+                        child: Row(
+                          children: [
+                            Text(
+                              "${localeProvider.translate(section, 'time')}: ",
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              LocalizedDateTimeFormatter.getFormattedTime(
+                                  context, dateTime),
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    "${localeProvider.translate(section, 'location')}: ${eventMap['location']}",
+                    "${localeProvider.translate(section, 'location')}: ",
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    eventMap['location'],
                     style: const TextStyle(fontSize: 16),
+                    softWrap: true,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "${localeProvider.translate(section, 'description')}: ",
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    eventMap['description'],
+                    style: const TextStyle(fontSize: 16, height: 1.4),
                   ),
                   const SizedBox(height: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "${localeProvider.translate(section, 'access')}: $accessText",
+                        "${localeProvider.translate(section, 'access')}: ",
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        accessText,
                         style: const TextStyle(fontSize: 16),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       Text(
                         participantLimit != null
                             ? "${localeProvider.translate(section, 'participants')} ($currentCount / $participantLimit):"
                             : "${localeProvider.translate(section, 'participants')} ($currentCount):",
-                        style: const TextStyle(fontSize: 16),
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Padding(
