@@ -15,6 +15,9 @@ class EventForm extends StatelessWidget {
   final String accessType;
   final ValueChanged<String?> onAccessTypeChanged;
 
+  final bool waitlistEnabled;
+  final ValueChanged<bool> onWaitlistChanged;
+
   final String section = "event_form";
 
   const EventForm({
@@ -29,6 +32,8 @@ class EventForm extends StatelessWidget {
     required this.onSelectTime,
     required this.accessType,
     required this.onAccessTypeChanged,
+    required this.waitlistEnabled,
+    required this.onWaitlistChanged,
   }) : super(key: key);
 
   @override
@@ -131,6 +136,23 @@ class EventForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextField(
+            controller: participantLimitController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText:
+                  "${localeProvider.translate(section, 'participant_limit')} (optional)",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         DropdownButtonFormField<String>(
           decoration: InputDecoration(
             labelText: localeProvider.translate(section, 'access'),
@@ -154,23 +176,14 @@ class EventForm extends StatelessWidget {
           ],
           onChanged: onAccessTypeChanged,
         ),
-        const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextField(
-            controller: participantLimitController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText:
-                  "${localeProvider.translate(section, 'participant_limit')} (optional)",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-            ),
+        const SizedBox(height: 8),
+        if (accessType == "invite_only")
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(localeProvider.translate(section, 'enable_waitlist')),
+            value: waitlistEnabled,
+            onChanged: onWaitlistChanged,
           ),
-        ),
       ],
     );
   }

@@ -43,7 +43,8 @@
     "select_time": "Select Time",
     "access": "Access",
     "access_public": "Public",
-    "access_invite_only": "Invite Only"
+    "access_invite_only": "Invite Only",
+    "enable_waitlist": "Enable Waitlist"
   },
   "create_event_screen": {
     "create_event_title": "Create Event",

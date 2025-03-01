@@ -43,7 +43,8 @@
     "select_time": "Uhrzeit auswählen",
     "access": "Zugriff",
     "access_public": "Öffentlich",
-    "access_invite_only": "Nur per Einladung"
+    "access_invite_only": "Nur per Einladung",
+    "enable_waitlist": "Warteliste aktivieren"
   },
   "create_event_screen": {
     "create_event_title": "Event erstellen",

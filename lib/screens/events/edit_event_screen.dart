@@ -32,6 +32,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late DateTime _initialDate;
   late TimeOfDay _initialTime;
   String _accessType = "public";
+  bool _waitlistEnabled = false;
 
   final EventService _eventService = EventService();
 
@@ -57,6 +58,10 @@ class _EditEventScreenState extends State<EditEventScreen> {
           ? eventData!['accessType'] as String
           : "public";
       _accessType = accessType;
+      _waitlistEnabled = eventData!['waitlistEnabled'] is bool
+          ? eventData!['waitlistEnabled'] as bool
+          : false;
+
       Timestamp ts = eventData!['date'];
       DateTime dt = ts.toDate();
       _selectedDate = dt;
@@ -89,7 +94,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
         !_selectedDate.isAtSameMomentAs(_initialDate) ||
         (_selectedTime.hour != _initialTime.hour ||
             _selectedTime.minute != _initialTime.minute) ||
-        (_accessType != (eventData?['accessType'] as String? ?? "public"));
+        (_accessType != (eventData?['accessType'] as String? ?? "public")) ||
+        (_waitlistEnabled != (eventData?['waitlistEnabled'] as bool? ?? false));
     if (changed != _hasChanged) {
       setState(() {
         _hasChanged = changed;
@@ -171,6 +177,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
         _selectedTime.minute,
       )),
       'accessType': _accessType,
+      'waitlistEnabled':
+          _accessType == "invite_only" ? _waitlistEnabled : false,
     };
     if (_participantLimitController.text.isNotEmpty) {
       updatedData['participantLimit'] = participantLimit;
@@ -262,6 +270,13 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 onAccessTypeChanged: (value) {
                   setState(() {
                     _accessType = value ?? "public";
+                    _checkForChanges();
+                  });
+                },
+                waitlistEnabled: _waitlistEnabled,
+                onWaitlistChanged: (value) {
+                  setState(() {
+                    _waitlistEnabled = value;
                     _checkForChanges();
                   });
                 },

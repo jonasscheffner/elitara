@@ -22,6 +22,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
   String _accessType = "public";
+  bool _waitlistEnabled = false;
 
   String section = 'create_event_screen';
   final EventService _eventService = EventService();
@@ -76,6 +77,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       'participants': [currentUser.uid],
       'status': 'active',
       'accessType': _accessType,
+      'waitlistEnabled':
+          _accessType == "invite_only" ? _waitlistEnabled : false,
     };
     if (participantLimit != null) {
       eventData['participantLimit'] = participantLimit;
@@ -153,6 +156,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 onAccessTypeChanged: (value) {
                   setState(() {
                     _accessType = value ?? "public";
+                  });
+                },
+                waitlistEnabled: _waitlistEnabled,
+                onWaitlistChanged: (value) {
+                  setState(() {
+                    _waitlistEnabled = value;
                   });
                 },
               ),
