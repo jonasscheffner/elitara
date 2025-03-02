@@ -185,6 +185,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 20),
               EventForm(
                 titleController: _titleController,
                 descriptionController: _descriptionController,

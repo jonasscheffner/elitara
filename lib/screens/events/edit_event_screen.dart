@@ -313,6 +313,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 20),
               EventForm(
                 titleController: _titleController,
                 descriptionController: _descriptionController,
