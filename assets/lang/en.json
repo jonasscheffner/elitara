@@ -75,8 +75,8 @@
       "event_canceled": "Event canceled successfully",
       "invalid_participant_limit": "Invalid participant limit",
       "invalid_waitlist_limit": "Invalid waitlist limit.",
-      "participant_limit_error": "Exceeds current participants ({count})",
-      "waitlist_limit_error": "Exceeds current waitlist ({count})"
+      "participant_limit_error": "Limit is below current participants ({count})",
+      "waitlist_limit_error": "Limit is below current waitlist ({count})"
     },
     "confirmation_dialog": {
       "title": "Cancel Event",

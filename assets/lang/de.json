@@ -75,8 +75,8 @@
       "event_canceled": "Event wurde abgesagt",
       "invalid_participant_limit": "Ungültiges Teilnehmerlimit",
       "invalid_waitlist_limit": "Ungültiges Wartelistenlimit.",
-      "participant_limit_error": "Überschreitet aktuelle Teilnehmer ({count})",
-      "waitlist_limit_error": "Überschreitet aktuelle Warteliste ({count})"
+      "participant_limit_error": "Limit liegt unter den aktuellen Teilnehmern ({count})",
+      "waitlist_limit_error": "Limit liegt unter der aktuellen Warteliste ({count})"
     },
     "confirmation_dialog": {
       "title": "Bestätigen",
