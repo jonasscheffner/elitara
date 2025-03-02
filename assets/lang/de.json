@@ -33,7 +33,14 @@
     "access": "Zugriff",
     "access_public": "Öffentlich",
     "access_invite_only": "Nur per Einladung",
-    "filter_own_events": "Nur meine Events anzeigen"
+    "filter_own_events": "Nur meine Events anzeigen",
+    "waitlist": "Warteliste",
+    "open_waitlist": "Warteliste öffnen"
+  },
+  "waitlist_dialog": {
+    "title": "Warteliste",
+    "limit_reached_message": "Teilnehmerlimit erreicht. Erhöhe das Limit, um weitere Teilnehmer zu akzeptieren.",
+    "close": "Schließen"
   },
   "event_form": {
     "title": "Titel",
@@ -73,6 +80,7 @@
       "no": "Nein"
     }
   },
+
   "event_detail_screen": {
     "title": "Eventdetails",
     "description": "Beschreibung",
@@ -80,6 +88,7 @@
     "time": "Uhrzeit",
     "location": "Standort",
     "join": "Event beitreten",
+    "leave": "Event verlassen",
     "edit_event": "Event bearbeiten",
     "registered": "Du hast dich für das Event registriert",
     "host": "Veranstalter",
@@ -87,7 +96,10 @@
     "participants": "Teilnehmer",
     "access": "Zugriff",
     "access_public": "Öffentlich",
-    "access_invite_only": "Nur per Einladung"
+    "access_invite_only": "Nur per Einladung",
+    "join_waitlist": "Warteliste beitreten",
+    "leave_waitlist": "Warteliste verlassen",
+    "waitlist_registered": "Du wurdest auf die Warteliste gesetzt"
   },
   "settings": {
     "menu_screen": {

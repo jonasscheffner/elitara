@@ -1,11 +1,13 @@
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:elitara/models/access_type.dart';
 import 'package:elitara/screens/events/filters/event_search_filter.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
+import 'package:elitara/screens/events/widgets/waitlist_dialog.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:elitara/services/user_service.dart';
 import 'package:elitara/services/event_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
@@ -31,6 +33,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   final UserService _userService = UserService();
   bool _showOnlyOwnEvents = false;
   String _currentUserId = '';
+  final Map<String, int> _waitlistCounts = {};
 
   @override
   void initState() {
@@ -68,25 +71,27 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
     setState(() {
       _isLoading = true;
     });
-
     try {
       if (_currentUserId.isEmpty) {
         _currentUserId = await _userService.getCurrentUserId();
       }
-
       QuerySnapshot querySnapshot;
       if (_showOnlyOwnEvents) {
         if (_currentUserId.isNotEmpty) {
           querySnapshot =
               await _eventService.getUserHostedEvents(_currentUserId);
         } else {
-          throw Exception("Empty user id");
+          throw Exception("User ID is empty");
         }
       } else {
         querySnapshot = await _eventService.getInitialEvents();
       }
-
       _events = querySnapshot.docs;
+      for (var event in _events) {
+        final data = event.data() as Map<String, dynamic>;
+        _waitlistCounts[event.id] =
+            data['waitlist'] != null ? (data['waitlist'] as List).length : 0;
+      }
       if (_events.isNotEmpty) {
         _lastDocument = _events.last;
       }
@@ -103,10 +108,6 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
     }
   }
 
-  Future<String> getCurrentUserId() async {
-    return FirebaseAuth.instance.currentUser?.uid ?? '';
-  }
-
   Future<void> _loadMoreEvents() async {
     if (!_hasMore || _lastDocument == null) return;
     setState(() {
@@ -116,6 +117,11 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
         await _eventService.getMoreEvents(_lastDocument!);
     if (querySnapshot.docs.isNotEmpty) {
       _events.addAll(querySnapshot.docs);
+      for (var event in querySnapshot.docs) {
+        final data = event.data() as Map<String, dynamic>;
+        _waitlistCounts[event.id] =
+            data['waitlist'] != null ? (data['waitlist'] as List).length : 0;
+      }
       _lastDocument = querySnapshot.docs.last;
       if (querySnapshot.docs.length < _eventService.itemsPerPage) {
         _hasMore = false;
@@ -151,6 +157,16 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
         });
       });
     }
+  }
+
+  Future<void> _updateWaitlistForEvent(String eventId) async {
+    DocumentSnapshot doc = await _eventService.getEvent(eventId);
+    final data = doc.data() as Map<String, dynamic>;
+    int count =
+        data['waitlist'] != null ? (data['waitlist'] as List).length : 0;
+    setState(() {
+      _waitlistCounts[eventId] = count;
+    });
   }
 
   List<DocumentSnapshot> get _filteredEvents {
@@ -214,10 +230,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                   });
                   _loadEvents();
                 },
-                icon: const Icon(
-                  Icons.person,
-                  size: 20,
-                ),
+                icon: const Icon(Icons.person, size: 20),
                 label: Text(
                   localeProvider.translate(section, 'filter_own_events'),
                   style: const TextStyle(fontSize: 16),
@@ -255,12 +268,14 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                       } else if (hostData is Map) {
                         hostId = hostData['uid'] as String? ?? '';
                       }
-                      final String accessType =
-                          (data.containsKey('accessType') &&
-                                  data['accessType'] is String)
-                              ? data['accessType'] as String
-                              : "public";
-                      String accessText = accessType == "invite_only"
+                      final AccessType accessTypeEnum =
+                          data.containsKey('accessType') &&
+                                  data['accessType'] is String
+                              ? AccessTypeExtension.fromString(
+                                  data['accessType'] as String)
+                              : AccessType.public;
+                      String accessText = accessTypeEnum ==
+                              AccessType.inviteOnly
                           ? localeProvider.translate(
                               section, 'access_invite_only')
                           : localeProvider.translate(section, 'access_public');
@@ -279,10 +294,8 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                LocalizedDateTimeFormatter.getFormattedDateTime(
-                                    context, dateTime),
-                              ),
+                              Text(LocalizedDateTimeFormatter
+                                  .getFormattedDateTime(context, dateTime)),
                               const SizedBox(height: 4),
                               Row(
                                 children: [
@@ -311,6 +324,75 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                                   ),
                                 ],
                               ),
+                              if (data['waitlistEnabled'] == true &&
+                                  data['host'] == _currentUserId)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.hourglass_empty),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        "${localeProvider.translate(section, 'waitlist')}: ${_waitlistCounts[event.id] ?? 0}",
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                      if ((_waitlistCounts[event.id] ?? 0) > 0)
+                                        TextButton(
+                                          child: Text(localeProvider.translate(
+                                              section, 'open_waitlist')),
+                                          onPressed: () async {
+                                            int currentParticipants =
+                                                data['participants'] != null
+                                                    ? (data['participants']
+                                                            as List)
+                                                        .length
+                                                    : 0;
+                                            int? participantLimit =
+                                                data['participantLimit'];
+                                            List<Map<String, dynamic>>
+                                                waitlistEntries = [];
+                                            if (data['waitlist'] != null) {
+                                              waitlistEntries = List<
+                                                      Map<String,
+                                                          dynamic>>.from(
+                                                  data['waitlist']);
+                                            }
+                                            final result = await showDialog(
+                                              context: context,
+                                              barrierColor: Colors.transparent,
+                                              builder: (context) {
+                                                return Stack(
+                                                  children: [
+                                                    BackdropFilter(
+                                                      filter: ImageFilter.blur(
+                                                          sigmaX: 5, sigmaY: 5),
+                                                      child: Container(
+                                                        color: const Color(
+                                                                0x80000000)
+                                                            .withOpacity(0),
+                                                      ),
+                                                    ),
+                                                    WaitlistDialog(
+                                                      eventId: event.id,
+                                                      waitlistEntries:
+                                                          waitlistEntries,
+                                                      participantLimit:
+                                                          participantLimit,
+                                                      currentParticipants:
+                                                          currentParticipants,
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                            if (result == true) {
+                                              _updateWaitlistForEvent(event.id);
+                                            }
+                                          },
+                                        ),
+                                    ],
+                                  ),
+                                ),
                             ],
                           ),
                           trailing: const Icon(Icons.arrow_forward_ios),

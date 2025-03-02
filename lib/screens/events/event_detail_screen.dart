@@ -1,3 +1,4 @@
+import 'package:elitara/models/access_type.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ class EventDetailScreen extends StatelessWidget {
   final String section = 'event_detail_screen';
   final EventService _eventService = EventService();
 
-  EventDetailScreen({Key? key, required this.eventId}) : super(key: key);
+  EventDetailScreen({super.key, required this.eventId});
 
   @override
   Widget build(BuildContext context) {
@@ -45,22 +46,28 @@ class EventDetailScreen extends StatelessWidget {
               participantsDynamic.map((p) => p.toString()).toList();
           participantIds.remove(hostId);
           participantIds.insert(0, hostId);
-
           final int? participantLimit =
               (eventMap.containsKey('participantLimit') &&
                       eventMap['participantLimit'] is int)
                   ? eventMap['participantLimit'] as int
                   : null;
           final int currentCount = participantIds.length;
-
-          final String accessType = (eventMap.containsKey('accessType') &&
-                  eventMap['accessType'] is String)
-              ? eventMap['accessType'] as String
-              : "public";
-          String accessText = accessType == "invite_only"
+          final AccessType accessType = eventMap.containsKey('accessType') &&
+                  eventMap['accessType'] is String
+              ? AccessTypeExtension.fromString(eventMap['accessType'] as String)
+              : AccessType.public;
+          String accessText = accessType == AccessType.inviteOnly
               ? localeProvider.translate(section, 'access_invite_only')
               : localeProvider.translate(section, 'access_public');
-
+          final currentUser = FirebaseAuth.instance.currentUser;
+          bool isJoined = false;
+          bool isOnWaitlist = false;
+          if (currentUser != null) {
+            isJoined = participantIds.contains(currentUser.uid);
+            List<dynamic> waitlist = eventMap['waitlist'] ?? [];
+            isOnWaitlist = waitlist.any((element) =>
+                element is Map && element['uid'] == currentUser.uid);
+          }
           return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -193,52 +200,128 @@ class EventDetailScreen extends StatelessWidget {
                   Center(
                     child: Builder(
                       builder: (context) {
-                        final currentUser = FirebaseAuth.instance.currentUser;
-                        bool isHost =
-                            currentUser != null && currentUser.uid == hostId;
-                        if (isHost) {
+                        if (currentUser != null && currentUser.uid == hostId) {
                           return ElevatedButton(
                             onPressed: () => Navigator.pushNamed(
                                 context, '/editEvent',
                                 arguments: eventData.id),
                             style: ElevatedButton.styleFrom(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 40),
-                              textStyle: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                            ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 40),
+                                textStyle: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12))),
                             child: Text(localeProvider.translate(
                                 section, 'edit_event')),
                           );
-                        } else {
+                        } else if (isJoined) {
                           return ElevatedButton(
                             onPressed: () async {
-                              final currentUser =
-                                  FirebaseAuth.instance.currentUser;
-                              if (currentUser != null) {
+                              await _eventService.leaveEvent(
+                                  eventId, currentUser!.uid);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(localeProvider.translate(
+                                      section, 'leave')),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 40),
+                                textStyle: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12))),
+                            child: Text(
+                                localeProvider.translate(section, 'leave')),
+                          );
+                        } else {
+                          if (accessType == AccessType.public) {
+                            return ElevatedButton(
+                              onPressed: () async {
                                 await _eventService.registerForEvent(
-                                    eventId, currentUser.uid);
+                                    eventId, currentUser!.uid);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(localeProvider.translate(
                                         section, 'registered')),
                                   ),
                                 );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 40),
-                              textStyle: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                            ),
-                            child:
-                                Text(localeProvider.translate(section, 'join')),
-                          );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 40),
+                                  textStyle: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12))),
+                              child: Text(
+                                  localeProvider.translate(section, 'join')),
+                            );
+                          } else if (eventMap['waitlistEnabled'] == true) {
+                            if (isOnWaitlist) {
+                              return ElevatedButton(
+                                onPressed: () async {
+                                  final waitlistEntry = {
+                                    "uid": currentUser!.uid,
+                                    "name": currentUser.displayName ?? "Unknown"
+                                  };
+                                  await _eventService.leaveWaitlist(
+                                      eventId, waitlistEntry);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(localeProvider.translate(
+                                          section, 'leave_waitlist')),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 40),
+                                    textStyle: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12))),
+                                child: Text(localeProvider.translate(
+                                    section, 'leave_waitlist')),
+                              );
+                            } else {
+                              return ElevatedButton(
+                                onPressed: () async {
+                                  final waitlistEntry = {
+                                    "uid": currentUser!.uid,
+                                    "name": currentUser.displayName ?? "Unknown"
+                                  };
+                                  await _eventService.joinWaitlist(
+                                      eventId, waitlistEntry);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(localeProvider.translate(
+                                          section, 'waitlist_registered')),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 40),
+                                    textStyle: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12))),
+                                child: Text(localeProvider.translate(
+                                    section, 'join_waitlist')),
+                              );
+                            }
+                          } else {
+                            return Container();
+                          }
                         }
                       },
                     ),

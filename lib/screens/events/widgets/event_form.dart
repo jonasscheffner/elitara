@@ -1,3 +1,4 @@
+import 'package:elitara/models/access_type.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
@@ -12,12 +13,10 @@ class EventForm extends StatelessWidget {
   final TimeOfDay selectedTime;
   final VoidCallback onSelectDate;
   final VoidCallback onSelectTime;
-  final String accessType;
-  final ValueChanged<String?> onAccessTypeChanged;
-
+  final AccessType accessType;
+  final ValueChanged<AccessType?> onAccessTypeChanged;
   final bool waitlistEnabled;
   final ValueChanged<bool> onWaitlistChanged;
-
   final String section = "event_form";
 
   const EventForm({
@@ -153,7 +152,7 @@ class EventForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
+        DropdownButtonFormField<AccessType>(
           decoration: InputDecoration(
             labelText: localeProvider.translate(section, 'access'),
             border: OutlineInputBorder(
@@ -165,11 +164,11 @@ class EventForm extends StatelessWidget {
           value: accessType,
           items: [
             DropdownMenuItem(
-              value: "public",
+              value: AccessType.public,
               child: Text(localeProvider.translate(section, 'access_public')),
             ),
             DropdownMenuItem(
-              value: "invite_only",
+              value: AccessType.inviteOnly,
               child:
                   Text(localeProvider.translate(section, 'access_invite_only')),
             ),
@@ -177,7 +176,7 @@ class EventForm extends StatelessWidget {
           onChanged: onAccessTypeChanged,
         ),
         const SizedBox(height: 8),
-        if (accessType == "invite_only")
+        if (accessType == AccessType.inviteOnly)
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(localeProvider.translate(section, 'enable_waitlist')),

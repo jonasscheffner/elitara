@@ -55,6 +55,12 @@ class EventService {
     });
   }
 
+  Future<void> leaveEvent(String eventId, String uid) async {
+    await _firestore.collection('events').doc(eventId).update({
+      'participants': FieldValue.arrayRemove([uid])
+    });
+  }
+
   Future<QuerySnapshot> getUserHostedEvents(String userId) async {
     Query query = _firestore
         .collection('events')
@@ -63,5 +69,19 @@ class EventService {
         .orderBy('date', descending: true)
         .limit(itemsPerPage);
     return await query.get();
+  }
+
+  Future<void> joinWaitlist(
+      String eventId, Map<String, dynamic> waitlistEntry) async {
+    await _firestore.collection('events').doc(eventId).update({
+      'waitlist': FieldValue.arrayUnion([waitlistEntry])
+    });
+  }
+
+  Future<void> leaveWaitlist(
+      String eventId, Map<String, dynamic> waitlistEntry) async {
+    await _firestore.collection('events').doc(eventId).update({
+      'waitlist': FieldValue.arrayRemove([waitlistEntry])
+    });
   }
 }

@@ -3,7 +3,7 @@
     "login": "Sign in with Elitara Account",
     "email": "Email",
     "password": "Password",
-    "forgotten_password": "Forgot your password?",
+    "forgotten_password": "Forgotten your password?",
     "create_account": "Create Elitara Account",
     "messages": {
       "login_error": "Login failed. Please check your credentials."
@@ -33,7 +33,14 @@
     "access": "Access",
     "access_public": "Public",
     "access_invite_only": "Invite Only",
-    "filter_own_events": "Show only my events"
+    "filter_own_events": "Show only my events",
+    "waitlist": "Waitlist",
+    "open_waitlist": "Open waitlist"
+  },
+  "waitlist_dialog": {
+    "title": "Waitlist",
+    "limit_reached_message": "Participant limit reached. Increase the limit to accept more participants.",
+    "close": "Close"
   },
   "event_form": {
     "title": "Title",
@@ -80,6 +87,7 @@
     "time": "Time",
     "location": "Location",
     "join": "Join Event",
+    "leave": "Leave Event",
     "edit_event": "Edit Event",
     "registered": "You have been registered for the event",
     "host": "Host",
@@ -87,7 +95,10 @@
     "participants": "Participants",
     "access": "Access",
     "access_public": "Public",
-    "access_invite_only": "Invite Only"
+    "access_invite_only": "Invite Only",
+    "join_waitlist": "Join Waitlist",
+    "leave_waitlist": "Leave Waitlist",
+    "waitlist_registered": "You have been added to the waitlist"
   },
   "settings": {
     "menu_screen": {

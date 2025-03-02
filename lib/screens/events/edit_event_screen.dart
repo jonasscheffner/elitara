@@ -1,3 +1,4 @@
+import 'package:elitara/models/access_type.dart';
 import 'package:elitara/screens/events/widgets/event_form.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -31,7 +32,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   int? _initialParticipantLimit;
   late DateTime _initialDate;
   late TimeOfDay _initialTime;
-  String _accessType = "public";
+  AccessType _accessType = AccessType.public;
   bool _waitlistEnabled = false;
 
   final EventService _eventService = EventService();
@@ -54,14 +55,13 @@ class _EditEventScreenState extends State<EditEventScreen> {
           : null;
       _participantLimitController.text =
           _initialParticipantLimit?.toString() ?? '';
-      String accessType = eventData!['accessType'] is String
+      String accessTypeStr = eventData!['accessType'] is String
           ? eventData!['accessType'] as String
           : "public";
-      _accessType = accessType;
+      _accessType = AccessTypeExtension.fromString(accessTypeStr);
       _waitlistEnabled = eventData!['waitlistEnabled'] is bool
           ? eventData!['waitlistEnabled'] as bool
           : false;
-
       Timestamp ts = eventData!['date'];
       DateTime dt = ts.toDate();
       _selectedDate = dt;
@@ -86,7 +86,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
     final int? currentLimit =
         currentLimitText.isEmpty ? null : int.tryParse(currentLimitText);
     bool participantLimitChanged = currentLimit != _initialParticipantLimit;
-
     bool changed = _titleController.text != _initialTitle ||
         _descriptionController.text != _initialDescription ||
         _locationController.text != _initialLocation ||
@@ -94,7 +93,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
         !_selectedDate.isAtSameMomentAs(_initialDate) ||
         (_selectedTime.hour != _initialTime.hour ||
             _selectedTime.minute != _initialTime.minute) ||
-        (_accessType != (eventData?['accessType'] as String? ?? "public")) ||
+        (_accessType.value !=
+            (eventData?['accessType'] as String? ?? "public")) ||
         (_waitlistEnabled != (eventData?['waitlistEnabled'] as bool? ?? false));
     if (changed != _hasChanged) {
       setState(() {
@@ -176,9 +176,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
         _selectedTime.hour,
         _selectedTime.minute,
       )),
-      'accessType': _accessType,
+      'accessType': _accessType.value,
       'waitlistEnabled':
-          _accessType == "invite_only" ? _waitlistEnabled : false,
+          _accessType == AccessType.inviteOnly ? _waitlistEnabled : false,
     };
     if (_participantLimitController.text.isNotEmpty) {
       updatedData['participantLimit'] = participantLimit;
@@ -269,7 +269,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 accessType: _accessType,
                 onAccessTypeChanged: (value) {
                   setState(() {
-                    _accessType = value ?? "public";
+                    _accessType = value ?? AccessType.public;
                     _checkForChanges();
                   });
                 },
