@@ -38,7 +38,7 @@
     "open_waitlist": "Warteliste öffnen"
   },
   "waitlist_dialog": {
-    "title": "Warteliste",
+    "title": "Warteliste - {title}",
     "limit_reached_message": "Teilnehmerlimit erreicht. Erhöhe das Limit, um weitere Teilnehmer zu akzeptieren.",
     "close": "Schließen"
   },

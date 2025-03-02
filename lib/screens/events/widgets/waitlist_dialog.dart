@@ -4,6 +4,7 @@ import 'package:elitara/services/event_service.dart';
 
 class WaitlistDialog extends StatefulWidget {
   final String eventId;
+  final String eventTitle;
   final String section = "waitlist_dialog";
   final List<Map<String, dynamic>> waitlistEntries;
   final int? participantLimit;
@@ -12,6 +13,7 @@ class WaitlistDialog extends StatefulWidget {
   const WaitlistDialog({
     super.key,
     required this.eventId,
+    required this.eventTitle,
     required this.waitlistEntries,
     required this.currentParticipants,
     this.participantLimit,
@@ -69,8 +71,14 @@ class _WaitlistDialogState extends State<WaitlistDialog> {
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
     bool isLimitReached = widget.participantLimit != null &&
         _currentParticipants >= widget.participantLimit!;
+    final title = localeProvider.translate(widget.section, 'title',
+        params: {'title': widget.eventTitle});
     return AlertDialog(
-      title: Text(localeProvider.translate(widget.section, "title")),
+      title: Text(
+        title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
       content: Container(
         width: MediaQuery.of(context).size.width * 0.8,
         constraints:
@@ -121,7 +129,7 @@ class _WaitlistDialogState extends State<WaitlistDialog> {
         TextButton(
           child: Text(localeProvider.translate(widget.section, "close")),
           onPressed: () {
-            Navigator.of(context).pop(_hasChanged);
+            Navigator.of(context).pop();
           },
         ),
       ],

@@ -374,6 +374,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                                                     ),
                                                     WaitlistDialog(
                                                       eventId: event.id,
+                                                      eventTitle: data['title'],
                                                       waitlistEntries:
                                                           waitlistEntries,
                                                       participantLimit:

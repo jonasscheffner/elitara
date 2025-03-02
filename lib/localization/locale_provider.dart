@@ -18,7 +18,8 @@ class LocaleProvider {
 
   LocaleProvider(this.languageCode, this.localizedStrings);
 
-  String translate(String section, String key) {
+  String translate(String section, String key,
+      {Map<String, String> params = const {}}) {
     try {
       List<String> sectionKeys = section.split('.');
       dynamic current = localizedStrings;
@@ -38,7 +39,11 @@ class LocaleProvider {
         }
       }
       if (current is String) {
-        return current;
+        String result = current;
+        params.forEach((placeholder, value) {
+          result = result.replaceAll('{$placeholder}', value);
+        });
+        return result;
       } else {
         return 'Translation not found';
       }
