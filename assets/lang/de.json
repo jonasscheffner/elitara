@@ -52,15 +52,17 @@
     "access": "Zugriff",
     "access_public": "Öffentlich",
     "access_invite_only": "Nur per Einladung",
-    "enable_waitlist": "Warteliste aktivieren"
+    "enable_waitlist": "Warteliste",
+    "waitlist_limit": "Wartelistenlimit"
   },
   "create_event_screen": {
     "create_event_title": "Event erstellen",
     "create_event": "Ereignis erstellen",
     "messages": {
       "event_created": "Event erfolgreich erstellt",
-      "fill_all_fields": "Bitte füllen Sie alle Felder aus",
-      "invalid_participant_limit": "Ungültiges Teilnehmerlimit"
+      "fill_all_fields": "Bitte füllen Sie alle Pflichtfelder aus",
+      "invalid_participant_limit": "Ungültiges Teilnehmerlimit",
+      "invalid_waitlist_limit": "Ungültiges Wartelistenlimit."
     }
   },
   "edit_event_screen": {
@@ -68,10 +70,13 @@
     "update_event": "Event aktualisieren",
     "cancel_event": "Event absagen",
     "messages": {
-      "fill_all_fields": "Bitte füllen Sie alle Felder aus",
+      "fill_all_fields": "Bitte füllen Sie alle Pflichtfelder aus",
       "event_updated": "Event erfolgreich aktualisiert",
       "event_canceled": "Event wurde abgesagt",
-      "invalid_participant_limit": "Ungültiges Teilnehmerlimit"
+      "invalid_participant_limit": "Ungültiges Teilnehmerlimit",
+      "invalid_waitlist_limit": "Ungültiges Wartelistenlimit.",
+      "participant_limit_error": "Überschreitet aktuelle Teilnehmer ({count})",
+      "waitlist_limit_error": "Überschreitet aktuelle Warteliste ({count})"
     },
     "confirmation_dialog": {
       "title": "Bestätigen",

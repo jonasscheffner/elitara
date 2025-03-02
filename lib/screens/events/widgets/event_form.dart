@@ -9,6 +9,7 @@ class EventForm extends StatelessWidget {
   final TextEditingController descriptionController;
   final TextEditingController locationController;
   final TextEditingController participantLimitController;
+  final TextEditingController waitlistLimitController;
   final DateTime selectedDate;
   final TimeOfDay selectedTime;
   final VoidCallback onSelectDate;
@@ -18,6 +19,8 @@ class EventForm extends StatelessWidget {
   final bool waitlistEnabled;
   final ValueChanged<bool> onWaitlistChanged;
   final String section = "event_form";
+  final String? participantLimitError;
+  final String? waitlistLimitError;
 
   const EventForm({
     Key? key,
@@ -25,6 +28,7 @@ class EventForm extends StatelessWidget {
     required this.descriptionController,
     required this.locationController,
     required this.participantLimitController,
+    required this.waitlistLimitController,
     required this.selectedDate,
     required this.selectedTime,
     required this.onSelectDate,
@@ -33,6 +37,8 @@ class EventForm extends StatelessWidget {
     required this.onAccessTypeChanged,
     required this.waitlistEnabled,
     required this.onWaitlistChanged,
+    this.participantLimitError,
+    this.waitlistLimitError,
   }) : super(key: key);
 
   @override
@@ -46,11 +52,9 @@ class EventForm extends StatelessWidget {
           controller: titleController,
           decoration: InputDecoration(
             label: RequiredFieldLabel(
-              label: localeProvider.translate(section, 'title'),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
+                label: localeProvider.translate(section, 'title')),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
             contentPadding:
                 const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
           ),
@@ -60,11 +64,9 @@ class EventForm extends StatelessWidget {
           controller: descriptionController,
           decoration: InputDecoration(
             label: RequiredFieldLabel(
-              label: localeProvider.translate(section, 'description'),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
+                label: localeProvider.translate(section, 'description')),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
             contentPadding:
                 const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
           ),
@@ -75,11 +77,9 @@ class EventForm extends StatelessWidget {
           controller: locationController,
           decoration: InputDecoration(
             label: RequiredFieldLabel(
-              label: localeProvider.translate(section, 'location'),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
+                label: localeProvider.translate(section, 'location')),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
             contentPadding:
                 const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
           ),
@@ -97,8 +97,7 @@ class EventForm extends StatelessWidget {
                 labelText: localeProvider.translate(section, 'select_date'),
                 suffixIcon: const Icon(Icons.calendar_today),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
+                    borderRadius: BorderRadius.circular(12.0)),
                 contentPadding: const EdgeInsets.symmetric(
                     vertical: 16.0, horizontal: 12.0),
               ),
@@ -113,21 +112,15 @@ class EventForm extends StatelessWidget {
               controller: TextEditingController(
                 text: LocalizedDateTimeFormatter.getFormattedTime(
                   context,
-                  DateTime(
-                    selectedDate.year,
-                    selectedDate.month,
-                    selectedDate.day,
-                    selectedTime.hour,
-                    selectedTime.minute,
-                  ),
+                  DateTime(selectedDate.year, selectedDate.month,
+                      selectedDate.day, selectedTime.hour, selectedTime.minute),
                 ),
               ),
               decoration: InputDecoration(
                 labelText: localeProvider.translate(section, 'select_time'),
                 suffixIcon: const Icon(Icons.access_time),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
+                    borderRadius: BorderRadius.circular(12.0)),
                 contentPadding: const EdgeInsets.symmetric(
                     vertical: 16.0, horizontal: 12.0),
               ),
@@ -135,53 +128,97 @@ class EventForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextField(
-            controller: participantLimitController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText:
-                  "${localeProvider.translate(section, 'participant_limit')} (optional)",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 1,
+              child: DropdownButtonFormField<AccessType>(
+                decoration: InputDecoration(
+                  labelText: localeProvider.translate(section, 'access'),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0)),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
+                ),
+                value: accessType,
+                items: [
+                  DropdownMenuItem(
+                    value: AccessType.public,
+                    child: Text(
+                        localeProvider.translate(section, 'access_public')),
+                  ),
+                  DropdownMenuItem(
+                    value: AccessType.inviteOnly,
+                    child: Text(localeProvider.translate(
+                        section, 'access_invite_only')),
+                  ),
+                ],
+                onChanged: onAccessTypeChanged,
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
             ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<AccessType>(
-          decoration: InputDecoration(
-            labelText: localeProvider.translate(section, 'access'),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-          ),
-          value: accessType,
-          items: [
-            DropdownMenuItem(
-              value: AccessType.public,
-              child: Text(localeProvider.translate(section, 'access_public')),
-            ),
-            DropdownMenuItem(
-              value: AccessType.inviteOnly,
-              child:
-                  Text(localeProvider.translate(section, 'access_invite_only')),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 1,
+              child: TextField(
+                controller: participantLimitController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText:
+                      localeProvider.translate(section, 'participant_limit'),
+                  errorText: participantLimitError,
+                  errorMaxLines: 2,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0)),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
+                ),
+              ),
             ),
           ],
-          onChanged: onAccessTypeChanged,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         if (accessType == AccessType.inviteOnly)
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(localeProvider.translate(section, 'enable_waitlist')),
-            value: waitlistEnabled,
-            onChanged: onWaitlistChanged,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 1,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        localeProvider.translate(section, 'enable_waitlist'),
+                        style: const TextStyle(fontSize: 18),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Switch(
+                        value: waitlistEnabled, onChanged: onWaitlistChanged),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 1,
+                child: TextField(
+                  controller: waitlistLimitController,
+                  keyboardType: TextInputType.number,
+                  enabled: waitlistEnabled,
+                  decoration: InputDecoration(
+                    labelText:
+                        localeProvider.translate(section, 'waitlist_limit'),
+                    errorText: waitlistLimitError,
+                    errorMaxLines: 2,
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0)),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 16.0, horizontal: 12.0),
+                  ),
+                ),
+              ),
+            ],
           ),
       ],
     );

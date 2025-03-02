@@ -52,15 +52,17 @@
     "access": "Access",
     "access_public": "Public",
     "access_invite_only": "Invite Only",
-    "enable_waitlist": "Enable Waitlist"
+    "enable_waitlist": "Waitlist",
+    "waitlist_limit": "Waitlist Limit"
   },
   "create_event_screen": {
     "create_event_title": "Create Event",
     "create_event": "Create Event",
     "messages": {
       "event_created": "Event created successfully",
-      "fill_all_fields": "Please fill in all fields",
-      "invalid_participant_limit": "Invalid participant limit"
+      "fill_all_fields": "Please fill in all required fields",
+      "invalid_participant_limit": "Invalid participant limit",
+      "invalid_waitlist_limit": "Invalid waitlist limit."
     }
   },
   "edit_event_screen": {
@@ -68,10 +70,13 @@
     "update_event": "Update Event",
     "cancel_event": "Cancel Event",
     "messages": {
-      "fill_all_fields": "Please fill in all fields",
+      "fill_all_fields": "Please fill in all required fields",
       "event_updated": "Event updated successfully",
       "event_canceled": "Event canceled successfully",
-      "invalid_participant_limit": "Invalid participant limit"
+      "invalid_participant_limit": "Invalid participant limit",
+      "invalid_waitlist_limit": "Invalid waitlist limit.",
+      "participant_limit_error": "Exceeds current participants ({count})",
+      "waitlist_limit_error": "Exceeds current waitlist ({count})"
     },
     "confirmation_dialog": {
       "title": "Cancel Event",

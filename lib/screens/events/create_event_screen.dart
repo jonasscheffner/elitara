@@ -19,6 +19,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _participantLimitController =
       TextEditingController();
+  final TextEditingController _waitlistLimitController =
+      TextEditingController();
 
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
@@ -38,6 +40,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             Localizations.of<LocaleProvider>(context, LocaleProvider)!
                 .translate(section, 'messages.fill_all_fields'),
           ),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -53,6 +56,23 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             content: Text(
               Localizations.of<LocaleProvider>(context, LocaleProvider)!
                   .translate(section, 'messages.invalid_participant_limit'),
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
+    int? waitlistLimit;
+    if (_waitlistEnabled && _waitlistLimitController.text.isNotEmpty) {
+      try {
+        waitlistLimit = int.parse(_waitlistLimitController.text);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              Localizations.of<LocaleProvider>(context, LocaleProvider)!
+                  .translate(section, 'messages.invalid_waitlist_limit'),
             ),
           ),
         );
@@ -83,6 +103,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     };
     if (participantLimit != null) {
       eventData['participantLimit'] = participantLimit;
+    }
+    if (_waitlistEnabled && waitlistLimit != null) {
+      eventData['waitlistLimit'] = waitlistLimit;
     }
 
     await _eventService.createEvent(eventData);
@@ -149,6 +172,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 descriptionController: _descriptionController,
                 locationController: _locationController,
                 participantLimitController: _participantLimitController,
+                waitlistLimitController: _waitlistLimitController,
                 selectedDate: _selectedDate,
                 selectedTime: _selectedTime,
                 onSelectDate: () => _selectDate(context),
