@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/services/event_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:elitara/utils/event_validator.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
@@ -30,54 +31,63 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   String section = 'create_event_screen';
   final EventService _eventService = EventService();
 
+  String? _participantLimitError;
+  String? _waitlistLimitError;
+
+  @override
+  void initState() {
+    super.initState();
+    _participantLimitController.addListener(_validateParticipantLimit);
+    _waitlistLimitController.addListener(_validateWaitlistLimit);
+  }
+
+  void _validateParticipantLimit() {
+    final error = EventValidator.validateParticipantLimit(
+      _participantLimitController.text,
+      context,
+    );
+    setState(() {
+      _participantLimitError = error;
+    });
+  }
+
+  void _validateWaitlistLimit() {
+    final error = EventValidator.validateWaitlistLimit(
+      _waitlistLimitController.text,
+      context,
+      waitlistEnabled: _waitlistEnabled,
+    );
+    setState(() {
+      _waitlistLimitError = error;
+    });
+  }
+
   void _createEvent() async {
+    final localeProvider =
+        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+
     if (_titleController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
         _locationController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                .translate(section, 'messages.fill_all_fields'),
-          ),
+              localeProvider.translate(section, 'messages.fill_all_fields')),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
+    if (_participantLimitError != null || _waitlistLimitError != null) return;
+
     int? participantLimit;
     if (_participantLimitController.text.isNotEmpty) {
-      try {
-        participantLimit = int.parse(_participantLimitController.text);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                  .translate(section, 'messages.invalid_participant_limit'),
-            ),
-          ),
-        );
-        return;
-      }
+      participantLimit = int.tryParse(_participantLimitController.text);
     }
-
     int? waitlistLimit;
     if (_waitlistEnabled && _waitlistLimitController.text.isNotEmpty) {
-      try {
-        waitlistLimit = int.parse(_waitlistLimitController.text);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                  .translate(section, 'messages.invalid_waitlist_limit'),
-            ),
-          ),
-        );
-        return;
-      }
+      waitlistLimit = int.tryParse(_waitlistLimitController.text);
     }
 
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -112,10 +122,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          Localizations.of<LocaleProvider>(context, LocaleProvider)!
-              .translate(section, 'messages.event_created'),
-        ),
+        content:
+            Text(localeProvider.translate(section, 'messages.event_created')),
       ),
     );
     Navigator.pop(context);
@@ -154,6 +162,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   }
 
   @override
+  void dispose() {
+    _participantLimitController.dispose();
+    _waitlistLimitController.dispose();
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
@@ -187,8 +205,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 onWaitlistChanged: (value) {
                   setState(() {
                     _waitlistEnabled = value;
+                    _validateWaitlistLimit();
                   });
                 },
+                participantLimitError: _participantLimitError,
+                waitlistLimitError: _waitlistLimitError,
               ),
               const SizedBox(height: 20),
               ElevatedButton(

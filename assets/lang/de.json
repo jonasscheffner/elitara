@@ -85,7 +85,14 @@
       "no": "Nein"
     }
   },
-
+  "event_validation": {
+    "participant_limit_invalid": "Ungültige Zahl",
+    "participant_limit_min": "Limit muss mindestens 1 sein",
+    "participant_limit_error": "Limit liegt unter den aktuellen Teilnehmern ({count})",
+    "waitlist_limit_invalid": "Ungültige Zahl",
+    "waitlist_limit_min": "Limit muss mindestens 1 sein",
+    "waitlist_limit_error": "Limit liegt unter der aktuellen Warteliste ({count})"
+  },
   "event_detail_screen": {
     "title": "Eventdetails",
     "description": "Beschreibung",

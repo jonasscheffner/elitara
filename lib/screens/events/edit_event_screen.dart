@@ -4,6 +4,7 @@ import 'package:elitara/models/access_type.dart';
 import 'package:elitara/screens/events/widgets/event_form.dart';
 import 'package:elitara/services/event_service.dart';
 import 'package:flutter/material.dart';
+import 'package:elitara/utils/event_validator.dart';
 
 class EditEventScreen extends StatefulWidget {
   final String eventId;
@@ -49,6 +50,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
   void initState() {
     super.initState();
     _loadEventData();
+    _participantLimitController.addListener(_validateParticipantLimit);
+    _waitlistLimitController.addListener(_validateWaitlistLimit);
   }
 
   Future<void> _loadEventData() async {
@@ -100,42 +103,32 @@ class _EditEventScreenState extends State<EditEventScreen> {
     });
   }
 
-  void _validateLimits() {
-    final localeProvider =
-        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
-    if (_participantLimitController.text.isNotEmpty) {
-      int? newLimit = int.tryParse(_participantLimitController.text);
-      if (newLimit != null && newLimit < _existingParticipantCount) {
-        _participantLimitError = localeProvider.translate(
-          section,
-          'messages.participant_limit_error',
-          params: {'count': '$_existingParticipantCount'},
-        );
-      } else {
-        _participantLimitError = null;
-      }
-    } else {
-      _participantLimitError = null;
-    }
-    if (_waitlistEnabled && _waitlistLimitController.text.isNotEmpty) {
-      int? newWaitlistLimit = int.tryParse(_waitlistLimitController.text);
-      if (newWaitlistLimit != null &&
-          newWaitlistLimit < _existingWaitlistCount) {
-        _waitlistLimitError = localeProvider.translate(
-          section,
-          'messages.waitlist_limit_error',
-          params: {'count': '$_existingWaitlistCount'},
-        );
-      } else {
-        _waitlistLimitError = null;
-      }
-    } else {
-      _waitlistLimitError = null;
-    }
+  void _validateParticipantLimit() {
+    final error = EventValidator.validateParticipantLimit(
+      _participantLimitController.text,
+      context,
+      existingParticipantCount: _existingParticipantCount,
+    );
+    setState(() {
+      _participantLimitError = error;
+    });
+  }
+
+  void _validateWaitlistLimit() {
+    final error = EventValidator.validateWaitlistLimit(
+      _waitlistLimitController.text,
+      context,
+      waitlistEnabled: _waitlistEnabled,
+      existingWaitlistCount: _existingWaitlistCount,
+    );
+    setState(() {
+      _waitlistLimitError = error;
+    });
   }
 
   void _checkForChanges() {
-    _validateLimits();
+    _validateParticipantLimit();
+    _validateWaitlistLimit();
     bool participantLimitChanged = _participantLimitController.text.isNotEmpty
         ? int.tryParse(_participantLimitController.text) !=
             _initialParticipantLimit
@@ -191,46 +184,31 @@ class _EditEventScreenState extends State<EditEventScreen> {
   }
 
   Future<void> _updateEvent() async {
+    final localeProvider =
+        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+
     if (_titleController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
         _locationController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                  .translate(section, 'messages.fill_all_fields')),
+              localeProvider.translate(section, 'messages.fill_all_fields')),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
+
+    if (_participantLimitError != null || _waitlistLimitError != null) return;
+
     int? participantLimit;
     if (_participantLimitController.text.isNotEmpty) {
-      try {
-        participantLimit = int.parse(_participantLimitController.text);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(Localizations.of<LocaleProvider>(
-                      context, LocaleProvider)!
-                  .translate(section, 'messages.invalid_participant_limit'))),
-        );
-        return;
-      }
+      participantLimit = int.tryParse(_participantLimitController.text);
     }
     int? waitlistLimit;
     if (_waitlistEnabled && _waitlistLimitController.text.isNotEmpty) {
-      try {
-        waitlistLimit = int.parse(_waitlistLimitController.text);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                      .translate(section, 'messages.invalid_waitlist_limit'))),
-        );
-        return;
-      }
+      waitlistLimit = int.tryParse(_waitlistLimitController.text);
     }
     final Map<String, dynamic> updatedData = {
       'title': _titleController.text,
@@ -260,45 +238,44 @@ class _EditEventScreenState extends State<EditEventScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
           content: Text(
-              Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                  .translate(section, 'messages.event_updated'))),
+              localeProvider.translate(section, 'messages.event_updated'))),
     );
     Navigator.pop(context);
   }
 
   Future<void> _cancelEvent() async {
+    final localeProvider =
+        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
     await _eventService.cancelEvent(widget.eventId);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(
-              Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                  .translate(section, 'messages.event_canceled'))),
+        content:
+            Text(localeProvider.translate(section, 'messages.event_canceled')),
+      ),
     );
     Navigator.pop(context);
   }
 
   Future<void> _confirmCancelEvent() async {
+    final localeProvider =
+        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
     bool confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: Text(
-                Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                    .translate(section, 'confirmation_dialog.title')),
-            content: Text(
-                Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                    .translate(section, 'confirmation_dialog.content')),
+                localeProvider.translate(section, 'confirmation_dialog.title')),
+            content: Text(localeProvider.translate(
+                section, 'confirmation_dialog.content')),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: Text(
-                    Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                        .translate(section, 'confirmation_dialog.no')),
+                child: Text(localeProvider.translate(
+                    section, 'confirmation_dialog.no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: Text(
-                    Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                        .translate(section, 'confirmation_dialog.yes')),
+                child: Text(localeProvider.translate(
+                    section, 'confirmation_dialog.yes')),
               ),
             ],
           ),
@@ -310,6 +287,16 @@ class _EditEventScreenState extends State<EditEventScreen> {
   }
 
   @override
+  void dispose() {
+    _participantLimitController.dispose();
+    _waitlistLimitController.dispose();
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
@@ -318,7 +305,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
     }
     return Scaffold(
       appBar: AppBar(
-          title: Text(localeProvider.translate(section, 'edit_event_title'))),
+        title: Text(localeProvider.translate(section, 'edit_event_title')),
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: SingleChildScrollView(
@@ -347,6 +335,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                   setState(() {
                     _waitlistEnabled = value;
                     _checkForChanges();
+                    _validateWaitlistLimit();
                   });
                 },
                 participantLimitError: _participantLimitError,
@@ -362,25 +351,37 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     : _updateEvent,
                 style: ButtonStyle(
                   padding: WidgetStateProperty.all(
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30)),
-                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12))),
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  ),
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
-                child: Text(localeProvider.translate(section, 'update_event'),
-                    style: const TextStyle(fontSize: 18)),
+                child: Text(
+                  localeProvider.translate(section, 'update_event'),
+                  style: const TextStyle(fontSize: 18),
+                ),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _confirmCancelEvent,
                 style: ButtonStyle(
                   padding: WidgetStateProperty.all(
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30)),
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  ),
                   backgroundColor: WidgetStateProperty.all(Colors.red),
-                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12))),
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
-                child: Text(localeProvider.translate(section, 'cancel_event'),
-                    style: const TextStyle(fontSize: 18)),
+                child: Text(
+                  localeProvider.translate(section, 'cancel_event'),
+                  style: const TextStyle(fontSize: 18),
+                ),
               ),
             ],
           ),
