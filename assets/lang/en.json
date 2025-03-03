@@ -111,7 +111,9 @@
     "access_invite_only": "Invite Only",
     "join_waitlist": "Join Waitlist",
     "leave_waitlist": "Leave Waitlist",
-    "waitlist_registered": "You have been added to the waitlist"
+    "waitlist_registered": "You have been added to the waitlist",
+    "event_full": "Event is full",
+    "waitlist_full": "Waitlist is full"
   },
   "settings": {
     "menu_screen": {

@@ -59,12 +59,17 @@ class EventDetailScreen extends StatelessWidget {
           String accessText = accessType == AccessType.inviteOnly
               ? localeProvider.translate(section, 'access_invite_only')
               : localeProvider.translate(section, 'access_public');
+          final int? waitlistLimit = (eventMap.containsKey('waitlistLimit') &&
+                  eventMap['waitlistLimit'] is int)
+              ? eventMap['waitlistLimit'] as int
+              : null;
+          final List<dynamic> waitlist = eventMap['waitlist'] ?? [];
+          final int currentWaitlistCount = waitlist.length;
           final currentUser = FirebaseAuth.instance.currentUser;
           bool isJoined = false;
           bool isOnWaitlist = false;
           if (currentUser != null) {
             isJoined = participantIds.contains(currentUser.uid);
-            List<dynamic> waitlist = eventMap['waitlist'] ?? [];
             isOnWaitlist = waitlist.any((element) =>
                 element is Map && element['uid'] == currentUser.uid);
           }
@@ -239,6 +244,16 @@ class EventDetailScreen extends StatelessWidget {
                           );
                         } else {
                           if (accessType == AccessType.public) {
+                            if (participantLimit != null &&
+                                currentCount >= participantLimit) {
+                              return Text(
+                                localeProvider.translate(section, 'event_full'),
+                                style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red),
+                              );
+                            }
                             return ElevatedButton(
                               onPressed: () async {
                                 await _eventService.registerForEvent(
@@ -291,6 +306,17 @@ class EventDetailScreen extends StatelessWidget {
                                     section, 'leave_waitlist')),
                               );
                             } else {
+                              if (waitlistLimit != null &&
+                                  currentWaitlistCount >= waitlistLimit) {
+                                return Text(
+                                  localeProvider.translate(
+                                      section, 'waitlist_full'),
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red),
+                                );
+                              }
                               return ElevatedButton(
                                 onPressed: () async {
                                   final waitlistEntry = {

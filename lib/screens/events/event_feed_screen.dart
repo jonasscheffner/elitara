@@ -279,6 +279,11 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                           ? localeProvider.translate(
                               section, 'access_invite_only')
                           : localeProvider.translate(section, 'access_public');
+                      final int? waitlistLimit =
+                          (data.containsKey('waitlistLimit') &&
+                                  data['waitlistLimit'] is int)
+                              ? data['waitlistLimit'] as int
+                              : null;
                       return Card(
                         margin: const EdgeInsets.all(10),
                         shape: RoundedRectangleBorder(
@@ -324,19 +329,21 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                                   ),
                                 ],
                               ),
-                              if (data['waitlistEnabled'] == true &&
-                                  data['host'] == _currentUserId)
+                              if (data['waitlistEnabled'] == true)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8.0),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.hourglass_empty),
+                                      const Icon(Icons.hourglass_top),
                                       const SizedBox(width: 4),
                                       Text(
-                                        "${localeProvider.translate(section, 'waitlist')}: ${_waitlistCounts[event.id] ?? 0}",
+                                        waitlistLimit != null
+                                            ? "${_waitlistCounts[event.id] ?? 0} / $waitlistLimit"
+                                            : "${_waitlistCounts[event.id] ?? 0}",
                                         style: const TextStyle(fontSize: 14),
                                       ),
-                                      if ((_waitlistCounts[event.id] ?? 0) > 0)
+                                      if (_currentUserId == hostId &&
+                                          (_waitlistCounts[event.id] ?? 0) > 0)
                                         TextButton(
                                           child: Text(localeProvider.translate(
                                               section, 'open_waitlist')),
