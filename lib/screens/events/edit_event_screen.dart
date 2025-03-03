@@ -221,8 +221,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
           _selectedTime.hour,
           _selectedTime.minute)),
       'accessType': _accessType.value,
-      'waitlistEnabled':
-          _accessType == AccessType.inviteOnly ? _waitlistEnabled : false,
+      'waitlistEnabled': _waitlistEnabled,
     };
     if (_participantLimitController.text.isNotEmpty) {
       updatedData['participantLimit'] = participantLimit;
