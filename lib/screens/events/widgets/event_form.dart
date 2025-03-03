@@ -85,47 +85,61 @@ class EventForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        GestureDetector(
-          onTap: onSelectDate,
-          child: AbsorbPointer(
-            child: TextField(
-              controller: TextEditingController(
-                text: LocalizedDateTimeFormatter.getFormattedDate(
-                    context, selectedDate),
-              ),
-              decoration: InputDecoration(
-                labelText: localeProvider.translate(section, 'select_date'),
-                suffixIcon: const Icon(Icons.calendar_today),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0)),
-                contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16.0, horizontal: 12.0),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: onSelectTime,
-          child: AbsorbPointer(
-            child: TextField(
-              controller: TextEditingController(
-                text: LocalizedDateTimeFormatter.getFormattedTime(
-                  context,
-                  DateTime(selectedDate.year, selectedDate.month,
-                      selectedDate.day, selectedTime.hour, selectedTime.minute),
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: onSelectDate,
+                child: AbsorbPointer(
+                  child: TextField(
+                    controller: TextEditingController(
+                      text: LocalizedDateTimeFormatter.getFormattedDate(
+                          context, selectedDate),
+                    ),
+                    decoration: InputDecoration(
+                      labelText:
+                          localeProvider.translate(section, 'select_date'),
+                      suffixIcon: const Icon(Icons.calendar_today),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16.0, horizontal: 12.0),
+                    ),
+                  ),
                 ),
               ),
-              decoration: InputDecoration(
-                labelText: localeProvider.translate(section, 'select_time'),
-                suffixIcon: const Icon(Icons.access_time),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0)),
-                contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16.0, horizontal: 12.0),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: GestureDetector(
+                onTap: onSelectTime,
+                child: AbsorbPointer(
+                  child: TextField(
+                    controller: TextEditingController(
+                      text: LocalizedDateTimeFormatter.getFormattedTime(
+                        context,
+                        DateTime(
+                            selectedDate.year,
+                            selectedDate.month,
+                            selectedDate.day,
+                            selectedTime.hour,
+                            selectedTime.minute),
+                      ),
+                    ),
+                    decoration: InputDecoration(
+                      labelText:
+                          localeProvider.translate(section, 'select_time'),
+                      suffixIcon: const Icon(Icons.access_time),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16.0, horizontal: 12.0),
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ),
         const SizedBox(height: 16),
         Row(
