@@ -129,7 +129,11 @@ class _WaitlistDialogState extends State<WaitlistDialog> {
         TextButton(
           child: Text(localeProvider.translate(widget.section, "close")),
           onPressed: () {
-            Navigator.of(context).pop();
+            if (_hasChanged) {
+              Navigator.of(context).pop(true);
+            } else {
+              Navigator.of(context).pop();
+            }
           },
         ),
       ],
