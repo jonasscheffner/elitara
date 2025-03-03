@@ -107,11 +107,11 @@ class _WaitlistDialogState extends State<WaitlistDialog> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.check, color: Colors.green),
-                          onPressed:
-                              isLimitReached ? null : () => _acceptEntry(entry),
-                        ),
+                        if (!isLimitReached)
+                          IconButton(
+                            icon: const Icon(Icons.check, color: Colors.green),
+                            onPressed: () => _acceptEntry(entry),
+                          ),
                         IconButton(
                           icon: const Icon(Icons.close, color: Colors.red),
                           onPressed: () => _declineEntry(entry),
