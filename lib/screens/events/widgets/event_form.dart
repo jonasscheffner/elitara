@@ -178,48 +178,46 @@ class EventForm extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        if (accessType == AccessType.inviteOnly)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 1,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        localeProvider.translate(section, 'enable_waitlist'),
-                        style: const TextStyle(fontSize: 18),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 1,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Text(
+                      localeProvider.translate(section, 'enable_waitlist'),
+                      style: const TextStyle(fontSize: 18),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    Switch(
-                        value: waitlistEnabled, onChanged: onWaitlistChanged),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 1,
-                child: TextField(
-                  controller: waitlistLimitController,
-                  keyboardType: TextInputType.number,
-                  enabled: waitlistEnabled,
-                  decoration: InputDecoration(
-                    labelText:
-                        localeProvider.translate(section, 'waitlist_limit'),
-                    errorText: waitlistLimitError,
-                    errorMaxLines: 2,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0)),
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16.0, horizontal: 12.0),
                   ),
+                  Switch(value: waitlistEnabled, onChanged: onWaitlistChanged),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 1,
+              child: TextField(
+                controller: waitlistLimitController,
+                keyboardType: TextInputType.number,
+                enabled: waitlistEnabled,
+                decoration: InputDecoration(
+                  labelText:
+                      localeProvider.translate(section, 'waitlist_limit'),
+                  errorText: waitlistLimitError,
+                  errorMaxLines: 2,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0)),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
       ],
     );
   }
