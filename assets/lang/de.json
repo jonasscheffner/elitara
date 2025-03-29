@@ -53,7 +53,12 @@
     "access_public": "Öffentlich",
     "access_invite_only": "Nur per Einladung",
     "enable_waitlist": "Warteliste",
-    "waitlist_limit": "Wartelistenlimit"
+    "waitlist_limit": "Wartelistenlimit",
+    "visibility": "Sichtbarkeit",
+    "visibility_everyone": "Alle",
+    "visibility_participants_only": "Nur Teilnehmer",
+    "invite_permission": "Teilnehmer dürfen einladen",
+    "invite_permission_info": "Nur Gold- und Platin-Mitglieder können andere einladen"
   },
   "create_event_screen": {
     "create_event_title": "Event erstellen",

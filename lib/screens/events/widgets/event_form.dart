@@ -1,4 +1,5 @@
 import 'package:elitara/models/access_type.dart';
+import 'package:elitara/models/visibility_option.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
@@ -18,6 +19,10 @@ class EventForm extends StatelessWidget {
   final ValueChanged<AccessType?> onAccessTypeChanged;
   final bool waitlistEnabled;
   final ValueChanged<bool> onWaitlistChanged;
+  final VisibilityOption visibility;
+  final ValueChanged<VisibilityOption?> onVisibilityChanged;
+  final bool canInvite;
+  final ValueChanged<bool> onCanInviteChanged;
   final String section = "event_form";
   final String? participantLimitError;
   final String? waitlistLimitError;
@@ -37,6 +42,10 @@ class EventForm extends StatelessWidget {
     required this.onAccessTypeChanged,
     required this.waitlistEnabled,
     required this.onWaitlistChanged,
+    required this.visibility,
+    required this.onVisibilityChanged,
+    required this.canInvite,
+    required this.onCanInviteChanged,
     this.participantLimitError,
     this.waitlistLimitError,
   }) : super(key: key);
@@ -143,10 +152,34 @@ class EventForm extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 1,
+              child: DropdownButtonFormField<VisibilityOption>(
+                decoration: InputDecoration(
+                  labelText: localeProvider.translate(section, 'visibility'),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0)),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
+                ),
+                value: visibility,
+                items: [
+                  DropdownMenuItem(
+                    value: VisibilityOption.everyone,
+                    child: Text(localeProvider.translate(
+                        section, 'visibility_everyone')),
+                  ),
+                  DropdownMenuItem(
+                    value: VisibilityOption.participantsOnly,
+                    child: Text(localeProvider.translate(
+                        section, 'visibility_participants_only')),
+                  ),
+                ],
+                onChanged: onVisibilityChanged,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
               child: DropdownButtonFormField<AccessType>(
                 decoration: InputDecoration(
                   labelText: localeProvider.translate(section, 'access'),
@@ -171,7 +204,12 @@ class EventForm extends StatelessWidget {
                 onChanged: onAccessTypeChanged,
               ),
             ),
-            const SizedBox(width: 16),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Expanded(
               flex: 1,
               child: TextField(
@@ -187,28 +225,6 @@ class EventForm extends StatelessWidget {
                   contentPadding: const EdgeInsets.symmetric(
                       vertical: 16.0, horizontal: 12.0),
                 ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 1,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Text(
-                      localeProvider.translate(section, 'enable_waitlist'),
-                      style: const TextStyle(fontSize: 18),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Switch(value: waitlistEnabled, onChanged: onWaitlistChanged),
-                ],
               ),
             ),
             const SizedBox(width: 16),
@@ -229,6 +245,50 @@ class EventForm extends StatelessWidget {
                       vertical: 16.0, horizontal: 12.0),
                 ),
               ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    localeProvider.translate(section, 'enable_waitlist'),
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: waitlistEnabled,
+              onChanged: onWaitlistChanged,
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(localeProvider.translate(section, 'invite_permission'),
+                      style: const TextStyle(fontSize: 16)),
+                  const SizedBox(width: 4),
+                  Tooltip(
+                    message: localeProvider.translate(
+                        section, 'invite_permission_info'),
+                    child: const Icon(Icons.info_outline, size: 18),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: canInvite,
+              onChanged: onCanInviteChanged,
             ),
           ],
         ),

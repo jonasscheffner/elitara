@@ -53,7 +53,12 @@
     "access_public": "Public",
     "access_invite_only": "Invite Only",
     "enable_waitlist": "Waitlist",
-    "waitlist_limit": "Waitlist Limit"
+    "waitlist_limit": "Waitlist Limit",
+    "visibility": "Visibility",
+    "visibility_everyone": "Everyone",
+    "visibility_participants_only": "Participants only",
+    "invite_permission": "Allow participants to invite",
+    "invite_permission_info": "Only Gold and Platinum members can invite others"
   },
   "create_event_screen": {
     "create_event_title": "Create Event",

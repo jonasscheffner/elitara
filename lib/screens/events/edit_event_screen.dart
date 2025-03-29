@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/models/access_type.dart';
+import 'package:elitara/models/visibility_option.dart';
 import 'package:elitara/screens/events/widgets/event_form.dart';
 import 'package:elitara/services/event_service.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +39,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late TimeOfDay _initialTime;
   AccessType _accessType = AccessType.public;
   bool _waitlistEnabled = false;
+  VisibilityOption _visibility = VisibilityOption.everyone;
+  bool _canInvite = false;
 
   String? _participantLimitError;
   String? _waitlistLimitError;
@@ -83,6 +86,10 @@ class _EditEventScreenState extends State<EditEventScreen> {
       _existingWaitlistCount = (eventData!['waitlist'] is List)
           ? (eventData!['waitlist'] as List).length
           : 0;
+      _visibility = VisibilityOptionExtension.fromString(
+          eventData!['visibility'] as String? ?? 'everyone');
+      // Neues Feld: Invite-Berechtigung
+      _canInvite = eventData!['canInvite'] as bool? ?? false;
       Timestamp ts = eventData!['date'];
       DateTime dt = ts.toDate();
       _selectedDate = dt;
@@ -144,7 +151,11 @@ class _EditEventScreenState extends State<EditEventScreen> {
             _selectedTime.minute != _initialTime.minute) ||
         (_accessType.value !=
             (eventData?['accessType'] as String? ?? "public")) ||
-        (_waitlistEnabled != (eventData?['waitlistEnabled'] as bool? ?? false));
+        (_waitlistEnabled !=
+            (eventData?['waitlistEnabled'] as bool? ?? false)) ||
+        (_visibility.value !=
+            (eventData?['visibility'] as String? ?? 'everyone')) ||
+        (_canInvite != (eventData?['canInvite'] as bool? ?? false));
     setState(() {
       _hasChanged = changed;
     });
@@ -222,6 +233,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
           _selectedTime.minute)),
       'accessType': _accessType.value,
       'waitlistEnabled': _waitlistEnabled,
+      'visibility': _visibility.value,
+      'canInvite': _canInvite,
     };
     if (_participantLimitController.text.isNotEmpty) {
       updatedData['participantLimit'] = participantLimit;
@@ -336,6 +349,20 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     _waitlistEnabled = value;
                     _checkForChanges();
                     _validateWaitlistLimit();
+                  });
+                },
+                visibility: _visibility,
+                onVisibilityChanged: (value) {
+                  setState(() {
+                    _visibility = value ?? VisibilityOption.everyone;
+                    _checkForChanges();
+                  });
+                },
+                canInvite: _canInvite,
+                onCanInviteChanged: (value) {
+                  setState(() {
+                    _canInvite = value;
+                    _checkForChanges();
                   });
                 },
                 participantLimitError: _participantLimitError,

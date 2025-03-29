@@ -1,5 +1,6 @@
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/models/access_type.dart';
+import 'package:elitara/models/visibility_option.dart';
 import 'package:elitara/screens/events/widgets/event_form.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -27,6 +28,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
   AccessType _accessType = AccessType.public;
   bool _waitlistEnabled = false;
+  VisibilityOption _visibility = VisibilityOption.everyone;
+  bool _canInvite = false;
 
   String section = 'create_event_screen';
   final EventService _eventService = EventService();
@@ -110,6 +113,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       'accessType': _accessType.value,
       'waitlistEnabled':
           _accessType == AccessType.inviteOnly ? _waitlistEnabled : false,
+      'visibility': _visibility.value,
+      'canInvite': _canInvite,
     };
     if (participantLimit != null) {
       eventData['participantLimit'] = participantLimit;
@@ -207,6 +212,18 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   setState(() {
                     _waitlistEnabled = value;
                     _validateWaitlistLimit();
+                  });
+                },
+                visibility: _visibility,
+                onVisibilityChanged: (value) {
+                  setState(() {
+                    _visibility = value ?? VisibilityOption.everyone;
+                  });
+                },
+                canInvite: _canInvite,
+                onCanInviteChanged: (value) {
+                  setState(() {
+                    _canInvite = value;
                   });
                 },
                 participantLimitError: _participantLimitError,
