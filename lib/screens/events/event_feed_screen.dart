@@ -202,6 +202,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(localeProvider.translate(section, 'title')),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.message),
