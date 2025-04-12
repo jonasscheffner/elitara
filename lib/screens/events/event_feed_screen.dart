@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/models/access_type.dart';
-import 'package:elitara/screens/events/filters/event_search_filter.dart';
+import 'package:elitara/widgets/search_filter.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
 import 'package:elitara/screens/events/widgets/waitlist_dialog.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -217,16 +217,19 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
       ),
       body: Column(
         children: [
-          EventSearchFilter(
-            section: section,
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value.toLowerCase();
-              });
-            },
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: SearchFilter(
+              section: section,
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+            ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(

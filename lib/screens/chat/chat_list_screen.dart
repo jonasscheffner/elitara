@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:elitara/widgets/search_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,6 +17,7 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
+  final String section = 'chat';
   final ChatService _chatService = ChatService();
   final UserService _userService = UserService();
   final TextEditingController _searchController = TextEditingController();
@@ -247,48 +249,57 @@ class _ChatListScreenState extends State<ChatListScreen> {
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text(localeProvider.translate('chat', 'title')),
+        title: Text(localeProvider.translate(section, 'title')),
       ),
       body: Stack(
         children: [
           Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 child: CompositedTransformTarget(
                   link: _layerLink,
-                  child: TextField(
+                  child: SearchFilter(
+                    section: section,
                     controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText:
-                          localeProvider.translate('chat', 'search_users'),
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _isLoadingUsers
-                          ? const Padding(
-                              padding: EdgeInsets.all(10.0),
-                              child: SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2)),
-                            )
-                          : (_searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    _removeOverlay();
-                                    setState(() {
-                                      _isLoadingUsers = false;
-                                      _searchResults.clear();
-                                    });
-                                  },
-                                )
-                              : null),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                    onChanged: (_) {
+                      final searchText = _searchController.text.trim();
+                      if (searchText.isEmpty) {
+                        setState(() {
+                          _isLoadingUsers = false;
+                          _searchResults.clear();
+                          _hasMoreUsers = true;
+                          _lastUserDoc = null;
+                        });
+                        _removeOverlay();
+                      } else {
+                        _loadUsers(reset: true);
+                        _updateOverlay();
+                      }
+                    },
+                    suffixIcon: _isLoadingUsers
+                        ? const Padding(
+                            padding: EdgeInsets.all(10.0),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : (_searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _removeOverlay();
+                                  setState(() {
+                                    _isLoadingUsers = false;
+                                    _searchResults.clear();
+                                  });
+                                },
+                              )
+                            : null),
                   ),
                 ),
               ),
@@ -298,7 +309,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     : _chats.isEmpty
                         ? Center(
                             child: Text(
-                                localeProvider.translate('chat', 'no_chats')))
+                                localeProvider.translate(section, 'no_chats')))
                         : ListView.builder(
                             controller: _chatScrollController,
                             itemCount: _chats.length +
