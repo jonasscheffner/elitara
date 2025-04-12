@@ -177,5 +177,14 @@
       "title": "App-Info",
       "coming_soon": "App-Informationen demnächst verfügbar"
     }
+  },
+  "chat": {
+    "title": "Chats",
+    "no_chats": "Keine Chats vorhanden",
+    "detail_title": "Chat",
+    "no_messages": "Noch keine Nachrichten",
+    "type_a_message": "Nachricht eingeben",
+    "send": "Senden",
+    "search_users": "Nutzer suchen"
   }
 }

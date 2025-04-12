@@ -1,3 +1,5 @@
+import 'package:elitara/screens/chat/chat_detail_screen.dart';
+import 'package:elitara/screens/chat/chat_list_screen.dart';
 import 'package:elitara/screens/events/edit_event_screen.dart';
 import 'package:elitara/screens/settings/account_settings_screen.dart';
 import 'package:elitara/screens/settings/settings_menu_screen.dart';
@@ -99,6 +101,20 @@ class MyApp extends StatelessWidget {
           case '/appInfo':
             return MaterialPageRoute(
                 builder: (context) => const AppInfoScreen());
+          case '/chatList':
+            return MaterialPageRoute(
+                builder: (context) => const ChatListScreen());
+          case '/chatDetail':
+            if (settings.arguments is Map<String, dynamic>) {
+              final arguments = settings.arguments as Map<String, dynamic>;
+              return MaterialPageRoute(
+                builder: (context) => ChatDetailScreen(
+                  chatId: arguments['chatId'],
+                  otherUserId: arguments['otherUserId'],
+                ),
+              );
+            }
+            return _errorRoute();
           default:
             return _errorRoute();
         }

@@ -177,5 +177,14 @@
       "title": "App Info",
       "coming_soon": "App information coming soon"
     }
+  },
+  "chat": {
+    "title": "Chats",
+    "no_chats": "No chats available",
+    "detail_title": "Chat",
+    "no_messages": "No messages yet",
+    "type_a_message": "Type a message",
+    "send": "Send",
+    "search_users": "Search users"
   }
 }

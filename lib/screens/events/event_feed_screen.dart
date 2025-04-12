@@ -204,6 +204,12 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
         title: Text(localeProvider.translate(section, 'title')),
         actions: [
           IconButton(
+            icon: const Icon(Icons.message),
+            onPressed: () {
+              Navigator.pushNamed(context, '/chatList');
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => Navigator.pushNamed(context, '/settingsMenu'),
           ),

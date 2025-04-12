@@ -36,4 +36,16 @@ class UserService {
     }
     return user.uid;
   }
+
+  Future<QuerySnapshot> searchUsers(String searchTerm,
+      {DocumentSnapshot? lastDoc, int limit = 10}) {
+    Query query = _firestore
+        .collection('users')
+        .orderBy('displayName')
+        .startAt([searchTerm]).endAt(['$searchTerm\uf8ff']).limit(limit);
+    if (lastDoc != null) {
+      query = query.startAfterDocument(lastDoc);
+    }
+    return query.get();
+  }
 }
