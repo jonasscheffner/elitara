@@ -87,7 +87,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           Expanded(
             child: _chatId != null
                 ? StreamBuilder<List<Message>>(
-                    stream: _chatService.getMessages(_chatId!),
+                    stream: _chatService.getMessages(_chatId!, _currentUserId),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());

@@ -181,6 +181,10 @@
   "chat": {
     "title": "Chats",
     "no_chats": "No chats available",
+    "delete_chat_title": "Delete Chat with {user}?",
+    "delete_chat_message": "Do you really want to delete the chat? It will remain visible for {user}.",
+    "cancel": "Cancel",
+    "delete": "Delete",
     "detail_title": "Chat",
     "no_messages": "No messages yet",
     "type_a_message": "Type a message",

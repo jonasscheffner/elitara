@@ -1,8 +1,10 @@
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/widgets/search_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../services/chat_service.dart';
 import '../../services/user_service.dart';
 import '../../models/chat.dart';
@@ -193,6 +195,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
       List<Chat> chats = querySnapshot.docs.map((doc) {
         return Chat.fromDocument(doc.id, doc.data() as Map<String, dynamic>);
       }).toList();
+
+      chats = chats.where((chat) {
+        bool deleted = chat.isDeleted[_currentUserId] ?? false;
+        DateTime? clearedAt = chat.lastClearedAt[_currentUserId];
+        if (deleted && clearedAt != null) {
+          return chat.lastUpdated.isAfter(clearedAt);
+        }
+        return !deleted;
+      }).toList();
+
       setState(() {
         _chats = chats;
         _lastChatDoc = querySnapshot.docs.last;
@@ -216,6 +228,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
       List<Chat> moreChats = querySnapshot.docs.map((doc) {
         return Chat.fromDocument(doc.id, doc.data() as Map<String, dynamic>);
       }).toList();
+
+      moreChats = moreChats.where((chat) {
+        bool deleted = chat.isDeleted[_currentUserId] ?? false;
+        DateTime? clearedAt = chat.lastClearedAt[_currentUserId];
+        if (deleted && clearedAt != null) {
+          return chat.lastUpdated.isAfter(clearedAt);
+        }
+        return !deleted;
+      }).toList();
+
       setState(() {
         _chats.addAll(moreChats);
         _lastChatDoc = querySnapshot.docs.last;
@@ -264,7 +286,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     section: section,
                     controller: _searchController,
                     onChanged: (_) {
-                      final searchText = _searchController.text.trim();
+                      final String searchText = _searchController.text.trim();
                       if (searchText.isEmpty) {
                         setState(() {
                           _isLoadingUsers = false;
@@ -332,37 +354,120 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 (participant) => participant != _currentUserId,
                                 orElse: () => '',
                               );
-                              return Card(
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 6),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                              return Slidable(
+                                key: ValueKey(chat.id),
+                                endActionPane: ActionPane(
+                                  motion: const DrawerMotion(),
+                                  extentRatio: 0.25,
+                                  children: [
+                                    SlidableAction(
+                                      padding: const EdgeInsets.only(
+                                          right: 20, left: 0),
+                                      onPressed: (context) async {
+                                        final userData = await _userService
+                                            .getUser(otherUserId);
+                                        final partnerName =
+                                            userData['displayName'] ?? '';
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          barrierColor: Colors.transparent,
+                                          builder: (context) => Stack(
+                                            children: [
+                                              BackdropFilter(
+                                                filter: ImageFilter.blur(
+                                                    sigmaX: 5, sigmaY: 5),
+                                                child: Container(
+                                                  color: const Color(0x80000000)
+                                                      .withOpacity(0),
+                                                ),
+                                              ),
+                                              AlertDialog(
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12)),
+                                                title: Text(localeProvider
+                                                    .translate(section,
+                                                        'delete_chat_title',
+                                                        params: {
+                                                      'user': partnerName
+                                                    })),
+                                                content: Text(localeProvider
+                                                    .translate(section,
+                                                        'delete_chat_message',
+                                                        params: {
+                                                      'user': partnerName
+                                                    })),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                            context, false),
+                                                    child: Text(localeProvider
+                                                        .translate(
+                                                            section, 'cancel')),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                            context, true),
+                                                    child: Text(localeProvider
+                                                        .translate(
+                                                            section, 'delete')),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        if (confirm == true) {
+                                          await _chatService.deleteChatForUser(
+                                              chat.id, _currentUserId);
+                                          setState(() {
+                                            _chats.removeWhere(
+                                                (c) => c.id == chat.id);
+                                          });
+                                        }
+                                      },
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                      icon: Icons.delete,
+                                      label: localeProvider.translate(
+                                          section, 'delete'),
+                                    ),
+                                  ],
                                 ),
-                                child: ListTile(
-                                  title: UserDisplayName(
-                                    uid: otherUserId,
-                                    style: const TextStyle(fontSize: 16),
+                                child: Card(
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 6),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                                  subtitle: Text(
-                                    chat.lastMessage != null
+                                  child: ListTile(
+                                    title: UserDisplayName(
+                                      uid: otherUserId,
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
+                                    subtitle: Text(chat.lastMessage != null
                                         ? chat.lastMessage!.text
-                                        : '',
-                                  ),
-                                  trailing: Text(
-                                    "${chat.lastUpdated.hour.toString().padLeft(2, '0')}:${chat.lastUpdated.minute.toString().padLeft(2, '0')}",
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ChatDetailScreen(
-                                          chatId: chat.id,
-                                          otherUserId: otherUserId,
+                                        : ''),
+                                    trailing: Text(
+                                      "${chat.lastUpdated.hour.toString().padLeft(2, '0')}:${chat.lastUpdated.minute.toString().padLeft(2, '0')}",
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ChatDetailScreen(
+                                            chatId: chat.id,
+                                            otherUserId: otherUserId,
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  },
+                                      );
+                                    },
+                                  ),
                                 ),
                               );
                             },
