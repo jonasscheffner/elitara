@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/widgets/search_filter.dart';
@@ -24,6 +25,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   final UserService _userService = UserService();
   final TextEditingController _searchController = TextEditingController();
   final LayerLink _layerLink = LayerLink();
+  Timer? _debounce;
 
   OverlayEntry? _overlayEntry;
   final List<QueryDocumentSnapshot> _searchResults = [];
@@ -44,21 +46,28 @@ class _ChatListScreenState extends State<ChatListScreen> {
   void initState() {
     super.initState();
     _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
     _searchController.addListener(() {
-      final String searchText = _searchController.text.trim();
-      if (searchText.isEmpty) {
-        setState(() {
-          _isLoadingUsers = false;
-          _searchResults.clear();
-          _hasMoreUsers = true;
-          _lastUserDoc = null;
-        });
-        _removeOverlay();
-      } else {
-        _loadUsers(reset: true);
-        _updateOverlay();
+      if (_debounce?.isActive ?? false) {
+        _debounce!.cancel();
       }
+      _debounce = Timer(const Duration(milliseconds: 300), () {
+        final String searchText = _searchController.text.trim();
+        if (searchText.isEmpty) {
+          setState(() {
+            _isLoadingUsers = false;
+            _searchResults.clear();
+            _hasMoreUsers = true;
+            _lastUserDoc = null;
+          });
+          _removeOverlay();
+        } else {
+          _loadUsers(reset: true);
+          _updateOverlay();
+        }
+      });
     });
+
     _chatScrollController.addListener(() {
       if (_chatScrollController.position.pixels >=
               _chatScrollController.position.maxScrollExtent - 100 &&
@@ -73,6 +82,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _removeOverlay();
     _searchController.dispose();
     _chatScrollController.dispose();
@@ -165,16 +175,19 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
     if (!_hasMoreUsers) return;
     setState(() => _isLoadingUsers = true);
-    final QuerySnapshot querySnapshot = await _userService.searchUsers(
+
+    final List<QueryDocumentSnapshot> newDocs = await _userService.searchUsers(
       searchTerm,
       lastDoc: _lastUserDoc,
       limit: 10,
     );
-    if (querySnapshot.docs.isNotEmpty) {
+    if (newDocs.isNotEmpty) {
       setState(() {
-        _searchResults.addAll(querySnapshot.docs);
-        _lastUserDoc = querySnapshot.docs.last;
-        if (querySnapshot.docs.length < 10) {
+        final docsToAdd = newDocs.where((doc) =>
+            !_searchResults.any((existingDoc) => existingDoc.id == doc.id));
+        _searchResults.addAll(docsToAdd);
+        _lastUserDoc = newDocs.last;
+        if (newDocs.length < 10) {
           _hasMoreUsers = false;
         }
       });
@@ -285,21 +298,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   child: SearchFilter(
                     section: section,
                     controller: _searchController,
-                    onChanged: (_) {
-                      final String searchText = _searchController.text.trim();
-                      if (searchText.isEmpty) {
-                        setState(() {
-                          _isLoadingUsers = false;
-                          _searchResults.clear();
-                          _hasMoreUsers = true;
-                          _lastUserDoc = null;
-                        });
-                        _removeOverlay();
-                      } else {
-                        _loadUsers(reset: true);
-                        _updateOverlay();
-                      }
-                    },
+                    onChanged: (_) {},
                     suffixIcon: _isLoadingUsers
                         ? const Padding(
                             padding: EdgeInsets.all(10.0),

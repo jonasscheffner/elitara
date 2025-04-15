@@ -37,15 +37,22 @@ class UserService {
     return user.uid;
   }
 
-  Future<QuerySnapshot> searchUsers(String searchTerm,
-      {DocumentSnapshot? lastDoc, int limit = 10}) {
-    Query query = _firestore
-        .collection('users')
-        .orderBy('displayName')
-        .startAt([searchTerm]).endAt(['$searchTerm\uf8ff']).limit(limit);
+  Future<List<QueryDocumentSnapshot>> searchUsers(String searchTerm,
+      {DocumentSnapshot? lastDoc, int limit = 50}) async {
+    Query query =
+        _firestore.collection('users').orderBy('displayName').limit(limit);
     if (lastDoc != null) {
       query = query.startAfterDocument(lastDoc);
     }
-    return query.get();
+    final querySnapshot = await query.get();
+
+    final lowerSearch = searchTerm.toLowerCase();
+    List<QueryDocumentSnapshot> filtered = querySnapshot.docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final displayName = (data['displayName'] ?? '').toString().toLowerCase();
+      return displayName.contains(lowerSearch);
+    }).toList();
+
+    return filtered;
   }
 }
