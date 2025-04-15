@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
 import '../../services/chat_service.dart';
 import '../../services/user_service.dart';
 import '../../models/chat.dart';
@@ -451,7 +452,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                         ? chat.lastMessage!.text
                                         : ''),
                                     trailing: Text(
-                                      "${chat.lastUpdated.hour.toString().padLeft(2, '0')}:${chat.lastUpdated.minute.toString().padLeft(2, '0')}",
+                                      DateFormat.jm(
+                                              Localizations.localeOf(context)
+                                                  .toString())
+                                          .format(chat.lastUpdated),
                                       style: const TextStyle(fontSize: 12),
                                     ),
                                     onTap: () {
