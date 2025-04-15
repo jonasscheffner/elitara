@@ -354,6 +354,19 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 (participant) => participant != _currentUserId,
                                 orElse: () => '',
                               );
+                              final DateTime? lastRead =
+                                  chat.lastReadAt[_currentUserId];
+                              bool hasUnread = false;
+                              if (chat.lastMessage != null &&
+                                  chat.lastMessage!.senderId !=
+                                      _currentUserId) {
+                                if (lastRead == null) {
+                                  hasUnread = true;
+                                } else {
+                                  hasUnread = chat.lastMessage!.timestamp
+                                      .isAfter(lastRead);
+                                }
+                              }
                               return Slidable(
                                 key: ValueKey(chat.id),
                                 endActionPane: ActionPane(
@@ -444,6 +457,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: ListTile(
+                                    leading: hasUnread
+                                        ? Container(
+                                            width: 10,
+                                            height: 10,
+                                            decoration: const BoxDecoration(
+                                              color: Colors.blue,
+                                              shape: BoxShape.circle,
+                                            ),
+                                          )
+                                        : null,
                                     title: UserDisplayName(
                                       uid: otherUserId,
                                       style: const TextStyle(fontSize: 16),

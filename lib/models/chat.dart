@@ -8,6 +8,7 @@ class Chat {
   final DateTime lastUpdated;
   final Map<String, bool> isDeleted;
   final Map<String, DateTime> lastClearedAt;
+  final Map<String, DateTime> lastReadAt;
 
   Chat({
     required this.id,
@@ -16,6 +17,7 @@ class Chat {
     required this.lastUpdated,
     required this.isDeleted,
     required this.lastClearedAt,
+    required this.lastReadAt,
   });
 
   factory Chat.fromDocument(String docId, Map<String, dynamic> data) {
@@ -34,6 +36,16 @@ class Chat {
             : DateTime.parse(value.toString());
       });
     }
+
+    Map<String, DateTime> read = {};
+    if (data['lastReadAt'] != null) {
+      (data['lastReadAt'] as Map).forEach((key, value) {
+        read[key] = value is Timestamp
+            ? value.toDate()
+            : DateTime.parse(value.toString());
+      });
+    }
+
     return Chat(
       id: docId,
       participants: List<String>.from(data['participants'] ?? []),
@@ -43,6 +55,7 @@ class Chat {
       lastUpdated: data['lastUpdated']?.toDate() ?? DateTime.now(),
       isDeleted: deleted,
       lastClearedAt: cleared,
+      lastReadAt: read,
     );
   }
 
@@ -53,6 +66,7 @@ class Chat {
       'lastUpdated': lastUpdated,
       'isDeleted': isDeleted,
       'lastClearedAt': lastClearedAt,
+      'lastReadAt': lastReadAt,
     };
   }
 }
