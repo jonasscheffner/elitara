@@ -32,7 +32,7 @@ class UserService {
   Future<String> getCurrentUserId() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw Exception("Kein Nutzer eingeloggt!");
+      throw Exception("No user is logged in");
     }
     return user.uid;
   }
@@ -48,7 +48,7 @@ class UserService {
 
     final lowerSearch = searchTerm.toLowerCase();
     List<QueryDocumentSnapshot> filtered = querySnapshot.docs.where((doc) {
-      final data = doc.data() as Map<String, dynamic>;
+w      final data = doc.data() as Map<String, dynamic>;
       final displayName = (data['displayName'] ?? '').toString().toLowerCase();
       return displayName.contains(lowerSearch);
     }).toList();
