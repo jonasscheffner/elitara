@@ -9,7 +9,6 @@ import 'package:elitara/screens/events/widgets/user_display_name.dart';
 class ChatDetailScreen extends StatefulWidget {
   final String? chatId;
   final String otherUserId;
-
   const ChatDetailScreen({Key? key, this.chatId, required this.otherUserId})
       : super(key: key);
 
@@ -31,13 +30,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     super.initState();
     _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
     _chatId = widget.chatId;
+    if (_chatId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _chatService.markChatRead(_chatId!, _currentUserId);
+      });
+    }
     _messageController.addListener(() {
-      final bool isValid = _messageController.text.trim().isNotEmpty;
-      if (isValid != _isMessageValid) {
-        setState(() {
-          _isMessageValid = isValid;
-        });
-      }
+      final valid = _messageController.text.trim().isNotEmpty;
+      if (valid != _isMessageValid) setState(() => _isMessageValid = valid);
     });
   }
 
@@ -51,36 +51,35 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
-    final message = Message(
-      senderId: _currentUserId,
-      text: text,
-      timestamp: DateTime.now(),
-    );
+    final msg = Message(
+        senderId: _currentUserId, text: text, timestamp: DateTime.now());
     if (_chatId == null) {
       _chatId =
           await _chatService.createChat(_currentUserId, widget.otherUserId);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _chatService.markChatRead(_chatId!, _currentUserId);
+      });
       setState(() {});
     }
-    await _chatService.sendMessage(_chatId!, message);
+    await _chatService.sendMessage(_chatId!, msg);
     _messageController.clear();
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent + 60,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
     );
+    await _chatService.markChatRead(_chatId!, _currentUserId);
   }
 
   @override
   Widget build(BuildContext context) {
-    final localeProvider =
-        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+    final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: UserDisplayName(
-          uid: widget.otherUserId,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
+            uid: widget.otherUserId,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
       ),
       body: Column(
         children: [
@@ -88,44 +87,41 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: _chatId != null
                 ? StreamBuilder<List<Message>>(
                     stream: _chatService.getMessages(_chatId!, _currentUserId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
+                    builder: (ctx, snap) {
+                      if (snap.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      final msgs = snap.data ?? [];
+                      if (msgs.isEmpty) {
                         return Center(
-                          child: Text(
-                              localeProvider.translate(section, 'no_messages')),
-                        );
+                            child:
+                                Text(locale.translate('chat', 'no_messages')));
                       }
-                      final messages = snapshot.data!;
                       return ListView.builder(
                         controller: _scrollController,
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message = messages[index];
-                          final isCurrentUser =
-                              message.senderId == _currentUserId;
+                        itemCount: msgs.length,
+                        itemBuilder: (_, i) {
+                          final m = msgs[i];
+                          final isMe = m.senderId == _currentUserId;
                           return Container(
-                            alignment: isCurrentUser
+                            alignment: isMe
                                 ? Alignment.centerRight
                                 : Alignment.centerLeft,
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
                             child: ConstrainedBox(
                               constraints: BoxConstraints(
-                                maxWidth:
-                                    MediaQuery.of(context).size.width * 0.7,
-                              ),
+                                  maxWidth:
+                                      MediaQuery.of(context).size.width * 0.7),
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: isCurrentUser
+                                  color: isMe
                                       ? Colors.blue[100]
                                       : Colors.grey[300],
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 padding: const EdgeInsets.all(10),
-                                child: Text(message.text),
+                                child: Text(m.text),
                               ),
                             ),
                           );
@@ -133,16 +129,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       );
                     },
                   )
-                : Center(
-                    child:
-                        Text(localeProvider.translate(section, 'no_messages')),
-                  ),
+                : Center(child: Text(locale.translate('chat', 'no_messages'))),
           ),
           ChatInputWidget(
-            controller: _messageController,
-            onSend: _sendMessage,
-            isMessageValid: _isMessageValid,
-          ),
+              controller: _messageController,
+              onSend: _sendMessage,
+              isMessageValid: _isMessageValid),
         ],
       ),
     );

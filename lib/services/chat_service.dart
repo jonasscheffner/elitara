@@ -141,4 +141,10 @@ class ChatService {
         .limit(limit)
         .get();
   }
+
+  Future<void> markChatRead(String chatId, String userId) async {
+    await _firestore.collection('chats').doc(chatId).update({
+      'lastReadAt.$userId': DateTime.now(),
+    });
+  }
 }
