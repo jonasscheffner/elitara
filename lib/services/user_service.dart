@@ -48,7 +48,7 @@ class UserService {
 
     final lowerSearch = searchTerm.toLowerCase();
     List<QueryDocumentSnapshot> filtered = querySnapshot.docs.where((doc) {
-w      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data() as Map<String, dynamic>;
       final displayName = (data['displayName'] ?? '').toString().toLowerCase();
       return displayName.contains(lowerSearch);
     }).toList();
