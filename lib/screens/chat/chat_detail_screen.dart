@@ -126,7 +126,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               localeProvider.translate(section, 'no_messages')),
                         );
                       }
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
+
+                      WidgetsBinding.instance.addPostFrameCallback((_) async {
                         if (_scrollController.hasClients) {
                           final position = _scrollController.position;
                           final isAtBottom = position.pixels >=
@@ -138,6 +139,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.easeOut,
                             );
+                          }
+
+                          if (messages.isNotEmpty) {
+                            final lastMessage = messages.last;
+                            if (lastMessage.senderId != _currentUserId) {
+                              await _chatService.markChatRead(
+                                  _chatId!, _currentUserId);
+                            }
                           }
                         }
                       });
