@@ -501,8 +501,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                       uid: otherUserId,
                                       style: const TextStyle(fontSize: 16),
                                     ),
-                                    subtitle:
-                                        Text(chat.lastMessage?.text ?? ''),
+                                    subtitle: Text(
+                                      chat.lastMessage?.text ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                     trailing: Text(
                                       DateFormat.jm(
                                               Localizations.localeOf(context)
