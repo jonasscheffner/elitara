@@ -26,6 +26,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   String? _chatId;
   bool _isMessageValid = false;
 
+  bool _hasAutoScrolledInitially = false;
+
   @override
   void initState() {
     super.initState();
@@ -98,6 +100,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Widget build(BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -119,37 +122,33 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       }
+
                       final messages = snapshot.data ?? [];
+
+                      if (!_hasAutoScrolledInitially && messages.isNotEmpty) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_scrollController.hasClients) {
+                            _scrollController.jumpTo(
+                              _scrollController.position.maxScrollExtent,
+                            );
+                            _hasAutoScrolledInitially = true;
+                          }
+                        });
+                      }
+
+                      if (messages.isNotEmpty) {
+                        final lastMessage = messages.last;
+                        if (lastMessage.senderId != _currentUserId) {
+                          _chatService.markChatRead(_chatId!, _currentUserId);
+                        }
+                      }
+
                       if (messages.isEmpty) {
                         return Center(
                           child: Text(
                               localeProvider.translate(section, 'no_messages')),
                         );
                       }
-
-                      WidgetsBinding.instance.addPostFrameCallback((_) async {
-                        if (_scrollController.hasClients) {
-                          final position = _scrollController.position;
-                          final isAtBottom = position.pixels >=
-                              (position.maxScrollExtent - 100);
-
-                          if (isAtBottom) {
-                            _scrollController.animateTo(
-                              position.maxScrollExtent,
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeOut,
-                            );
-                          }
-
-                          if (messages.isNotEmpty) {
-                            final lastMessage = messages.last;
-                            if (lastMessage.senderId != _currentUserId) {
-                              await _chatService.markChatRead(
-                                  _chatId!, _currentUserId);
-                            }
-                          }
-                        }
-                      });
 
                       return ListView.builder(
                         controller: _scrollController,
@@ -158,6 +157,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           final message = messages[index];
                           final isCurrentUser =
                               message.senderId == _currentUserId;
+
                           return Container(
                             alignment: isCurrentUser
                                 ? Alignment.centerRight
