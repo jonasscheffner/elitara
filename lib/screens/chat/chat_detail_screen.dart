@@ -21,7 +21,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final ChatService _chatService = ChatService();
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  late final Stream<List<Message>> _messagesStream;
+  Stream<List<Message>>? _messagesStream;
   late String _currentUserId;
   String? _chatId;
   bool _isMessageValid = false;
@@ -61,24 +61,37 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
+
     final msg = Message(
-        senderId: _currentUserId, text: text, timestamp: DateTime.now());
+      senderId: _currentUserId,
+      text: text,
+      timestamp: DateTime.now(),
+    );
+
     if (_chatId == null) {
       _chatId =
           await _chatService.createChat(_currentUserId, widget.otherUserId);
+      _messagesStream = _chatService.getMessages(_chatId!, _currentUserId);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _chatService.markChatRead(_chatId!, _currentUserId);
       });
       setState(() {});
     }
+
     await _chatService.sendMessage(_chatId!, msg);
     _messageController.clear();
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent + 60,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+
     await _chatService.markChatRead(_chatId!, _currentUserId);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
@@ -96,7 +109,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       body: Column(
         children: [
           Expanded(
-            child: _chatId == null
+            child: _chatId == null || _messagesStream == null
                 ? Center(
                     child:
                         Text(localeProvider.translate(section, 'no_messages')))

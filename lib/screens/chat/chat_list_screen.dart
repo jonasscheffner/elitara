@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:elitara/widgets/search_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -266,20 +267,24 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _onChatTap(String otherUserId) async {
-    await _chatService.markChatRead(
-      _chats.firstWhere((c) => c.participants.contains(otherUserId)).id,
-      _currentUserId,
-    );
-    setState(() {});
-    final String? chatId =
+    String? chatId =
         await _chatService.getExistingChat(_currentUserId, otherUserId);
+
+    final Chat? existingChat = _chats.firstWhereOrNull((c) => c.id == chatId);
+    if (existingChat != null && chatId != null) {
+      await _chatService.markChatRead(chatId, _currentUserId);
+    }
+
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ChatDetailScreen(chatId: chatId, otherUserId: otherUserId),
+        builder: (context) => ChatDetailScreen(
+          chatId: chatId,
+          otherUserId: otherUserId,
+        ),
       ),
     );
+
     _loadInitialChats();
   }
 

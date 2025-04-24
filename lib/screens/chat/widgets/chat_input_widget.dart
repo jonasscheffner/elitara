@@ -19,33 +19,14 @@ class ChatInputWidget extends StatefulWidget {
 
 class _ChatInputWidgetState extends State<ChatInputWidget> {
   final String section = 'chat';
-  final GlobalKey _containerKey = GlobalKey();
-  double _containerHeight = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_measureHeight);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _measureHeight());
-  }
-
-  void _measureHeight() {
-    final RenderBox? renderBox =
-        _containerKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox != null) {
-      final newHeight = renderBox.size.height;
-      if ((_containerHeight - newHeight).abs() > 1.0) {
-        setState(() {
-          _containerHeight = newHeight;
-        });
-      }
+  double _calculateButtonOffset() {
+    final lineCount = '\n'.allMatches(widget.controller.text).length + 1;
+    if (lineCount <= 1) {
+      return 8;
+    } else {
+      return 16;
     }
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_measureHeight);
-    super.dispose();
   }
 
   @override
@@ -58,7 +39,6 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
         children: [
           Expanded(
             child: Container(
-              key: _containerKey,
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(context).size.height * 0.25,
               ),
@@ -92,10 +72,7 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
                   if (widget.isMessageValid)
                     Positioned(
                       right: 10,
-                      top: _containerHeight < 80
-                          ? (_containerHeight - 40) / 2
-                          : null,
-                      bottom: _containerHeight >= 80 ? 10 : null,
+                      bottom: _calculateButtonOffset(),
                       child: SizedBox(
                         width: 40,
                         height: 40,
