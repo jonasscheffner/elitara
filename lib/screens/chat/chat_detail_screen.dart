@@ -126,6 +126,22 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               localeProvider.translate(section, 'no_messages')),
                         );
                       }
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_scrollController.hasClients) {
+                          final position = _scrollController.position;
+                          final isAtBottom = position.pixels >=
+                              (position.maxScrollExtent - 100);
+
+                          if (isAtBottom) {
+                            _scrollController.animateTo(
+                              position.maxScrollExtent,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                          }
+                        }
+                      });
+
                       return ListView.builder(
                         controller: _scrollController,
                         itemCount: messages.length,

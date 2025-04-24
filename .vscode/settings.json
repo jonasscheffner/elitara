@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "/Users/jonasscheffner/private_projects/elitara/linux"
+    "cmake.sourceDirectory": "/Users/jonasscheffner/private_projects/elitara/linux",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

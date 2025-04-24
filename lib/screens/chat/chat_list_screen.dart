@@ -28,6 +28,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   final TextEditingController _searchController = TextEditingController();
   final LayerLink _layerLink = LayerLink();
   Timer? _debounce;
+  Stream<List<Chat>>? _chatStream;
 
   OverlayEntry? _overlayEntry;
   final List<QueryDocumentSnapshot> _searchResults = [];
@@ -48,6 +49,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
   void initState() {
     super.initState();
     _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    _chatStream = _chatService.getUserChats(_currentUserId);
 
     _searchController.addListener(() {
       if (_debounce?.isActive ?? false) {
@@ -79,7 +82,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
         _loadMoreChats();
       }
     });
-    _loadInitialChats();
   }
 
   @override
@@ -288,10 +290,79 @@ class _ChatListScreenState extends State<ChatListScreen> {
     _loadInitialChats();
   }
 
+  Widget _buildDeleteDialog(
+      BuildContext context, String partnerName, String chatId) {
+    final localeProvider =
+        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+
+    return Stack(
+      children: [
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Container(color: const Color(0x80000000).withOpacity(0)),
+        ),
+        AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Text(localeProvider.translate(section, 'delete_chat_title',
+              params: {'user': partnerName})),
+          content: Text(localeProvider.translate(section, 'delete_chat_message',
+              params: {'user': partnerName})),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(localeProvider.translate(section, 'cancel')),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(localeProvider.translate(section, 'delete')),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilteredChatList() {
+    final localeProvider =
+        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+
+    if (_isLoadingUsers) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_searchResults.isEmpty) {
+      return Center(
+        child: Text(localeProvider.translate(section, 'no_chats')),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) {
+        final data = _searchResults[index].data() as Map<String, dynamic>;
+        final String uid = data['uid'] ?? '';
+        final String displayName = data['displayName'] ?? 'Unknown';
+
+        if (uid == _currentUserId) return const SizedBox.shrink();
+
+        return ListTile(
+          title: Text(displayName),
+          onTap: () {
+            _removeOverlay();
+            _onChatTap(uid);
+            _searchController.clear();
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(localeProvider.translate(section, 'title')),
@@ -335,46 +406,46 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 ),
               ),
               Expanded(
-                child: _isLoadingChats && _searchController.text.trim().isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : _chats.isEmpty
-                        ? Center(
-                            child: Text(
-                                localeProvider.translate(section, 'no_chats')))
-                        : ListView.builder(
+                child: _searchController.text.trim().isNotEmpty
+                    ? _buildFilteredChatList()
+                    : StreamBuilder<List<Chat>>(
+                        stream: _chatStream,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+
+                          final chats = snapshot.data ?? [];
+
+                          if (chats.isEmpty) {
+                            return Center(
+                              child: Text(localeProvider.translate(
+                                  section, 'no_chats')),
+                            );
+                          }
+
+                          return ListView.builder(
                             controller: _chatScrollController,
-                            itemCount: _chats.length +
-                                ((_isLoadingMoreChats && _hasMoreChats)
-                                    ? 1
-                                    : 0),
+                            itemCount: chats.length,
                             itemBuilder: (context, index) {
-                              if (index == _chats.length &&
-                                  (_isLoadingMoreChats && _hasMoreChats)) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  ),
-                                );
-                              }
-                              final chat = _chats[index];
+                              final chat = chats[index];
                               final otherUserId = chat.participants.firstWhere(
                                   (p) => p != _currentUserId,
                                   orElse: () => '');
                               final DateTime? lastRead =
                                   chat.lastReadAt[_currentUserId];
+                              final lastMsg = chat.lastMessage;
                               bool hasUnread = false;
-                              if (chat.lastMessage != null &&
-                                  chat.lastMessage!.senderId !=
-                                      _currentUserId) {
-                                if (lastRead == null) {
-                                  hasUnread = true;
-                                } else {
-                                  hasUnread = chat.lastMessage!.timestamp
-                                      .isAfter(lastRead);
-                                }
+
+                              if (lastMsg != null &&
+                                  lastMsg.senderId != _currentUserId &&
+                                  (lastRead == null ||
+                                      lastMsg.timestamp.isAfter(lastRead))) {
+                                hasUnread = true;
                               }
+
                               return Slidable(
                                 key: ValueKey(chat.id),
                                 endActionPane: ActionPane(
@@ -392,60 +463,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                         final confirm = await showDialog<bool>(
                                           context: context,
                                           barrierColor: Colors.transparent,
-                                          builder: (ctx) => Stack(
-                                            children: [
-                                              BackdropFilter(
-                                                filter: ImageFilter.blur(
-                                                    sigmaX: 5, sigmaY: 5),
-                                                child: Container(
-                                                    color:
-                                                        const Color(0x80000000)
-                                                            .withOpacity(0)),
-                                              ),
-                                              AlertDialog(
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12)),
-                                                title: Text(localeProvider
-                                                    .translate(section,
-                                                        'delete_chat_title',
-                                                        params: {
-                                                      'user': partnerName
-                                                    })),
-                                                content: Text(localeProvider
-                                                    .translate(section,
-                                                        'delete_chat_message',
-                                                        params: {
-                                                      'user': partnerName
-                                                    })),
-                                                actions: [
-                                                  TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              ctx, false),
-                                                      child: Text(localeProvider
-                                                          .translate(section,
-                                                              'cancel'))),
-                                                  TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              ctx, true),
-                                                      child: Text(localeProvider
-                                                          .translate(section,
-                                                              'delete'))),
-                                                ],
-                                              ),
-                                            ],
+                                          builder: (ctx) => _buildDeleteDialog(
+                                            context,
+                                            partnerName,
+                                            chat.id,
                                           ),
                                         );
                                         if (confirm == true) {
                                           await _chatService.deleteChatForUser(
                                               chat.id, _currentUserId);
-                                          setState(() {
-                                            _chats.removeWhere(
-                                                (c) => c.id == chat.id);
-                                          });
                                         }
                                       },
                                       backgroundColor: Colors.red,
@@ -472,8 +498,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                           )
                                         : null,
                                     title: UserDisplayName(
-                                        uid: otherUserId,
-                                        style: const TextStyle(fontSize: 16)),
+                                      uid: otherUserId,
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
                                     subtitle:
                                         Text(chat.lastMessage?.text ?? ''),
                                     trailing: Text(
@@ -483,14 +510,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                           .format(chat.lastUpdated),
                                       style: const TextStyle(fontSize: 12),
                                     ),
-                                    onTap: () {
-                                      _onChatTap(otherUserId);
-                                    },
+                                    onTap: () => _onChatTap(otherUserId),
                                   ),
                                 ),
                               );
                             },
-                          ),
+                          );
+                        },
+                      ),
               ),
             ],
           ),
