@@ -464,7 +464,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                           context: context,
                                           barrierColor: Colors.transparent,
                                           builder: (ctx) => _buildDeleteDialog(
-                                            context,
+                                            ctx,
                                             partnerName,
                                             chat.id,
                                           ),
