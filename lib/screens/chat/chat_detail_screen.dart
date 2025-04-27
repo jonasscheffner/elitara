@@ -188,7 +188,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   child: Center(
                                     child: Text(
                                       LocalizedDateTimeFormatter
-                                          .getFormattedDate(
+                                          .getChatFormattedDate(
                                               context, message.timestamp),
                                       style: const TextStyle(
                                         fontSize: 12,
