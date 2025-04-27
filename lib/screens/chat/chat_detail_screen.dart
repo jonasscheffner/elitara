@@ -1,4 +1,5 @@
 import 'package:elitara/screens/chat/widgets/chat_input_widget.dart';
+import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -158,28 +159,89 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           final isCurrentUser =
                               message.senderId == _currentUserId;
 
-                          return Container(
-                            alignment: isCurrentUser
-                                ? Alignment.centerRight
-                                : Alignment.centerLeft,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxWidth:
-                                    MediaQuery.of(context).size.width * 0.7,
-                              ),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: isCurrentUser
-                                      ? Colors.blue[100]
-                                      : Colors.grey[300],
-                                  borderRadius: BorderRadius.circular(8),
+                          final messageDate = DateTime(
+                            message.timestamp.year,
+                            message.timestamp.month,
+                            message.timestamp.day,
+                          );
+
+                          DateTime? previousMessageDate;
+                          if (index > 0) {
+                            final prevMessage = messages[index - 1];
+                            previousMessageDate = DateTime(
+                              prevMessage.timestamp.year,
+                              prevMessage.timestamp.month,
+                              prevMessage.timestamp.day,
+                            );
+                          }
+
+                          bool showDateHeader = previousMessageDate == null ||
+                              messageDate != previousMessageDate;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (showDateHeader)
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                  child: Center(
+                                    child: Text(
+                                      LocalizedDateTimeFormatter
+                                          .getFormattedDate(
+                                              context, message.timestamp),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                padding: const EdgeInsets.all(10),
-                                child: Text(message.text),
+                              Container(
+                                alignment: isCurrentUser
+                                    ? Alignment.centerRight
+                                    : Alignment.centerLeft,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 4),
+                                child: Column(
+                                  crossAxisAlignment: isCurrentUser
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: isCurrentUser
+                                            ? Colors.blue[300]
+                                            : Colors.grey[800],
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 8),
+                                      constraints: BoxConstraints(
+                                        maxWidth:
+                                            MediaQuery.of(context).size.width *
+                                                0.7,
+                                      ),
+                                      child: Text(
+                                        message.text,
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      LocalizedDateTimeFormatter
+                                          .getFormattedTime(
+                                              context, message.timestamp),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
+                            ],
                           );
                         },
                       );
