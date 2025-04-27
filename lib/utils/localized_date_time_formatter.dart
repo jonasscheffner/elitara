@@ -22,6 +22,23 @@ class LocalizedDateTimeFormatter {
     return '$formattedDate, $formattedTime';
   }
 
+  static String getChatListFormattedDate(
+      BuildContext context, DateTime dateTime) {
+    final String locale = Localizations.localeOf(context).languageCode;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dateOnly = DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+    if (dateOnly == today) {
+      return getFormattedTime(context, dateTime);
+    } else if (dateOnly == yesterday) {
+      return locale == 'de' ? 'Gestern' : 'Yesterday';
+    } else {
+      return getFormattedDate(context, dateTime);
+    }
+  }
+
   static String getChatFormattedDate(BuildContext context, DateTime dateTime) {
     final String locale = Localizations.localeOf(context).languageCode;
     final now = DateTime.now();

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
+import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:elitara/widgets/search_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -507,11 +508,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     trailing: Text(
-                                      DateFormat.jm(
-                                              Localizations.localeOf(context)
-                                                  .toString())
-                                          .format(chat.lastUpdated),
-                                      style: const TextStyle(fontSize: 12),
+                                      LocalizedDateTimeFormatter
+                                          .getChatListFormattedDate(
+                                              context, chat.lastUpdated),
+                                      style: const TextStyle(
+                                          fontSize: 12, color: Colors.grey),
                                     ),
                                     onTap: () => _onChatTap(otherUserId),
                                   ),
