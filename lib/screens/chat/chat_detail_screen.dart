@@ -1,4 +1,6 @@
+import 'package:elitara/models/message_type.dart';
 import 'package:elitara/screens/chat/widgets/chat_input_widget.dart';
+import 'package:elitara/screens/chat/widgets/event_invitation_message.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -178,6 +180,37 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           bool showDateHeader = previousMessageDate == null ||
                               messageDate != previousMessageDate;
 
+                          Widget messageContent;
+
+                          if (message.type == MessageType.eventInvitation &&
+                              message.data != null) {
+                            messageContent = EventInvitationMessage(
+                              eventId: message.data!['eventId'] ?? '',
+                              eventTitle: message.data!['eventTitle'] ?? '',
+                              chatId: _chatId!,
+                              isSender: isCurrentUser,
+                            );
+                          } else {
+                            messageContent = Container(
+                              decoration: BoxDecoration(
+                                color: isCurrentUser
+                                    ? Colors.blue[300]
+                                    : Colors.grey[800],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              constraints: BoxConstraints(
+                                maxWidth:
+                                    MediaQuery.of(context).size.width * 0.7,
+                              ),
+                              child: Text(
+                                message.text,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            );
+                          }
+
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -199,48 +232,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   ),
                                 ),
                               Container(
-                                alignment: isCurrentUser
-                                    ? Alignment.centerRight
-                                    : Alignment.centerLeft,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 4),
-                                child: Column(
-                                  crossAxisAlignment: isCurrentUser
-                                      ? CrossAxisAlignment.end
-                                      : CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: isCurrentUser
-                                            ? Colors.blue[300]
-                                            : Colors.grey[800],
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 8),
-                                      constraints: BoxConstraints(
-                                        maxWidth:
-                                            MediaQuery.of(context).size.width *
-                                                0.7,
-                                      ),
-                                      child: Text(
-                                        message.text,
-                                        style: const TextStyle(fontSize: 16),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      LocalizedDateTimeFormatter
-                                          .getFormattedTime(
-                                              context, message.timestamp),
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                                  alignment: isCurrentUser
+                                      ? Alignment.centerRight
+                                      : Alignment.centerLeft,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 4),
+                                  child: messageContent),
                             ],
                           );
                         },

@@ -181,11 +181,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
     if (!_hasMoreUsers) return;
     setState(() => _isLoadingUsers = true);
 
-    final List<QueryDocumentSnapshot> newDocs = await _userService.searchUsers(
-      searchTerm,
-      lastDoc: _lastUserDoc,
-      limit: 10,
-    );
+    final List<QueryDocumentSnapshot> newDocs =
+        await _userService.searchInitialUsers(searchTerm);
     if (newDocs.isNotEmpty) {
       setState(() {
         final docsToAdd = newDocs.where((doc) =>

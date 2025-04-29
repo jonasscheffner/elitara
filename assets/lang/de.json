@@ -118,7 +118,8 @@
     "leave_waitlist": "Warteliste verlassen",
     "waitlist_registered": "Du wurdest auf die Warteliste gesetzt",
     "event_full": "Event ist voll",
-    "waitlist_full": "Warteliste ist voll"
+    "waitlist_full": "Warteliste ist voll",
+    "invite_users": "Teilnehmer einladen"
   },
   "settings": {
     "menu_screen": {
@@ -189,6 +190,22 @@
     "no_messages": "Noch keine Nachrichten",
     "type_a_message": "Nachricht eingeben",
     "send": "Senden",
-    "search": "Nutzer suchen..."
+    "search": "Nutzer suchen...",
+    "event_invitation": {
+      "event_invitation_title": "Event Einladung",
+      "join_event": "Beitreten",
+      "view_event": "Event ansehen",
+      "joined_successfully": "Du bist dem Event beigetreten!",
+      "event_full": "Das Event ist voll.",
+      "event_not_found": "Event nicht gefunden."
+    }
+  },
+  "invite_users": {
+    "title": "Teilnehmer einladen",
+    "search": "Nutzer suchen...",
+    "invite_button": "Einladen",
+    "already_invited": "Bereits eingeladen",
+    "no_users_found": "Keine Nutzer gefunden.",
+    "close": "Schließen"
   }
 }

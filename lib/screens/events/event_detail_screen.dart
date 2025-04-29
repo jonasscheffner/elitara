@@ -1,5 +1,9 @@
+import 'dart:ui';
+
 import 'package:elitara/models/access_type.dart';
+import 'package:elitara/screens/events/widgets/invite_users_dialog.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
+import 'package:elitara/services/membership_service.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -203,22 +207,117 @@ class EventDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   Center(
-                    child: Builder(
-                      builder: (context) {
-                        if (currentUser != null && currentUser.uid == hostId) {
-                          return ElevatedButton(
-                            onPressed: () => Navigator.pushNamed(
-                                context, '/editEvent',
-                                arguments: eventData.id),
-                            style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 40),
-                                textStyle: const TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12))),
-                            child: Text(localeProvider.translate(
-                                section, 'edit_event')),
+                    child: FutureBuilder<String>(
+                      future: MembershipService().getCurrentMembership(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const CircularProgressIndicator();
+                        }
+
+                        final isHost =
+                            currentUser != null && currentUser.uid == hostId;
+                        final membership = snapshot.data ?? '';
+                        final isGoldOrPlatinum =
+                            membership == 'gold' || membership == 'platinum';
+                        final canInvite = eventMap['canInvite'] == true;
+                        final showInviteButton =
+                            isHost || (canInvite && isGoldOrPlatinum);
+
+                        if (isHost || showInviteButton) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.pushNamed(context, '/editEvent',
+                                          arguments: eventData.id);
+                                    },
+                                    icon: const Icon(Icons.edit),
+                                    label: Text(localeProvider.translate(
+                                        section, 'edit_event')),
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      backgroundColor: Colors.blueAccent,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 18),
+                                if (showInviteButton)
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () async {
+                                        final eventDoc = await EventService()
+                                            .getEvent(eventId);
+                                        final eventData = eventDoc.data()
+                                            as Map<String, dynamic>;
+                                        final participants = List<String>.from(
+                                            eventData['participants'] ?? []);
+                                        final waitlist =
+                                            List<Map<String, dynamic>>.from(
+                                                eventData['waitlist'] ?? []);
+                                        final waitlistUids = waitlist
+                                            .map((e) => e['uid'] as String)
+                                            .toList();
+                                        final currentParticipants = [
+                                          ...participants,
+                                          ...waitlistUids
+                                        ];
+
+                                        showGeneralDialog(
+                                          context: context,
+                                          barrierDismissible: true,
+                                          barrierLabel: "Invite Users",
+                                          pageBuilder: (context, animation,
+                                              secondaryAnimation) {
+                                            return Stack(
+                                              children: [
+                                                BackdropFilter(
+                                                  filter: ImageFilter.blur(
+                                                      sigmaX: 5, sigmaY: 5),
+                                                  child: Container(
+                                                    color:
+                                                        const Color(0x80000000)
+                                                            .withOpacity(0),
+                                                  ),
+                                                ),
+                                                Center(
+                                                  child: InviteUsersDialog(
+                                                    eventId: eventId,
+                                                    eventTitle:
+                                                        eventData['title'],
+                                                    currentParticipants:
+                                                        currentParticipants,
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      },
+                                      icon: const Icon(Icons.group_add),
+                                      label: Text(localeProvider.translate(
+                                          section, 'invite_users')),
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 14),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        backgroundColor:
+                                            Colors.deepPurpleAccent,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           );
                         } else if (isJoined) {
                           return ElevatedButton(
@@ -233,125 +332,22 @@ class EventDetailScreen extends StatelessWidget {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 40),
-                                textStyle: const TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12))),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40),
+                              textStyle: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
                             child: Text(
                                 localeProvider.translate(section, 'leave')),
                           );
                         } else {
-                          if (accessType == AccessType.public) {
-                            if (participantLimit != null &&
-                                currentCount >= participantLimit) {
-                              return Text(
-                                localeProvider.translate(section, 'event_full'),
-                                style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.red),
-                              );
-                            }
-                            return ElevatedButton(
-                              onPressed: () async {
-                                await _eventService.registerForEvent(
-                                    eventId, currentUser!.uid);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(localeProvider.translate(
-                                        section, 'registered')),
-                                  ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 40),
-                                  textStyle: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12))),
-                              child: Text(
-                                  localeProvider.translate(section, 'join')),
-                            );
-                          } else if (eventMap['waitlistEnabled'] == true) {
-                            if (isOnWaitlist) {
-                              return ElevatedButton(
-                                onPressed: () async {
-                                  final waitlistEntry = {
-                                    "uid": currentUser!.uid,
-                                    "name": currentUser.displayName ?? "Unknown"
-                                  };
-                                  await _eventService.leaveWaitlist(
-                                      eventId, waitlistEntry);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(localeProvider.translate(
-                                          section, 'leave_waitlist')),
-                                    ),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 40),
-                                    textStyle: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12))),
-                                child: Text(localeProvider.translate(
-                                    section, 'leave_waitlist')),
-                              );
-                            } else {
-                              if (waitlistLimit != null &&
-                                  currentWaitlistCount >= waitlistLimit) {
-                                return Text(
-                                  localeProvider.translate(
-                                      section, 'waitlist_full'),
-                                  style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.red),
-                                );
-                              }
-                              return ElevatedButton(
-                                onPressed: () async {
-                                  final waitlistEntry = {
-                                    "uid": currentUser!.uid,
-                                    "name": currentUser.displayName ?? "Unknown"
-                                  };
-                                  await _eventService.joinWaitlist(
-                                      eventId, waitlistEntry);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(localeProvider.translate(
-                                          section, 'waitlist_registered')),
-                                    ),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 40),
-                                    textStyle: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12))),
-                                child: Text(localeProvider.translate(
-                                    section, 'join_waitlist')),
-                              );
-                            }
-                          } else {
-                            return Container();
-                          }
+                          return Container();
                         }
                       },
                     ),
-                  ),
+                  )
                 ],
               ),
             ),

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final int _pageSize = 20;
 
   Future<Map<String, dynamic>> getUser(String uid) async {
     DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
@@ -37,22 +38,36 @@ class UserService {
     return user.uid;
   }
 
-  Future<List<QueryDocumentSnapshot>> searchUsers(String searchTerm,
-      {DocumentSnapshot? lastDoc, int limit = 50}) async {
+  Future<List<QueryDocumentSnapshot>> searchInitialUsers(
+      String searchTerm) async {
     Query query =
-        _firestore.collection('users').orderBy('displayName').limit(limit);
-    if (lastDoc != null) {
-      query = query.startAfterDocument(lastDoc);
-    }
+        _firestore.collection('users').orderBy('displayName').limit(_pageSize);
+
     final querySnapshot = await query.get();
 
     final lowerSearch = searchTerm.toLowerCase();
-    List<QueryDocumentSnapshot> filtered = querySnapshot.docs.where((doc) {
+    return querySnapshot.docs.where((doc) {
       final data = doc.data() as Map<String, dynamic>;
       final displayName = (data['displayName'] ?? '').toString().toLowerCase();
       return displayName.contains(lowerSearch);
     }).toList();
+  }
 
-    return filtered;
+  Future<List<QueryDocumentSnapshot>> searchMoreUsers(
+      String searchTerm, DocumentSnapshot lastDoc) async {
+    Query query = _firestore
+        .collection('users')
+        .orderBy('displayName')
+        .startAfterDocument(lastDoc)
+        .limit(_pageSize);
+
+    final querySnapshot = await query.get();
+
+    final lowerSearch = searchTerm.toLowerCase();
+    return querySnapshot.docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final displayName = (data['displayName'] ?? '').toString().toLowerCase();
+      return displayName.contains(lowerSearch);
+    }).toList();
   }
 }
