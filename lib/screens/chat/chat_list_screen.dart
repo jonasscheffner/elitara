@@ -58,6 +58,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         _debounce!.cancel();
       }
       _debounce = Timer(const Duration(milliseconds: 300), () {
+        if (!mounted) return;
         final String searchText = _searchController.text.trim();
         if (searchText.isEmpty) {
           setState(() {
@@ -203,9 +204,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _loadInitialChats() async {
+    if (!mounted) return;
     setState(() => _isLoadingChats = true);
     final QuerySnapshot querySnapshot =
         await _chatService.getInitialChats(_currentUserId);
+    if (!mounted) return;
     if (querySnapshot.docs.isNotEmpty) {
       List<Chat> chats = querySnapshot.docs.map((doc) {
         return Chat.fromDocument(doc.id, doc.data() as Map<String, dynamic>);
@@ -236,9 +239,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   Future<void> _loadMoreChats() async {
     if (!_hasMoreChats || _lastUserDoc == null) return;
+    if (!mounted) return;
+
     setState(() => _isLoadingMoreChats = true);
     final QuerySnapshot querySnapshot =
         await _chatService.getMoreChats(_lastChatDoc!, _currentUserId);
+    if (!mounted) return;
+
     if (querySnapshot.docs.isNotEmpty) {
       List<Chat> moreChats = querySnapshot.docs.map((doc) {
         return Chat.fromDocument(doc.id, doc.data() as Map<String, dynamic>);
