@@ -43,19 +43,31 @@ class EventDetailScreen extends StatelessWidget {
 
           final doc = snap.data!;
           final ev = Event.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+
           final hostId = ev.host;
           final participants = List<String>.from(ev.participants);
           participants.remove(hostId);
           participants.insert(0, hostId);
+
           final dateTime = ev.date;
-          final participantLimit = ev.participantLimit;
-          final currentCount = participants.length;
+          final int? participantLimit = ev.participantLimit;
+          final int currentCount = participants.length;
+
           final accessEnum = ev.accessType;
-          final accessText = accessEnum == AccessType.inviteOnly
+          final String accessText = accessEnum == AccessType.inviteOnly
               ? locale.translate(section, 'access_invite_only')
               : locale.translate(section, 'access_public');
-          final isJoined =
-              currentUser != null && participants.contains(currentUser.uid);
+
+          final bool waitlistEnabled = ev.waitlistEnabled;
+          final int currentWaitlistCount = ev.waitlist.length;
+          final int? waitlistLimit = ev.waitlistLimit;
+
+          bool isJoined = false;
+          bool isOnWaitlist = false;
+          if (currentUser != null) {
+            isJoined = participants.contains(currentUser.uid);
+            isOnWaitlist = ev.waitlist.any((e) => e['uid'] == currentUser.uid);
+          }
 
           return SingleChildScrollView(
             child: Padding(
@@ -136,13 +148,12 @@ class EventDetailScreen extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 UserDisplayName(
-                                  uid: uid,
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: isHost
-                                          ? FontWeight.bold
-                                          : FontWeight.normal),
-                                ),
+                                    uid: uid,
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: isHost
+                                            ? FontWeight.bold
+                                            : FontWeight.normal)),
                                 if (isHost)
                                   Text(
                                     " (${locale.translate(section, 'host_label')})",
@@ -166,19 +177,16 @@ class EventDetailScreen extends StatelessWidget {
                         if (msnap.connectionState == ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         }
-                        final membership =
-                            msnap.hasData ? msnap.data! : MembershipType.guest;
-                        final isHost =
-                            currentUser != null && currentUser.uid == hostId;
+                        final membership = msnap.data ?? MembershipType.guest;
+                        final isHost = currentUser?.uid == hostId;
                         final isCoHost = currentUser != null &&
                             ev.coHosts.contains(currentUser.uid);
                         final canInvite = ev.canInvite;
-                        final isGoldOrPlatinum =
-                            membership == MembershipType.gold ||
-                                membership == MembershipType.platinum;
+                        final showInvite = isHost ||
+                            (canInvite &&
+                                (membership == MembershipType.gold ||
+                                    membership == MembershipType.platinum));
                         final showEdit = isHost || isCoHost;
-                        final showInvite =
-                            isHost || (canInvite && isGoldOrPlatinum);
 
                         if (showInvite || showEdit) {
                           return Padding(
@@ -199,7 +207,7 @@ class EventDetailScreen extends StatelessWidget {
                                         context: context,
                                         barrierDismissible: true,
                                         barrierLabel: "Invite Users",
-                                        pageBuilder: (context, a1, a2) => Stack(
+                                        pageBuilder: (c, a1, a2) => Stack(
                                           children: [
                                             BackdropFilter(
                                               filter: ImageFilter.blur(
@@ -252,7 +260,9 @@ class EventDetailScreen extends StatelessWidget {
                               ],
                             ),
                           );
-                        } else if (isJoined) {
+                        }
+
+                        if (isJoined) {
                           return ElevatedButton(
                             onPressed: () async {
                               await _eventService.leaveEvent(
@@ -273,9 +283,113 @@ class EventDetailScreen extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(12))),
                             child: Text(locale.translate(section, 'leave')),
                           );
-                        } else {
-                          return const SizedBox.shrink();
                         }
+
+                        if (accessEnum == AccessType.public &&
+                            (participantLimit == null ||
+                                currentCount < participantLimit)) {
+                          return ElevatedButton(
+                            onPressed: () async {
+                              await _eventService.registerForEvent(
+                                  ev.id, currentUser!.uid);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      locale.translate(section, 'registered')),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 40),
+                                textStyle: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12))),
+                            child: Text(locale.translate(section, 'join')),
+                          );
+                        }
+
+                        if (participantLimit != null &&
+                            currentCount >= participantLimit &&
+                            waitlistEnabled) {
+                          if (isOnWaitlist) {
+                            return ElevatedButton(
+                              onPressed: () async {
+                                final entry = {
+                                  'uid': currentUser!.uid,
+                                  'name': currentUser.displayName ?? 'Unknown'
+                                };
+                                await _eventService.leaveWaitlist(ev.id, entry);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(locale.translate(
+                                        section, 'leave_waitlist')),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 40),
+                                  textStyle: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12))),
+                              child: Text(
+                                  locale.translate(section, 'leave_waitlist')),
+                            );
+                          } else {
+                            if (waitlistLimit != null &&
+                                currentWaitlistCount >= waitlistLimit) {
+                              return Text(
+                                locale.translate(section, 'waitlist_full'),
+                                style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red),
+                              );
+                            }
+                            return ElevatedButton(
+                              onPressed: () async {
+                                final entry = {
+                                  'uid': currentUser!.uid,
+                                  'name': currentUser.displayName ?? 'Unknown'
+                                };
+                                await _eventService.joinWaitlist(ev.id, entry);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(locale.translate(
+                                        section, 'waitlist_registered')),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 40),
+                                  textStyle: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12))),
+                              child: Text(
+                                  locale.translate(section, 'join_waitlist')),
+                            );
+                          }
+                        }
+
+                        if (participantLimit != null &&
+                            currentCount >= participantLimit) {
+                          return Text(
+                            locale.translate(section, 'event_full'),
+                            style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red),
+                          );
+                        }
+
+                        return const SizedBox.shrink();
                       },
                     ),
                   ),

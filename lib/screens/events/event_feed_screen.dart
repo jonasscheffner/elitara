@@ -326,7 +326,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                                                       eventTitle: ev.title,
                                                       waitlistEntries: entries,
                                                       participantLimit:
-                                                          waitlistLimit,
+                                                          ev.participantLimit,
                                                       currentParticipants:
                                                           currentParticipants,
                                                     ),
