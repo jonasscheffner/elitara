@@ -140,7 +140,12 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
                       fontWeight: FontWeight.bold, fontSize: 17),
                 ),
                 const SizedBox(height: 6),
-                Text(widget.eventTitle, style: const TextStyle(fontSize: 15)),
+                Text(
+                  widget.eventTitle,
+                  style: const TextStyle(fontSize: 15),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 12),
                 if (!_isLoading)
                   Row(
