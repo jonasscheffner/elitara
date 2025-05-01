@@ -5,6 +5,7 @@ class SearchFilter extends StatelessWidget {
   final String section;
   final Function(String) onChanged;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
 
@@ -13,6 +14,7 @@ class SearchFilter extends StatelessWidget {
     required this.section,
     required this.onChanged,
     this.controller,
+    this.focusNode,
     this.suffixIcon,
     this.prefixIcon,
   });
@@ -24,6 +26,7 @@ class SearchFilter extends StatelessWidget {
 
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       onChanged: onChanged,
       decoration: InputDecoration(
         labelText: localeProvider.translate(section, 'search'),

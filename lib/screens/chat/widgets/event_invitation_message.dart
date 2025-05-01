@@ -3,11 +3,14 @@ import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/services/event_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:elitara/screens/events/event_detail_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:elitara/services/chat_service.dart';
 
-class EventInvitationMessage extends StatelessWidget {
+class EventInvitationMessage extends StatefulWidget {
   final String eventId;
   final String eventTitle;
   final String chatId;
+  final String messageId;
   final bool isSender;
   final String section = 'chat.event_invitation';
   final Function()? onJoinedCallback;
@@ -17,18 +20,105 @@ class EventInvitationMessage extends StatelessWidget {
     required this.eventId,
     required this.eventTitle,
     required this.chatId,
+    required this.messageId,
     required this.isSender,
     this.onJoinedCallback,
   }) : super(key: key);
 
   @override
+  State<EventInvitationMessage> createState() => _EventInvitationMessageState();
+}
+
+class _EventInvitationMessageState extends State<EventInvitationMessage> {
+  final EventService _eventService = EventService();
+  final ChatService _chatService = ChatService();
+  final currentUser = FirebaseAuth.instance.currentUser;
+
+  bool _isLoading = true;
+  bool _canJoin = false;
+  bool _isJoining = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkJoinStatus();
+  }
+
+  Future<void> _checkJoinStatus() async {
+    if (currentUser == null) return;
+
+    final uid = currentUser!.uid;
+    final eventDoc = await _eventService.getEvent(widget.eventId);
+    if (!eventDoc.exists) return;
+
+    final eventData = eventDoc.data() as Map<String, dynamic>;
+    final participants = List<String>.from(eventData['participants'] ?? []);
+    if (participants.contains(uid)) {
+      setState(() {
+        _canJoin = false;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    final messageDoc = await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(widget.chatId)
+        .collection('messages')
+        .doc(widget.messageId)
+        .get();
+
+    final messageData = messageDoc.data();
+    final acceptedBy =
+        List<String>.from(messageData?['data']?['acceptedBy'] ?? []);
+
+    setState(() {
+      _canJoin = !acceptedBy.contains(uid);
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _handleJoin() async {
+    if (currentUser == null) return;
+    final uid = currentUser!.uid;
+
+    setState(() {
+      _isJoining = true;
+    });
+
+    await _eventService.registerForEvent(widget.eventId, uid);
+
+    final messageRef = FirebaseFirestore.instance
+        .collection('chats')
+        .doc(widget.chatId)
+        .collection('messages')
+        .doc(widget.messageId);
+
+    await messageRef.update({
+      'data.acceptedBy': FieldValue.arrayUnion([uid])
+    });
+
+    if (widget.onJoinedCallback != null) {
+      widget.onJoinedCallback!();
+    }
+
+    setState(() {
+      _canJoin = false;
+      _isJoining = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(Localizations.of<LocaleProvider>(context, LocaleProvider)!
+          .translate(widget.section, 'joined_successfully')),
+    ));
+  }
+
+  @override
   Widget build(BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
-    final EventService _eventService = EventService();
-    final currentUser = FirebaseAuth.instance.currentUser;
-
-    final alignment = isSender ? Alignment.centerRight : Alignment.centerLeft;
+    final alignment =
+        widget.isSender ? Alignment.centerRight : Alignment.centerLeft;
     final maxWidth = MediaQuery.of(context).size.width * 0.7;
 
     return Align(
@@ -46,70 +136,59 @@ class EventInvitationMessage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  localeProvider.translate(section, 'event_invitation_title'),
+                  localeProvider.translate(
+                      widget.section, 'event_invitation_title'),
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17,
-                  ),
+                      fontWeight: FontWeight.bold, fontSize: 17),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  eventTitle,
-                  style: const TextStyle(fontSize: 15),
-                ),
+                Text(widget.eventTitle, style: const TextStyle(fontSize: 15)),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: isSender
-                      ? MainAxisAlignment.end
-                      : MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (!isSender)
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          if (currentUser == null) return;
-
-                          final eventDoc =
-                              await _eventService.getEvent(eventId);
-                          if (!eventDoc.exists) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(localeProvider.translate(
-                                  section, 'event_not_found')),
-                            ));
-                            return;
-                          }
-
-                          final eventData =
-                              eventDoc.data() as Map<String, dynamic>;
-                          final participants = List<String>.from(
-                              eventData['participants'] ?? []);
-                          final participantLimit =
-                              eventData['participantLimit'] as int?;
-
-                          if (participantLimit != null &&
-                              participants.length >= participantLimit) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(localeProvider.translate(
-                                  section, 'event_full')),
-                            ));
-                            return;
-                          }
-
-                          await _eventService.registerForEvent(
-                              eventId, currentUser.uid);
-
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(localeProvider.translate(
-                                section, 'joined_successfully')),
-                          ));
-
-                          if (onJoinedCallback != null) {
-                            onJoinedCallback!();
-                          }
+                if (!_isLoading)
+                  Row(
+                    mainAxisAlignment: widget.isSender
+                        ? MainAxisAlignment.end
+                        : MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (!widget.isSender && _canJoin)
+                        ElevatedButton.icon(
+                          onPressed: _isJoining ? null : _handleJoin,
+                          icon: _isJoining
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Icon(Icons.check),
+                          label: Text(localeProvider.translate(
+                              widget.section, 'join_event')),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                            textStyle: const TextStyle(fontSize: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  EventDetailScreen(eventId: widget.eventId),
+                            ),
+                          );
                         },
-                        icon: const Icon(Icons.check),
-                        label: Text(
-                            localeProvider.translate(section, 'join_event')),
-                        style: ElevatedButton.styleFrom(
+                        icon: const Icon(Icons.visibility_outlined),
+                        label: Text(localeProvider.translate(
+                            widget.section, 'view_event')),
+                        style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10),
                           textStyle: const TextStyle(fontSize: 14),
@@ -118,29 +197,8 @@ class EventInvitationMessage extends StatelessWidget {
                           ),
                         ),
                       ),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => EventDetailScreen(eventId: eventId),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.visibility_outlined),
-                      label:
-                          Text(localeProvider.translate(section, 'view_event')),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        textStyle: const TextStyle(fontSize: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
               ],
             ),
           ),

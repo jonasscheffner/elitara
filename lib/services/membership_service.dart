@@ -1,21 +1,25 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:elitara/models/membership_type.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class MembershipService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<String> getCurrentMembership() async {
-    User? user = _auth.currentUser;
-    if (user == null) return "";
+  Future<MembershipType> getCurrentMembership() async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception("No user is logged in");
 
-    DocumentSnapshot userDoc =
-        await _firestore.collection('users').doc(user.uid).get();
+    final userDoc = await _firestore.collection('users').doc(user.uid).get();
 
-    if (userDoc.exists && userDoc.data() != null) {
-      return (userDoc.data() as Map<String, dynamic>)['membership'] ?? "";
+    if (!userDoc.exists || userDoc.data() == null) {
+      throw Exception("User not found in database");
     }
-    return "";
+
+    final membershipStr =
+        (userDoc.data() as Map<String, dynamic>)['membership'] ?? '';
+
+    return MembershipTypeExtension.fromString(membershipStr);
   }
 
   Future<void> updateMembership(String newMembership) async {

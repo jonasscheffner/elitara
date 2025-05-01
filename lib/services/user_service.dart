@@ -70,4 +70,28 @@ class UserService {
       return displayName.contains(lowerSearch);
     }).toList();
   }
+
+  Future<List<QueryDocumentSnapshot>> searchUsersByFilters({
+    required String searchTerm,
+    DocumentSnapshot? lastDoc,
+    required List<String> excludeUserIds,
+  }) async {
+    Query query =
+        _firestore.collection('users').orderBy('displayName').limit(_pageSize);
+
+    if (lastDoc != null) {
+      query = query.startAfterDocument(lastDoc);
+    }
+
+    final querySnapshot = await query.get();
+    final lowerSearch = searchTerm.toLowerCase();
+
+    return querySnapshot.docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final displayName = (data['displayName'] ?? '').toString().toLowerCase();
+      final userId = doc.id;
+      return displayName.contains(lowerSearch) &&
+          !excludeUserIds.contains(userId);
+    }).toList();
+  }
 }

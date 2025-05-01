@@ -53,37 +53,68 @@ class ChatService {
       return query.snapshots();
     }).map((querySnapshot) {
       return querySnapshot.docs.map((doc) {
-        return Message.fromDocument(doc.data() as Map<String, dynamic>);
+        return Message.fromSnapshot(doc);
       }).toList();
     });
   }
 
+  Future<QuerySnapshot> getAllChats() async {
+    return await _firestore.collection('chats').get();
+  }
+
+  Future<List<Message>> getMessagesOnce(String chatId) async {
+    final snapshot = await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .get();
+
+    return snapshot.docs.map((doc) => Message.fromSnapshot(doc)).toList();
+  }
+
   Future<void> sendMessage(String chatId, Message message) async {
-    final messageMap = message.toMap();
+    try {
+      final messageMap = message.toMap();
+
+      final docRef = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .add(messageMap);
+
+      final messageId = docRef.id;
+      DocumentSnapshot chatDoc =
+          await _firestore.collection('chats').doc(chatId).get();
+      final chatData = chatDoc.data() as Map<String, dynamic>;
+      List<dynamic> participants = chatData['participants'] ?? [];
+
+      Map<String, dynamic> updatedIsDeleted =
+          Map<String, dynamic>.from(chatData['isDeleted'] ?? {});
+      for (var participant in participants) {
+        if (participant != message.senderId) {
+          updatedIsDeleted[participant] = false;
+        }
+      }
+
+      await _firestore.collection('chats').doc(chatId).update({
+        'lastMessage': {
+          ...messageMap,
+          'id': messageId,
+        },
+        'lastUpdated': message.timestamp,
+        'isDeleted': updatedIsDeleted,
+      });
+    } catch (e, stack) {}
+  }
+
+  Future<void> updateMessage(
+      String chatId, String messageId, Map<String, dynamic> data) async {
     await _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
-        .add(messageMap);
-
-    DocumentSnapshot chatDoc =
-        await _firestore.collection('chats').doc(chatId).get();
-    final chatData = chatDoc.data() as Map<String, dynamic>;
-    List<dynamic> participants = chatData['participants'] ?? [];
-
-    Map<String, dynamic> updatedIsDeleted =
-        Map<String, dynamic>.from(chatData['isDeleted'] ?? {});
-    for (var participant in participants) {
-      if (participant != message.senderId) {
-        updatedIsDeleted[participant] = false;
-      }
-    }
-
-    await _firestore.collection('chats').doc(chatId).update({
-      'lastMessage': messageMap,
-      'lastUpdated': message.timestamp,
-      'isDeleted': updatedIsDeleted,
-    });
+        .doc(messageId)
+        .update(data);
   }
 
   Future<String?> getExistingChat(

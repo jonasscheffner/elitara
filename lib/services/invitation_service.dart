@@ -31,4 +31,29 @@ class InvitationService {
 
     await _chatService.sendMessage(chatId, message);
   }
+
+  Future<Set<String>> getInvitedUserIdsForEvent(String eventId) async {
+    final invitedUserIds = <String>{};
+
+    final chatSnapshots = await _chatService.getAllChats();
+
+    for (var chatDoc in chatSnapshots.docs) {
+      final chatId = chatDoc.id;
+      final messages = await _chatService.getMessagesOnce(chatId);
+
+      for (var message in messages) {
+        if (message.type == MessageType.eventInvitation &&
+            message.data?['eventId'] == eventId) {
+          final participants = chatDoc['participants'] as List<dynamic>;
+          for (var uid in participants) {
+            if (uid != message.senderId) {
+              invitedUserIds.add(uid as String);
+            }
+          }
+        }
+      }
+    }
+
+    return invitedUserIds;
+  }
 }

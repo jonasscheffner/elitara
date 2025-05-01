@@ -47,6 +47,15 @@ class AppTheme {
         textStyle: const TextStyle(color: Colors.black),
       ),
     ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: ButtonStyle(
+          iconColor: WidgetStateProperty.all(
+            Colors.blue,
+          ),
+          foregroundColor: WidgetStateProperty.all(
+            Colors.blue,
+          )),
+    ),
     cardTheme: CardTheme(color: Colors.grey[200]),
     progressIndicatorTheme:
         const ProgressIndicatorThemeData(color: Colors.blue),
@@ -110,6 +119,15 @@ class AppTheme {
         foregroundColor: Colors.blue,
         textStyle: const TextStyle(color: Colors.white),
       ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: ButtonStyle(
+          iconColor: WidgetStateProperty.all(
+            Colors.blue,
+          ),
+          foregroundColor: WidgetStateProperty.all(
+            Colors.blue,
+          )),
     ),
     cardTheme: CardTheme(color: Colors.grey[850]),
     progressIndicatorTheme:

@@ -188,6 +188,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               eventId: message.data!['eventId'] ?? '',
                               eventTitle: message.data!['eventTitle'] ?? '',
                               chatId: _chatId!,
+                              messageId: message.id!,
                               isSender: isCurrentUser,
                             );
                           } else {

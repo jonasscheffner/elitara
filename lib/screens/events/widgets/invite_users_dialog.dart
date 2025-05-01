@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/services/user_service.dart';
 import 'package:elitara/services/invitation_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/widgets/search_filter.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -28,6 +29,7 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
   final InvitationService _invitationService = InvitationService();
 
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _searchFocusNode = FocusNode();
 
   List<QueryDocumentSnapshot> _searchResults = [];
   bool _isLoading = false;
@@ -36,11 +38,16 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
   bool _hasSearched = false;
   Set<String> _invitedUserIds = {};
   DocumentSnapshot? _lastDocument;
+  final Set<String> _loadingUserIds = {};
 
   @override
   void initState() {
     super.initState();
-    _invitedUserIds.addAll(widget.currentParticipants);
+    _loadInvitedUsers();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_searchFocusNode);
+    });
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
@@ -49,6 +56,14 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
           _hasMore) {
         _loadMoreUsers();
       }
+    });
+  }
+
+  Future<void> _loadInvitedUsers() async {
+    final invitedIds =
+        await _invitationService.getInvitedUserIdsForEvent(widget.eventId);
+    setState(() {
+      _invitedUserIds = invitedIds;
     });
   }
 
@@ -70,7 +85,12 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
       _hasMore = true;
     });
 
-    final results = await _userService.searchInitialUsers(searchTerm.trim());
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final excludeIds = [currentUserId, widget.currentParticipants.first];
+    final results = await _userService.searchUsersByFilters(
+      searchTerm: searchTerm.trim(),
+      excludeUserIds: excludeIds,
+    );
 
     setState(() {
       _searchResults = results;
@@ -87,8 +107,13 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
       _isLoadingMore = true;
     });
 
-    final moreResults = await _userService.searchMoreUsers(
-        _searchController.text.trim(), _lastDocument!);
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final excludeIds = [currentUserId, widget.currentParticipants.first];
+    final moreResults = await _userService.searchUsersByFilters(
+      searchTerm: _searchController.text.trim(),
+      lastDoc: _lastDocument,
+      excludeUserIds: excludeIds,
+    );
 
     setState(() {
       _searchResults.addAll(moreResults);
@@ -99,6 +124,10 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
   }
 
   Future<void> _sendInvitation(String targetUserId) async {
+    setState(() {
+      _loadingUserIds.add(targetUserId);
+    });
+
     await _invitationService.sendEventInvitation(
       targetUserId: targetUserId,
       eventId: widget.eventId,
@@ -107,6 +136,7 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
 
     setState(() {
       _invitedUserIds.add(targetUserId);
+      _loadingUserIds.remove(targetUserId);
     });
   }
 
@@ -132,6 +162,7 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
           child: Column(
             children: [
               SearchFilter(
+                focusNode: _searchFocusNode,
                 section: section,
                 controller: _searchController,
                 onChanged: _searchUsers,
@@ -240,8 +271,20 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
                               final displayName =
                                   userData['displayName'] ?? 'Unknown';
                               final userId = userDoc.id;
+
+                              final bool isAlreadyParticipant =
+                                  widget.currentParticipants.contains(userId);
                               final bool isAlreadyInvited =
                                   _invitedUserIds.contains(userId);
+                              print(isAlreadyParticipant);
+                              String trailingText = '';
+                              if (isAlreadyParticipant) {
+                                trailingText = localeProvider.translate(
+                                    section, 'already_participant');
+                              } else if (isAlreadyInvited) {
+                                trailingText = localeProvider.translate(
+                                    section, 'already_invited');
+                              }
 
                               return ListTile(
                                 title: Tooltip(
@@ -252,22 +295,39 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
                                     maxLines: 1,
                                   ),
                                 ),
-                                trailing: isAlreadyInvited
+                                trailing: isAlreadyParticipant
                                     ? Text(
                                         localeProvider.translate(
-                                            section, 'already_invited'),
+                                            section, 'already_participant'),
                                         style: const TextStyle(
                                             color: Colors.grey, fontSize: 14),
                                       )
-                                    : TextButton(
-                                        onPressed: () =>
-                                            _sendInvitation(userId),
-                                        child: Text(
-                                          localeProvider.translate(
-                                              section, 'invite_button'),
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                      ),
+                                    : isAlreadyInvited
+                                        ? Text(
+                                            localeProvider.translate(
+                                                section, 'already_invited'),
+                                            style: const TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 14),
+                                          )
+                                        : _loadingUserIds.contains(userId)
+                                            ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                        strokeWidth: 2),
+                                              )
+                                            : TextButton(
+                                                onPressed: () =>
+                                                    _sendInvitation(userId),
+                                                child: Text(
+                                                  localeProvider.translate(
+                                                      section, 'invite_button'),
+                                                  style: const TextStyle(
+                                                      fontSize: 14),
+                                                ),
+                                              ),
                               );
                             },
                           )),

@@ -26,11 +26,9 @@ class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
   }
 
   Future<void> _loadMembership() async {
-    String membership = await _membershipService.getCurrentMembership();
+    MembershipType membership = await _membershipService.getCurrentMembership();
     setState(() {
-      _currentMembership = membership.isNotEmpty
-          ? MembershipTypeExtension.fromString(membership)
-          : null;
+      _currentMembership = membership;
       _isLoading = false;
     });
   }
