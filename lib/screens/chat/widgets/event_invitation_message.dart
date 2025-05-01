@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:elitara/localization/locale_provider.dart';
-import 'package:elitara/services/event_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:elitara/screens/events/event_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:elitara/services/chat_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'package:elitara/localization/locale_provider.dart';
+import 'package:elitara/models/event.dart';
+import 'package:elitara/services/event_service.dart';
+import 'package:elitara/screens/events/event_detail_screen.dart';
 
 class EventInvitationMessage extends StatefulWidget {
   final String eventId;
@@ -30,8 +31,7 @@ class EventInvitationMessage extends StatefulWidget {
 }
 
 class _EventInvitationMessageState extends State<EventInvitationMessage> {
-  final EventService _eventService = EventService();
-  final ChatService _chatService = ChatService();
+  final _eventService = EventService();
   final currentUser = FirebaseAuth.instance.currentUser;
 
   bool _isLoading = true;
@@ -48,12 +48,12 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
     if (currentUser == null) return;
 
     final uid = currentUser!.uid;
-    final eventDoc = await _eventService.getEvent(widget.eventId);
-    if (!eventDoc.exists) return;
+    final doc = await _eventService.getEvent(widget.eventId);
+    if (!doc.exists) return;
 
-    final eventData = eventDoc.data() as Map<String, dynamic>;
-    final participants = List<String>.from(eventData['participants'] ?? []);
-    if (participants.contains(uid)) {
+    final event = Event.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+
+    if (event.participants.contains(uid)) {
       setState(() {
         _canJoin = false;
         _isLoading = false;
@@ -98,9 +98,7 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
       'data.acceptedBy': FieldValue.arrayUnion([uid])
     });
 
-    if (widget.onJoinedCallback != null) {
-      widget.onJoinedCallback!();
-    }
+    widget.onJoinedCallback?.call();
 
     setState(() {
       _canJoin = false;
@@ -108,15 +106,16 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(Localizations.of<LocaleProvider>(context, LocaleProvider)!
-          .translate(widget.section, 'joined_successfully')),
+      content: Text(
+        Localizations.of<LocaleProvider>(context, LocaleProvider)!
+            .translate(widget.section, 'joined_successfully'),
+      ),
     ));
   }
 
   @override
   Widget build(BuildContext context) {
-    final localeProvider =
-        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+    final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
     final alignment =
         widget.isSender ? Alignment.centerRight : Alignment.centerLeft;
     final maxWidth = MediaQuery.of(context).size.width * 0.7;
@@ -128,7 +127,7 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
         child: Card(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          margin: const EdgeInsets.symmetric(vertical: 8),
           elevation: 3,
           child: Padding(
             padding: const EdgeInsets.all(14),
@@ -136,8 +135,7 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  localeProvider.translate(
-                      widget.section, 'event_invitation_title'),
+                  locale.translate(widget.section, 'event_invitation_title'),
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 17),
                 ),
@@ -159,13 +157,13 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
                                   height: 16,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
+                                    valueColor:
+                                        AlwaysStoppedAnimation(Colors.white),
                                   ),
                                 )
                               : const Icon(Icons.check),
-                          label: Text(localeProvider.translate(
-                              widget.section, 'join_event')),
+                          label: Text(
+                              locale.translate(widget.section, 'join_event')),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 10),
@@ -176,18 +174,16 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
                           ),
                         ),
                       OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  EventDetailScreen(eventId: widget.eventId),
-                            ),
-                          );
-                        },
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                EventDetailScreen(eventId: widget.eventId),
+                          ),
+                        ),
                         icon: const Icon(Icons.visibility_outlined),
-                        label: Text(localeProvider.translate(
-                            widget.section, 'view_event')),
+                        label: Text(
+                            locale.translate(widget.section, 'view_event')),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10),

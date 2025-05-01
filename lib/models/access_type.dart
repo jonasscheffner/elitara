@@ -9,7 +9,6 @@ extension AccessTypeExtension on AccessType {
       case AccessType.inviteOnly:
         return "invite_only";
       case AccessType.public:
-      default:
         return "public";
     }
   }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:elitara/models/event_status.dart';
 
 class EventService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -7,22 +8,22 @@ class EventService {
   EventService({this.itemsPerPage = 10});
 
   Future<QuerySnapshot> getInitialEvents() async {
-    Query query = _firestore
+    return await _firestore
         .collection('events')
-        .where('status', isEqualTo: 'active')
+        .where('status', isEqualTo: EventStatus.active.value)
         .orderBy('date', descending: true)
-        .limit(itemsPerPage);
-    return await query.get();
+        .limit(itemsPerPage)
+        .get();
   }
 
   Future<QuerySnapshot> getMoreEvents(DocumentSnapshot lastDocument) async {
-    Query query = _firestore
+    return await _firestore
         .collection('events')
-        .where('status', isEqualTo: 'active')
+        .where('status', isEqualTo: EventStatus.active.value)
         .orderBy('date', descending: true)
         .startAfterDocument(lastDocument)
-        .limit(itemsPerPage);
-    return await query.get();
+        .limit(itemsPerPage)
+        .get();
   }
 
   Stream<DocumentSnapshot> getEventStream(String eventId) {
@@ -42,7 +43,7 @@ class EventService {
     await _firestore
         .collection('events')
         .doc(eventId)
-        .update({'status': 'canceled'});
+        .update({'status': EventStatus.canceled.value});
   }
 
   Future<DocumentReference> createEvent(Map<String, dynamic> eventData) async {
@@ -62,13 +63,13 @@ class EventService {
   }
 
   Future<QuerySnapshot> getUserHostedEvents(String userId) async {
-    Query query = _firestore
+    return await _firestore
         .collection('events')
-        .where('status', isEqualTo: 'active')
+        .where('status', isEqualTo: EventStatus.active.value)
         .where('host', isEqualTo: userId)
         .orderBy('date', descending: true)
-        .limit(itemsPerPage);
-    return await query.get();
+        .limit(itemsPerPage)
+        .get();
   }
 
   Future<void> joinWaitlist(

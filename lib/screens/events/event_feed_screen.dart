@@ -1,5 +1,7 @@
 import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:elitara/models/event.dart';
 import 'package:elitara/models/access_type.dart';
 import 'package:elitara/widgets/search_filter.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
@@ -21,18 +23,19 @@ class EventFeedScreen extends StatefulWidget {
 
 class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   final EventService _eventService = EventService(itemsPerPage: 10);
-  final String section = 'event_feed_screen';
+  final UserService _userService = UserService();
   final ScrollController _scrollController = ScrollController();
-  List<DocumentSnapshot> _events = [];
+
+  final String section = 'event_feed_screen';
+  List<Event> _events = [];
   bool _isLoading = true;
   bool _isLoadingMore = false;
   bool _hasMore = true;
   DocumentSnapshot? _lastDocument;
   String _searchQuery = '';
-  final Map<String, String> _hostNames = {};
-  final UserService _userService = UserService();
-  bool _showOnlyOwnEvents = false;
   String _currentUserId = '';
+  bool _showOnlyOwnEvents = false;
+  final Map<String, String> _hostNames = {};
   final Map<String, int> _waitlistCounts = {};
 
   @override
@@ -68,147 +71,112 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   }
 
   Future<void> _loadEvents() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
     try {
       if (_currentUserId.isEmpty) {
         _currentUserId = await _userService.getCurrentUserId();
       }
-      QuerySnapshot querySnapshot;
+
+      QuerySnapshot raw;
       if (_showOnlyOwnEvents) {
-        if (_currentUserId.isNotEmpty) {
-          querySnapshot =
-              await _eventService.getUserHostedEvents(_currentUserId);
-        } else {
-          throw Exception("User ID is empty");
-        }
+        raw = await _eventService.getUserHostedEvents(_currentUserId);
       } else {
-        querySnapshot = await _eventService.getInitialEvents();
+        raw = await _eventService.getInitialEvents();
       }
-      _events = querySnapshot.docs;
-      for (var event in _events) {
-        final data = event.data() as Map<String, dynamic>;
-        _waitlistCounts[event.id] =
-            data['waitlist'] != null ? (data['waitlist'] as List).length : 0;
-      }
-      if (_events.isNotEmpty) {
-        _lastDocument = _events.last;
-      }
-      if (_events.length < _eventService.itemsPerPage) {
-        _hasMore = false;
+
+      _events = raw.docs
+          .map((d) => Event.fromMap(d.id, d.data() as Map<String, dynamic>))
+          .toList();
+
+      _lastDocument = raw.docs.isNotEmpty ? raw.docs.last : null;
+      _hasMore = raw.docs.length >= _eventService.itemsPerPage;
+
+      for (var ev in _events) {
+        _waitlistCounts[ev.id] = ev.waitlist.length;
       }
       await _loadHostNamesForEvents(_events);
     } catch (e) {
       debugPrint("Fehler beim Laden der Events: $e");
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   Future<void> _loadMoreEvents() async {
     if (!_hasMore || _lastDocument == null) return;
-    setState(() {
-      _isLoadingMore = true;
-    });
-    QuerySnapshot querySnapshot =
-        await _eventService.getMoreEvents(_lastDocument!);
-    if (querySnapshot.docs.isNotEmpty) {
-      _events.addAll(querySnapshot.docs);
-      for (var event in querySnapshot.docs) {
-        final data = event.data() as Map<String, dynamic>;
-        _waitlistCounts[event.id] =
-            data['waitlist'] != null ? (data['waitlist'] as List).length : 0;
+    setState(() => _isLoadingMore = true);
+
+    QuerySnapshot raw = await _eventService.getMoreEvents(_lastDocument!);
+
+    if (raw.docs.isNotEmpty) {
+      final more = raw.docs
+          .map((d) => Event.fromMap(d.id, d.data() as Map<String, dynamic>))
+          .toList();
+
+      _events.addAll(more);
+      _lastDocument = raw.docs.last;
+      _hasMore = raw.docs.length >= _eventService.itemsPerPage;
+
+      for (var ev in more) {
+        _waitlistCounts[ev.id] = ev.waitlist.length;
       }
-      _lastDocument = querySnapshot.docs.last;
-      if (querySnapshot.docs.length < _eventService.itemsPerPage) {
-        _hasMore = false;
-      }
-      await _loadHostNamesForEvents(querySnapshot.docs);
+      await _loadHostNamesForEvents(more);
     } else {
       _hasMore = false;
     }
-    setState(() {
-      _isLoadingMore = false;
-    });
+
+    setState(() => _isLoadingMore = false);
   }
 
-  Future<void> _loadHostNamesForEvents(List<DocumentSnapshot> docs) async {
-    Set<String> hostIds = {};
-    for (var doc in docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      final dynamic hostData = data['host'];
-      String hostId = '';
-      if (hostData is String) {
-        hostId = hostData;
-      } else if (hostData is Map) {
-        hostId = hostData['uid'] as String? ?? '';
-      }
-      if (hostId.isNotEmpty && !_hostNames.containsKey(hostId)) {
-        hostIds.add(hostId);
-      }
-    }
-    for (var id in hostIds) {
-      _userService.getUser(id).then((userData) {
-        setState(() {
-          _hostNames[id] = userData['displayName'] ?? 'Unknown';
-        });
+  Future<void> _loadHostNamesForEvents(List<Event> events) async {
+    final hosts = events.map((e) => e.host).toSet()
+      ..removeWhere((id) => id.isEmpty || _hostNames.containsKey(id));
+
+    for (var id in hosts) {
+      final userData = await _userService.getUser(id);
+      setState(() {
+        _hostNames[id] = userData['displayName'] ?? 'Unknown';
       });
     }
   }
 
   Future<void> _updateWaitlistForEvent(String eventId) async {
-    DocumentSnapshot doc = await _eventService.getEvent(eventId);
-    final data = doc.data() as Map<String, dynamic>;
-    int count =
-        data['waitlist'] != null ? (data['waitlist'] as List).length : 0;
+    final doc = await _eventService.getEvent(eventId);
+    final fresh = Event.fromMap(doc.id, doc.data() as Map<String, dynamic>);
     setState(() {
-      _waitlistCounts[eventId] = count;
+      _waitlistCounts[eventId] = fresh.waitlist.length;
     });
   }
 
-  List<DocumentSnapshot> get _filteredEvents {
-    if (_searchQuery.isEmpty) {
-      return _events;
-    } else {
-      return _events.where((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        final title = (data['title'] ?? '').toString().toLowerCase();
-        final description =
-            (data['description'] ?? '').toString().toLowerCase();
-        final location = (data['location'] ?? '').toString().toLowerCase();
-        String host = '';
-        final dynamic hostData = data['host'];
-        if (hostData is Map) {
-          host = _hostNames[hostData['uid']]?.toLowerCase() ?? '';
-        } else if (hostData is String) {
-          host = _hostNames[hostData]?.toLowerCase() ?? hostData.toLowerCase();
-        }
-        return title.contains(_searchQuery) ||
-            description.contains(_searchQuery) ||
-            location.contains(_searchQuery) ||
-            host.contains(_searchQuery);
-      }).toList();
-    }
+  List<Event> get _filteredEvents {
+    if (_searchQuery.isEmpty) return _events;
+    return _events.where((ev) {
+      final q = _searchQuery;
+      final title = ev.title.toLowerCase();
+      final desc = ev.description.toLowerCase();
+      final loc = ev.location.toLowerCase();
+      final host =
+          (_hostNames[ev.host]?.toLowerCase() ?? ev.host.toLowerCase());
+      return title.contains(q) ||
+          desc.contains(q) ||
+          loc.contains(q) ||
+          host.contains(q);
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final localeProvider =
-        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+    final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(localeProvider.translate(section, 'title')),
+        title: Text(locale.translate(section, 'title')),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.message),
-            onPressed: () {
-              Navigator.pushNamed(context, '/chatList');
-            },
+            onPressed: () => Navigator.pushNamed(context, '/chatList'),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
@@ -222,11 +190,9 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: SearchFilter(
               section: section,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value.toLowerCase();
-                });
-              },
+              onChanged: (v) => setState(() {
+                _searchQuery = v.toLowerCase();
+              }),
             ),
           ),
           Padding(
@@ -235,14 +201,12 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  setState(() {
-                    _showOnlyOwnEvents = !_showOnlyOwnEvents;
-                  });
+                  setState(() => _showOnlyOwnEvents = !_showOnlyOwnEvents);
                   _loadEvents();
                 },
                 icon: const Icon(Icons.person, size: 20),
                 label: Text(
-                  localeProvider.translate(section, 'filter_own_events'),
+                  locale.translate(section, 'filter_own_events'),
                   style: const TextStyle(fontSize: 16),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -263,37 +227,18 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                     controller: _scrollController,
                     itemCount:
                         _filteredEvents.length + (_isLoadingMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == _filteredEvents.length) {
+                    itemBuilder: (ctx, i) {
+                      if (i == _filteredEvents.length) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      var event = _filteredEvents[index];
-                      final Map<String, dynamic> data =
-                          event.data() as Map<String, dynamic>;
-                      final DateTime dateTime = data['date'].toDate();
-                      final dynamic hostData = data['host'];
-                      String hostId = '';
-                      if (hostData is String) {
-                        hostId = hostData;
-                      } else if (hostData is Map) {
-                        hostId = hostData['uid'] as String? ?? '';
-                      }
-                      final AccessType accessTypeEnum =
-                          data.containsKey('accessType') &&
-                                  data['accessType'] is String
-                              ? AccessTypeExtension.fromString(
-                                  data['accessType'] as String)
-                              : AccessType.public;
-                      String accessText = accessTypeEnum ==
-                              AccessType.inviteOnly
-                          ? localeProvider.translate(
-                              section, 'access_invite_only')
-                          : localeProvider.translate(section, 'access_public');
-                      final int? waitlistLimit =
-                          (data.containsKey('waitlistLimit') &&
-                                  data['waitlistLimit'] is int)
-                              ? data['waitlistLimit'] as int
-                              : null;
+                      final ev = _filteredEvents[i];
+                      final dateTime = ev.date;
+                      final accessEnum = ev.accessType;
+                      final accessText = accessEnum == AccessType.inviteOnly
+                          ? locale.translate(section, 'access_invite_only')
+                          : locale.translate(section, 'access_public');
+                      final waitlistLimit = ev.waitlistLimit;
+
                       return Card(
                         margin: const EdgeInsets.all(10),
                         shape: RoundedRectangleBorder(
@@ -302,7 +247,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(15),
                           title: Text(
-                            data['title'],
+                            ev.title,
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),
@@ -315,11 +260,11 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                               Row(
                                 children: [
                                   Text(
-                                    "${localeProvider.translate(section, 'hosted_by')}: ",
+                                    "${locale.translate(section, 'hosted_by')}: ",
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                   UserDisplayName(
-                                    uid: hostId,
+                                    uid: ev.host,
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
@@ -328,7 +273,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                               Row(
                                 children: [
                                   Text(
-                                    "${localeProvider.translate(section, 'access')}: ",
+                                    "${locale.translate(section, 'access')}: ",
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                   Text(
@@ -339,7 +284,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                                   ),
                                 ],
                               ),
-                              if (data['waitlistEnabled'] == true)
+                              if (ev.waitlistEnabled)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8.0),
                                   child: Row(
@@ -348,36 +293,23 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                                       const SizedBox(width: 4),
                                       Text(
                                         waitlistLimit != null
-                                            ? "${_waitlistCounts[event.id] ?? 0} / $waitlistLimit"
-                                            : "${_waitlistCounts[event.id] ?? 0}",
+                                            ? "${_waitlistCounts[ev.id] ?? 0} / $waitlistLimit"
+                                            : "${_waitlistCounts[ev.id] ?? 0}",
                                         style: const TextStyle(fontSize: 14),
                                       ),
-                                      if (_currentUserId == hostId &&
-                                          (_waitlistCounts[event.id] ?? 0) > 0)
+                                      if (_currentUserId == ev.host &&
+                                          (_waitlistCounts[ev.id] ?? 0) > 0)
                                         TextButton(
-                                          child: Text(localeProvider.translate(
+                                          child: Text(locale.translate(
                                               section, 'open_waitlist')),
                                           onPressed: () async {
-                                            int currentParticipants =
-                                                data['participants'] != null
-                                                    ? (data['participants']
-                                                            as List)
-                                                        .length
-                                                    : 0;
-                                            int? participantLimit =
-                                                data['participantLimit'];
-                                            List<Map<String, dynamic>>
-                                                waitlistEntries = [];
-                                            if (data['waitlist'] != null) {
-                                              waitlistEntries = List<
-                                                      Map<String,
-                                                          dynamic>>.from(
-                                                  data['waitlist']);
-                                            }
+                                            final currentParticipants =
+                                                ev.participants.length;
+                                            final entries = ev.waitlist;
                                             final result = await showDialog(
-                                              context: context,
+                                              context: ctx,
                                               barrierColor: Colors.transparent,
-                                              builder: (context) {
+                                              builder: (_) {
                                                 return Stack(
                                                   children: [
                                                     BackdropFilter(
@@ -390,12 +322,11 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                                                       ),
                                                     ),
                                                     WaitlistDialog(
-                                                      eventId: event.id,
-                                                      eventTitle: data['title'],
-                                                      waitlistEntries:
-                                                          waitlistEntries,
+                                                      eventId: ev.id,
+                                                      eventTitle: ev.title,
+                                                      waitlistEntries: entries,
                                                       participantLimit:
-                                                          participantLimit,
+                                                          waitlistLimit,
                                                       currentParticipants:
                                                           currentParticipants,
                                                     ),
@@ -404,7 +335,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                                               },
                                             );
                                             if (result == true) {
-                                              _updateWaitlistForEvent(event.id);
+                                              _updateWaitlistForEvent(ev.id);
                                             }
                                           },
                                         ),
@@ -416,7 +347,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onTap: () async {
                             await Navigator.pushNamed(context, '/eventDetail',
-                                arguments: event.id);
+                                arguments: ev.id);
                             _loadEvents();
                           },
                         ),
@@ -431,7 +362,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
           await Navigator.pushNamed(context, '/createEvent');
           _loadEvents();
         },
-        label: Text(localeProvider.translate(section, 'create_event')),
+        label: Text(locale.translate(section, 'create_event')),
         icon: const Icon(Icons.add),
       ),
     );
