@@ -51,9 +51,27 @@ class EventService {
   }
 
   Future<void> registerForEvent(String eventId, String uid) async {
-    await _firestore.collection('events').doc(eventId).update({
-      'participants': FieldValue.arrayUnion([uid])
+    final docRef = _firestore.collection('events').doc(eventId);
+
+    await docRef.update({
+      'participants': FieldValue.arrayUnion([uid]),
     });
+
+    final snapshot = await docRef.get();
+    final data = snapshot.data() as Map<String, dynamic>;
+    final List<dynamic> waitlistRaw = data['waitlist'] ?? [];
+
+    Map<String, dynamic>? entryToRemove;
+    for (var e in waitlistRaw) {
+      if (e is Map<String, dynamic> && e['uid'] == uid) {
+        entryToRemove = e;
+        break;
+      }
+    }
+
+    if (entryToRemove != null) {
+      await leaveWaitlist(eventId, entryToRemove);
+    }
   }
 
   Future<void> leaveEvent(String eventId, String uid) async {
