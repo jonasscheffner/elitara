@@ -198,11 +198,7 @@ class EventDetailScreen extends StatelessWidget {
                                 if (showInvite)
                                   ElevatedButton.icon(
                                     onPressed: () async {
-                                      final cp = [
-                                        ...ev.participants,
-                                        ...ev.waitlist
-                                            .map((e) => e['uid'] as String)
-                                      ];
+                                      final cp = [...ev.participants];
                                       showGeneralDialog(
                                         context: context,
                                         barrierDismissible: true,
