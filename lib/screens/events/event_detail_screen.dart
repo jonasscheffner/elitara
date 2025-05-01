@@ -233,8 +233,7 @@ class EventDetailScreen extends StatelessWidget {
                                     style: ElevatedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 14),
-                                        backgroundColor:
-                                            Colors.deepPurpleAccent,
+                                        backgroundColor: Colors.blueGrey,
                                         shape: RoundedRectangleBorder(
                                             borderRadius:
                                                 BorderRadius.circular(12))),
