@@ -12,11 +12,11 @@ class InviteUsersDialog extends StatefulWidget {
   final List<String> currentParticipants;
 
   const InviteUsersDialog({
-    Key? key,
+    super.key,
     required this.eventId,
     required this.eventTitle,
     required this.currentParticipants,
-  }) : super(key: key);
+  });
 
   @override
   _InviteUsersDialogState createState() => _InviteUsersDialogState();
@@ -25,20 +25,18 @@ class InviteUsersDialog extends StatefulWidget {
 class _InviteUsersDialogState extends State<InviteUsersDialog> {
   final String section = 'invite_users';
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
   final UserService _userService = UserService();
   final InvitationService _invitationService = InvitationService();
 
-  final ScrollController _scrollController = ScrollController();
-  final FocusNode _searchFocusNode = FocusNode();
-
   List<QueryDocumentSnapshot> _searchResults = [];
+  Set<String> _invitedUserIds = {};
+  final Set<String> _loadingUserIds = {};
+  DocumentSnapshot? _lastDocument;
   bool _isLoading = false;
   bool _isLoadingMore = false;
   bool _hasMore = true;
-  bool _hasSearched = false;
-  Set<String> _invitedUserIds = {};
-  DocumentSnapshot? _lastDocument;
-  final Set<String> _loadingUserIds = {};
 
   @override
   void initState() {
@@ -48,7 +46,6 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_searchFocusNode);
     });
-
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
               _scrollController.position.maxScrollExtent - 100 &&
@@ -60,36 +57,35 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
   }
 
   Future<void> _loadInvitedUsers() async {
-    final invitedIds =
+    final ids =
         await _invitationService.getInvitedUserIdsForEvent(widget.eventId);
-    setState(() {
-      _invitedUserIds = invitedIds;
-    });
+    setState(() => _invitedUserIds = ids);
   }
 
-  Future<void> _searchUsers(String searchTerm) async {
-    if (searchTerm.trim().isEmpty) {
+  Future<void> _searchUsers(String term) async {
+    term = term.trim();
+    if (term.isEmpty) {
       setState(() {
         _searchResults.clear();
-        _hasSearched = false;
         _lastDocument = null;
         _hasMore = true;
       });
+      _resetScroll();
       return;
     }
 
     setState(() {
       _isLoading = true;
-      _hasSearched = true;
       _lastDocument = null;
       _hasMore = true;
     });
 
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    final excludeIds = [currentUserId, widget.currentParticipants.first];
+    final current = FirebaseAuth.instance.currentUser!.uid;
+    final exclude = {current, ...widget.currentParticipants};
+
     final results = await _userService.searchUsersByFilters(
-      searchTerm: searchTerm.trim(),
-      excludeUserIds: excludeIds,
+      searchTerm: term,
+      excludeUserIds: exclude.toList(),
     );
 
     setState(() {
@@ -98,59 +94,63 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
       if (results.length < 20) _hasMore = false;
       if (results.isNotEmpty) _lastDocument = results.last;
     });
+    _resetScroll();
   }
 
   Future<void> _loadMoreUsers() async {
     if (_searchController.text.trim().isEmpty || _lastDocument == null) return;
 
-    setState(() {
-      _isLoadingMore = true;
-    });
+    setState(() => _isLoadingMore = true);
 
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    final excludeIds = [currentUserId, widget.currentParticipants.first];
-    final moreResults = await _userService.searchUsersByFilters(
+    final current = FirebaseAuth.instance.currentUser!.uid;
+    final exclude = {current, ...widget.currentParticipants};
+
+    final more = await _userService.searchUsersByFilters(
       searchTerm: _searchController.text.trim(),
       lastDoc: _lastDocument,
-      excludeUserIds: excludeIds,
+      excludeUserIds: exclude.toList(),
     );
 
     setState(() {
-      _searchResults.addAll(moreResults);
+      _searchResults.addAll(more);
       _isLoadingMore = false;
-      if (moreResults.length < 20) _hasMore = false;
-      if (moreResults.isNotEmpty) _lastDocument = moreResults.last;
+      if (more.length < 20) _hasMore = false;
+      if (more.isNotEmpty) _lastDocument = more.last;
     });
   }
 
-  Future<void> _sendInvitation(String targetUserId) async {
-    setState(() {
-      _loadingUserIds.add(targetUserId);
-    });
-
+  Future<void> _sendInvitation(String uid) async {
+    setState(() => _loadingUserIds.add(uid));
     await _invitationService.sendEventInvitation(
-      targetUserId: targetUserId,
+      targetUserId: uid,
       eventId: widget.eventId,
       eventTitle: widget.eventTitle,
     );
-
     setState(() {
-      _invitedUserIds.add(targetUserId);
-      _loadingUserIds.remove(targetUserId);
+      _invitedUserIds.add(uid);
+      _loadingUserIds.remove(uid);
+    });
+  }
+
+  void _resetScroll() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
     });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final localeProvider =
-        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+    final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -166,6 +166,7 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
                 section: section,
                 controller: _searchController,
                 onChanged: _searchUsers,
+                prefixIcon: const Icon(Icons.search),
                 suffixIcon: _isLoading
                     ? const Padding(
                         padding: EdgeInsets.all(10),
@@ -182,155 +183,87 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
                               _searchController.clear();
                               setState(() {
                                 _searchResults.clear();
-                                _hasSearched = false;
                                 _lastDocument = null;
                                 _hasMore = true;
                               });
+                              _resetScroll();
                             },
                           )
                         : null),
-                prefixIcon: const Icon(Icons.search),
               ),
               const SizedBox(height: 16),
               Expanded(
                 child: _searchResults.isEmpty
                     ? Center(
                         child: Text(
-                          localeProvider.translate(section, 'title'),
+                          locale.translate(section, 'title'),
                           style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey),
                           textAlign: TextAlign.center,
                         ),
                       )
-                    : (_searchResults.length <= 5
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: _searchResults.map((doc) {
-                              final userData =
-                                  doc.data() as Map<String, dynamic>;
-                              final displayName =
-                                  userData['displayName'] ?? 'Unknown';
-                              final userId = doc.id;
-                              final bool isAlreadyInvited =
-                                  _invitedUserIds.contains(userId);
-
-                              return ListTile(
-                                title: Tooltip(
-                                  message: displayName,
-                                  child: Text(
-                                    displayName,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  ),
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: EdgeInsets.zero,
+                        itemCount:
+                            _searchResults.length + (_isLoadingMore ? 1 : 0),
+                        itemBuilder: (ctx, idx) {
+                          if (idx == _searchResults.length && _isLoadingMore) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
                                 ),
-                                trailing: isAlreadyInvited
-                                    ? Text(
-                                        localeProvider.translate(
-                                            section, 'already_invited'),
-                                        style: const TextStyle(
-                                            color: Colors.grey, fontSize: 14),
+                              ),
+                            );
+                          }
+                          final doc = _searchResults[idx];
+                          final data = doc.data() as Map<String, dynamic>;
+                          final userId = doc.id;
+                          final name = data['displayName'] ?? 'Unknown';
+                          final invited = _invitedUserIds.contains(userId);
+
+                          return ListTile(
+                            title: Tooltip(
+                              message: name,
+                              child: Text(
+                                name,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                            trailing: invited
+                                ? Text(
+                                    locale.translate(
+                                        section, 'already_invited'),
+                                    style: const TextStyle(
+                                        color: Colors.grey, fontSize: 14),
+                                  )
+                                : _loadingUserIds.contains(userId)
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
                                       )
                                     : TextButton(
                                         onPressed: () =>
                                             _sendInvitation(userId),
                                         child: Text(
-                                          localeProvider.translate(
+                                          locale.translate(
                                               section, 'invite_button'),
                                           style: const TextStyle(fontSize: 14),
                                         ),
                                       ),
-                              );
-                            }).toList(),
-                          )
-                        : ListView.builder(
-                            controller: _scrollController,
-                            itemCount: _searchResults.length +
-                                (_isLoadingMore ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              if (index == _searchResults.length &&
-                                  _isLoadingMore) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 12),
-                                    child: SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2),
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              final userDoc = _searchResults[index];
-                              final userData =
-                                  userDoc.data() as Map<String, dynamic>;
-                              final displayName =
-                                  userData['displayName'] ?? 'Unknown';
-                              final userId = userDoc.id;
-
-                              final bool isAlreadyParticipant =
-                                  widget.currentParticipants.contains(userId);
-                              final bool isAlreadyInvited =
-                                  _invitedUserIds.contains(userId);
-                              print(isAlreadyParticipant);
-                              String trailingText = '';
-                              if (isAlreadyParticipant) {
-                                trailingText = localeProvider.translate(
-                                    section, 'already_participant');
-                              } else if (isAlreadyInvited) {
-                                trailingText = localeProvider.translate(
-                                    section, 'already_invited');
-                              }
-
-                              return ListTile(
-                                title: Tooltip(
-                                  message: displayName,
-                                  child: Text(
-                                    displayName,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  ),
-                                ),
-                                trailing: isAlreadyParticipant
-                                    ? Text(
-                                        localeProvider.translate(
-                                            section, 'already_participant'),
-                                        style: const TextStyle(
-                                            color: Colors.grey, fontSize: 14),
-                                      )
-                                    : isAlreadyInvited
-                                        ? Text(
-                                            localeProvider.translate(
-                                                section, 'already_invited'),
-                                            style: const TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 14),
-                                          )
-                                        : _loadingUserIds.contains(userId)
-                                            ? const SizedBox(
-                                                width: 20,
-                                                height: 20,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                        strokeWidth: 2),
-                                              )
-                                            : TextButton(
-                                                onPressed: () =>
-                                                    _sendInvitation(userId),
-                                                child: Text(
-                                                  localeProvider.translate(
-                                                      section, 'invite_button'),
-                                                  style: const TextStyle(
-                                                      fontSize: 14),
-                                                ),
-                                              ),
-                              );
-                            },
-                          )),
+                          );
+                        },
+                      ),
               ),
               const SizedBox(height: 16),
               Align(
@@ -338,7 +271,7 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
                 child: TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(
-                    localeProvider.translate(section, 'close'),
+                    locale.translate(section, 'close'),
                     style: const TextStyle(fontSize: 16),
                   ),
                 ),
