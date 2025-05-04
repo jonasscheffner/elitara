@@ -73,21 +73,13 @@
   "edit_event_screen": {
     "edit_event_title": "Edit Event",
     "update_event": "Update Event",
-    "cancel_event": "Cancel Event",
     "messages": {
       "fill_all_fields": "Please fill in all required fields",
       "event_updated": "Event updated successfully",
-      "event_canceled": "Event canceled successfully",
       "invalid_participant_limit": "Invalid participant limit",
       "invalid_waitlist_limit": "Invalid waitlist limit.",
       "participant_limit_error": "Limit is below current participants ({count})",
       "waitlist_limit_error": "Limit is below current waitlist ({count})"
-    },
-    "confirmation_dialog": {
-      "title": "Cancel Event",
-      "content": "Are you sure you want to cancel this event?",
-      "yes": "Yes",
-      "no": "No"
     }
   },
   "event_validation": {
@@ -109,7 +101,6 @@
     "edit_event": "Edit Event",
     "registered": "You have been registered for the event",
     "host": "Host",
-    "host_label": "host",
     "participants": "Participants",
     "access": "Access",
     "access_public": "Public",
@@ -130,6 +121,14 @@
       "host_label": "Host",
       "co_host_label": "Co-host",
       "search": "Search users..."
+    },
+    "cancel_event": "Cancel Event",
+    "event_canceled": "Event canceled successfully",
+    "cancel_confirmation_dialog": {
+      "title": "Cancel Event",
+      "content": "Are you sure you want to cancel this event?",
+      "yes": "Yes",
+      "no": "No"
     }
   },
   "settings": {

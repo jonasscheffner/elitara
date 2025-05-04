@@ -38,21 +38,14 @@ class EventDetailScreen extends StatelessWidget {
       body: StreamBuilder<DocumentSnapshot>(
         stream: _eventService.getEventStream(eventId),
         builder: (context, snap) {
-          if (!snap.hasData) {
+          if (!snap.hasData)
             return const Center(child: CircularProgressIndicator());
-          }
-
           final doc = snap.data!;
-          final ev = Event.fromMap(doc.id, doc.data() as Map<String, dynamic>);
-
+          final ev = Event.fromMap(doc.id, doc.data()! as Map<String, dynamic>);
           final hostId = ev.host;
-          final participants = List<String>.from(ev.participants);
-          participants.remove(hostId);
-          participants.insert(0, hostId);
-
           final dateTime = ev.date;
           final int? participantLimit = ev.participantLimit;
-          final int currentCount = participants.length;
+          final int currentCount = ev.participants.length;
 
           final accessEnum = ev.accessType;
           final String accessText = accessEnum == AccessType.inviteOnly
@@ -63,121 +56,93 @@ class EventDetailScreen extends StatelessWidget {
           final int currentWaitlistCount = ev.waitlist.length;
           final int? waitlistLimit = ev.waitlistLimit;
 
-          bool isJoined = false;
-          bool isOnWaitlist = false;
-          if (currentUser != null) {
-            isJoined = participants.contains(currentUser.uid);
-            isOnWaitlist = ev.waitlist.any((e) => e['uid'] == currentUser.uid);
-          }
+          final bool isJoined =
+              currentUser != null && ev.participants.contains(currentUser.uid);
+          final bool isOnWaitlist = currentUser != null &&
+              ev.waitlist.any((e) => e['uid'] == currentUser.uid);
 
           return SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(ev.title,
-                      style: const TextStyle(
-                          fontSize: 28, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Text("${locale.translate(section, 'date')}: ",
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold)),
-                            Text(
+                  Card(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    elevation: 4,
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(ev.title,
+                              style: const TextStyle(
+                                  fontSize: 28, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 16),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.calendar_today),
+                            title: Text(
                                 LocalizedDateTimeFormatter.getFormattedDate(
-                                    context, dateTime),
-                                style: const TextStyle(fontSize: 16)),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Text("${locale.translate(section, 'time')}: ",
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold)),
-                            Text(
+                                    context, dateTime)),
+                          ),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.access_time),
+                            title: Text(
                                 LocalizedDateTimeFormatter.getFormattedTime(
-                                    context, dateTime),
-                                style: const TextStyle(fontSize: 16)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text("${locale.translate(section, 'location')}: ",
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text(ev.location, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(height: 16),
-                  Text("${locale.translate(section, 'description')}: ",
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text(ev.description,
-                      style: const TextStyle(fontSize: 16, height: 1.4)),
-                  const SizedBox(height: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("${locale.translate(section, 'access')}: ",
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text(accessText, style: const TextStyle(fontSize: 16)),
-                      const SizedBox(height: 16),
-                      Text(
-                        participantLimit != null
-                            ? "${locale.translate(section, 'participants')} ($currentCount / $participantLimit):"
-                            : "${locale.translate(section, 'participants')} ($currentCount):",
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: Wrap(
-                          spacing: 4,
-                          runSpacing: 4,
-                          children: [
-                            for (var uid in participants.take(6))
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  UserDisplayName(
-                                    uid: uid,
-                                    style: TextStyle(
+                                    context, dateTime)),
+                          ),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.place),
+                            title: Text(ev.location),
+                          ),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(accessEnum == AccessType.inviteOnly
+                                ? Icons.lock
+                                : Icons.public),
+                            title: Text(accessText),
+                          ),
+                          const Divider(height: 32),
+                          Text(locale.translate(section, 'description'),
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text(ev.description,
+                              style:
+                                  const TextStyle(fontSize: 16, height: 1.4)),
+                          const Divider(height: 32),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.group),
+                            title: Text(
+                              participantLimit != null
+                                  ? '$currentCount / $participantLimit'
+                                  : '$currentCount',
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Text('${locale.translate(section, 'host')}: ',
+                                  style: const TextStyle(
                                       fontSize: 16,
-                                      fontWeight: uid == hostId
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                    ),
-                                  ),
-                                  if (uid == hostId)
-                                    Text(
-                                      " (${locale.translate(section, 'host_label')})",
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  if (uid != participants.take(6).last)
-                                    const Text(", "),
-                                ],
-                              ),
-                            if (participants.length > 6)
-                              const Text(
-                                '…',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                          ],
-                        ),
+                                      fontWeight: FontWeight.bold)),
+                              UserDisplayName(
+                                  uid: hostId,
+                                  style: const TextStyle(fontSize: 16)),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 32),
                   Center(
@@ -198,232 +163,308 @@ class EventDetailScreen extends StatelessWidget {
                                     membership == MembershipType.platinum));
                         final showEdit = isHost || isCoHost;
 
-                        if (showInvite || showEdit) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    showGeneralDialog(
-                                      context: context,
-                                      barrierDismissible: true,
-                                      barrierLabel: locale.translate(
-                                          section, 'participant_list'),
-                                      pageBuilder: (c, a1, a2) =>
-                                          ParticipantListDialog(
-                                        eventId: ev.id,
-                                        hostId: hostId,
-                                        initialParticipants: participants,
-                                        coHosts: ev.coHosts,
-                                      ),
-                                    );
-                                  },
-                                  icon: const Icon(Icons.people_alt_outlined),
-                                  label: Text(locale.translate(
-                                      section, 'participant_list')),
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 14),
-                                    backgroundColor: Colors.blueGrey,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12)),
-                                  ),
-                                ),
-                                if (showInvite) const SizedBox(height: 12),
-                                if (showInvite)
-                                  ElevatedButton.icon(
-                                    onPressed: () async {
-                                      final cp = [...ev.participants];
-                                      showGeneralDialog(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        barrierLabel: "Invite Users",
-                                        pageBuilder: (c, a1, a2) => Stack(
-                                          children: [
-                                            BackdropFilter(
-                                              filter: ImageFilter.blur(
-                                                  sigmaX: 5, sigmaY: 5),
-                                              child: Container(
-                                                  color: const Color(0x80000000)
-                                                      .withOpacity(0)),
-                                            ),
-                                            Center(
-                                              child: InviteUsersDialog(
-                                                eventId: ev.id,
-                                                eventTitle: ev.title,
-                                                currentParticipants: cp,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.group_add),
-                                    label: Text(locale.translate(
-                                        section, 'invite_users')),
-                                    style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 14),
-                                        backgroundColor: Colors.teal,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12))),
-                                  ),
-                                if (showEdit) const SizedBox(height: 12),
-                                if (showEdit)
-                                  ElevatedButton.icon(
-                                    onPressed: () {
-                                      Navigator.pushNamed(context, '/editEvent',
-                                          arguments: ev.id);
-                                    },
-                                    icon: const Icon(Icons.edit),
-                                    label: Text(locale.translate(
-                                        section, 'edit_event')),
-                                    style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 14),
-                                        backgroundColor: Colors.blueAccent,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12))),
-                                  ),
-                              ],
-                            ),
-                          );
-                        }
+                        final buttons = <Widget>[];
 
-                        if (isJoined) {
-                          return ElevatedButton(
-                            onPressed: () async {
-                              await _eventService.leaveEvent(
-                                  ev.id, currentUser!.uid);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content:
-                                      Text(locale.translate(section, 'leave')),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 40),
-                                textStyle: const TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12))),
-                            child: Text(locale.translate(section, 'leave')),
-                          );
-                        }
-
-                        if (accessEnum == AccessType.public &&
-                            (participantLimit == null ||
-                                currentCount < participantLimit)) {
-                          return ElevatedButton(
-                            onPressed: () async {
-                              await _eventService.registerForEvent(
-                                  ev.id, currentUser!.uid);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      locale.translate(section, 'registered')),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 40),
-                                textStyle: const TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12))),
-                            child: Text(locale.translate(section, 'join')),
-                          );
-                        }
-
-                        if (participantLimit != null &&
-                            currentCount >= participantLimit &&
-                            waitlistEnabled) {
-                          if (isOnWaitlist) {
-                            return ElevatedButton(
-                              onPressed: () async {
-                                final entry = {
-                                  'uid': currentUser!.uid,
-                                  'name': currentUser.displayName ?? 'Unknown'
-                                };
-                                await _eventService.leaveWaitlist(ev.id, entry);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(locale.translate(
-                                        section, 'leave_waitlist')),
+                        buttons.add(ElevatedButton.icon(
+                          onPressed: () {
+                            showGeneralDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              barrierLabel:
+                                  locale.translate(section, 'participant_list'),
+                              pageBuilder: (c, a1, a2) => Stack(
+                                children: [
+                                  BackdropFilter(
+                                    filter:
+                                        ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                                    child: Container(
+                                        color: const Color(0x80000000)
+                                            .withOpacity(0)),
                                   ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 40),
-                                  textStyle: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12))),
-                              child: Text(
-                                  locale.translate(section, 'leave_waitlist')),
+                                  Center(
+                                    child: ParticipantListDialog(
+                                      eventId: ev.id,
+                                      hostId: hostId,
+                                      initialParticipants: ev.participants,
+                                      coHosts: ev.coHosts,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             );
-                          } else {
+                          },
+                          icon: const Icon(Icons.people_outline),
+                          label: Text(
+                              locale.translate(section, 'participant_list')),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            backgroundColor: Colors.teal,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ));
+                        buttons.add(const SizedBox(height: 12));
+
+                        if (showInvite) {
+                          buttons.add(ElevatedButton.icon(
+                            onPressed: () async {
+                              final cp = [...ev.participants];
+                              showGeneralDialog(
+                                context: context,
+                                barrierDismissible: true,
+                                barrierLabel:
+                                    locale.translate(section, 'invite_users'),
+                                pageBuilder: (c, a1, a2) => Stack(
+                                  children: [
+                                    BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                          sigmaX: 5, sigmaY: 5),
+                                      child: Container(
+                                          color: const Color(0x80000000)
+                                              .withOpacity(0)),
+                                    ),
+                                    Center(
+                                      child: InviteUsersDialog(
+                                        eventId: ev.id,
+                                        eventTitle: ev.title,
+                                        currentParticipants: cp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.group_add),
+                            label:
+                                Text(locale.translate(section, 'invite_users')),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              backgroundColor: Colors.blueGrey,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ));
+                          buttons.add(const SizedBox(height: 12));
+                        }
+                        if (showEdit) {
+                          buttons.add(ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/editEvent',
+                                  arguments: ev.id);
+                            },
+                            icon: const Icon(Icons.edit),
+                            label:
+                                Text(locale.translate(section, 'edit_event')),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              backgroundColor: Colors.blueAccent,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ));
+                          buttons.add(const SizedBox(height: 12));
+                        }
+                        if (isHost) {
+                          buttons.add(ElevatedButton.icon(
+                            onPressed: () async {
+                              final confirm = await showGeneralDialog<bool>(
+                                context: context,
+                                barrierDismissible: true,
+                                barrierLabel: locale.translate(section,
+                                    'cancel_confirmation_dialog.title'),
+                                pageBuilder: (c, a1, a2) => Stack(
+                                  children: [
+                                    BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                          sigmaX: 5, sigmaY: 5),
+                                      child: Container(
+                                          color: const Color(0x80000000)
+                                              .withOpacity(0)),
+                                    ),
+                                    Center(
+                                      child: AlertDialog(
+                                        title: Text(locale.translate(section,
+                                            'cancel_confirmation_dialog.title')),
+                                        content: Text(locale.translate(section,
+                                            'cancel_confirmation_dialog.content')),
+                                        actions: [
+                                          TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(c, false),
+                                              child: Text(locale.translate(
+                                                  section,
+                                                  'cancel_confirmation_dialog.no'))),
+                                          TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(c, true),
+                                              child: Text(locale.translate(
+                                                  section,
+                                                  'cancel_confirmation_dialog.yes'))),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                await _eventService.cancelEvent(eventId);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(locale.translate(
+                                            section, 'event_canceled'))));
+                                Navigator.pop(context);
+                              }
+                            },
+                            icon: const Icon(Icons.cancel),
+                            label:
+                                Text(locale.translate(section, 'cancel_event')),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              backgroundColor: Colors.red,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ));
+                          buttons.add(const SizedBox(height: 12));
+                        }
+                        if (!isJoined) {
+                          if (accessEnum == AccessType.public &&
+                              (participantLimit == null ||
+                                  currentCount < participantLimit)) {
+                            buttons.add(ElevatedButton.icon(
+                              onPressed: () async {
+                                await _eventService.registerForEvent(
+                                    ev.id, currentUser!.uid);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(locale.translate(
+                                            section, 'registered'))));
+                              },
+                              icon: const Icon(Icons.event_available),
+                              label: Text(locale.translate(section, 'join')),
+                              style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                textStyle: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ));
+                            buttons.add(const SizedBox(height: 12));
+                          } else if (participantLimit != null &&
+                              currentCount >= participantLimit &&
+                              waitlistEnabled) {
                             if (waitlistLimit != null &&
                                 currentWaitlistCount >= waitlistLimit) {
-                              return Text(
+                              buttons.add(Text(
                                 locale.translate(section, 'waitlist_full'),
                                 style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.red),
-                              );
-                            }
-                            return ElevatedButton(
-                              onPressed: () async {
-                                final entry = {
-                                  'uid': currentUser!.uid,
-                                  'name': currentUser.displayName ?? 'Unknown'
-                                };
-                                await _eventService.joinWaitlist(ev.id, entry);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(locale.translate(
-                                        section, 'waitlist_registered')),
-                                  ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
+                              ));
+                              buttons.add(const SizedBox(height: 12));
+                            } else if (isOnWaitlist) {
+                              buttons.add(ElevatedButton(
+                                onPressed: () async {
+                                  final entry = {
+                                    'uid': currentUser.uid,
+                                    'name': currentUser.displayName ?? 'Unknown'
+                                  };
+                                  await _eventService.leaveWaitlist(
+                                      ev.id, entry);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(locale.translate(
+                                              section, 'leave_waitlist'))));
+                                },
+                                style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 40),
                                   textStyle: const TextStyle(
-                                      fontSize: 20,
                                       fontWeight: FontWeight.bold),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12))),
-                              child: Text(
-                                  locale.translate(section, 'join_waitlist')),
-                            );
+                                      borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: Text(locale.translate(
+                                    section, 'leave_waitlist')),
+                              ));
+                              buttons.add(const SizedBox(height: 12));
+                            } else {
+                              buttons.add(ElevatedButton(
+                                onPressed: () async {
+                                  final entry = {
+                                    'uid': currentUser!.uid,
+                                    'name': currentUser.displayName ?? 'Unknown'
+                                  };
+                                  await _eventService.joinWaitlist(
+                                      ev.id, entry);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(locale.translate(
+                                              section,
+                                              'waitlist_registered'))));
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 40),
+                                  textStyle: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: Text(
+                                    locale.translate(section, 'join_waitlist')),
+                              ));
+                              buttons.add(const SizedBox(height: 12));
+                            }
                           }
                         }
-
-                        if (participantLimit != null &&
-                            currentCount >= participantLimit) {
-                          return Text(
+                        if (!isJoined &&
+                            participantLimit != null &&
+                            currentCount >= participantLimit &&
+                            !waitlistEnabled) {
+                          buttons.add(Text(
                             locale.translate(section, 'event_full'),
                             style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.red),
-                          );
+                          ));
                         }
 
-                        return const SizedBox.shrink();
+                        if (isJoined && !isHost) {
+                          buttons.add(ElevatedButton.icon(
+                            onPressed: () async {
+                              await _eventService.leaveEvent(
+                                  ev.id, currentUser!.uid);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        locale.translate(section, 'leave'))),
+                              );
+                            },
+                            icon: const Icon(Icons.exit_to_app),
+                            label: Text(locale.translate(section, 'leave')),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              textStyle: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ));
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: buttons,
+                          ),
+                        );
                       },
                     ),
                   ),

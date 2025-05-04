@@ -227,33 +227,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
     Navigator.pop(context);
   }
 
-  Future<void> _confirmCancel() async {
-    final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(locale.translate(section, 'confirmation_dialog.title')),
-        content: Text(locale.translate(section, 'confirmation_dialog.content')),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(locale.translate(section, 'confirmation_dialog.no'))),
-          TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child:
-                  Text(locale.translate(section, 'confirmation_dialog.yes'))),
-        ],
-      ),
-    );
-    if (confirm == true) {
-      await _eventService.cancelEvent(widget.eventId);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(locale.translate(section, 'messages.event_canceled')),
-      ));
-      Navigator.pop(context);
-    }
-  }
-
   @override
   void dispose() {
     _titleController.dispose();
@@ -334,21 +307,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 ),
                 child: Text(
                   locale.translate(section, 'update_event'),
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _confirmCancel,
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                child: Text(
-                  locale.translate(section, 'cancel_event'),
                   style: const TextStyle(fontSize: 18),
                 ),
               ),

@@ -73,21 +73,13 @@
   "edit_event_screen": {
     "edit_event_title": "Event bearbeiten",
     "update_event": "Event aktualisieren",
-    "cancel_event": "Event absagen",
     "messages": {
       "fill_all_fields": "Bitte füllen Sie alle Pflichtfelder aus",
       "event_updated": "Event erfolgreich aktualisiert",
-      "event_canceled": "Event wurde abgesagt",
       "invalid_participant_limit": "Ungültiges Teilnehmerlimit",
       "invalid_waitlist_limit": "Ungültiges Wartelistenlimit.",
       "participant_limit_error": "Limit liegt unter den aktuellen Teilnehmern ({count})",
       "waitlist_limit_error": "Limit liegt unter der aktuellen Warteliste ({count})"
-    },
-    "confirmation_dialog": {
-      "title": "Bestätigen",
-      "content": "Möchten Sie das Event wirklich absagen?",
-      "yes": "Ja",
-      "no": "Nein"
     }
   },
   "event_validation": {
@@ -109,7 +101,6 @@
     "edit_event": "Event bearbeiten",
     "registered": "Du hast dich für das Event registriert",
     "host": "Veranstalter",
-    "host_label": "Veranstalter",
     "participants": "Teilnehmer",
     "access": "Zugriff",
     "access_public": "Öffentlich",
@@ -130,6 +121,14 @@
       "host_label": "Gastgeber",
       "co_host_label": "Co-Host",
       "search": "Nutzer suchen..."
+    },
+    "cancel_event": "Event absagen",
+    "event_canceled": "Event wurde abgesagt",
+    "cancel_confirmation_dialog": {
+      "title": "Bestätigen",
+      "content": "Möchten Sie das Event wirklich absagen?",
+      "yes": "Ja",
+      "no": "Nein"
     }
   },
   "settings": {
