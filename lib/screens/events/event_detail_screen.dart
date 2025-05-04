@@ -5,6 +5,7 @@ import 'package:elitara/models/event.dart';
 import 'package:elitara/models/access_type.dart';
 import 'package:elitara/models/membership_type.dart';
 import 'package:elitara/screens/events/widgets/invite_users_dialog.dart';
+import 'package:elitara/screens/events/widgets/participant_list_dialog.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
 import 'package:elitara/services/membership_service.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
@@ -142,29 +143,38 @@ class EventDetailScreen extends StatelessWidget {
                         child: Wrap(
                           spacing: 4,
                           runSpacing: 4,
-                          children: participants.map((uid) {
-                            final isHost = uid == hostId;
-                            return Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                UserDisplayName(
+                          children: [
+                            for (var uid in participants.take(6))
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  UserDisplayName(
                                     uid: uid,
                                     style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: isHost
-                                            ? FontWeight.bold
-                                            : FontWeight.normal)),
-                                if (isHost)
-                                  Text(
-                                    " (${locale.translate(section, 'host_label')})",
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
+                                      fontSize: 16,
+                                      fontWeight: uid == hostId
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
                                   ),
-                                if (uid != participants.last) const Text(", "),
-                              ],
-                            );
-                          }).toList(),
+                                  if (uid == hostId)
+                                    Text(
+                                      " (${locale.translate(section, 'host_label')})",
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  if (uid != participants.take(6).last)
+                                    const Text(", "),
+                                ],
+                              ),
+                            if (participants.length > 6)
+                              const Text(
+                                '…',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                          ],
                         ),
                       ),
                     ],
@@ -195,6 +205,35 @@ class EventDetailScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    showGeneralDialog(
+                                      context: context,
+                                      barrierDismissible: true,
+                                      barrierLabel: locale.translate(
+                                          section, 'participant_list'),
+                                      pageBuilder: (c, a1, a2) =>
+                                          ParticipantListDialog(
+                                        eventId: ev.id,
+                                        hostId: hostId,
+                                        initialParticipants: participants,
+                                        coHosts: ev.coHosts,
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.people_alt_outlined),
+                                  label: Text(locale.translate(
+                                      section, 'participant_list')),
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    backgroundColor: Colors.blueGrey,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                ),
+                                if (showInvite) const SizedBox(height: 12),
                                 if (showInvite)
                                   ElevatedButton.icon(
                                     onPressed: () async {
@@ -229,7 +268,7 @@ class EventDetailScreen extends StatelessWidget {
                                     style: ElevatedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 14),
-                                        backgroundColor: Colors.blueGrey,
+                                        backgroundColor: Colors.teal,
                                         shape: RoundedRectangleBorder(
                                             borderRadius:
                                                 BorderRadius.circular(12))),

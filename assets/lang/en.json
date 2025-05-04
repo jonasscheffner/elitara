@@ -119,7 +119,18 @@
     "waitlist_registered": "You have been added to the waitlist",
     "event_full": "Event is full",
     "waitlist_full": "Waitlist is full",
-    "invite_users": "Invite Participants"
+    "invite_users": "Invite Participants",
+    "participant_list": "Participant List",
+    "participant_list_dialog": {
+      "search_label": "Search participants",
+      "make_cohost": "Make co-host",
+      "remove_cohost": "Remove co-host",
+      "remove_participant": "Remove participant",
+      "close_button": "Close",
+      "host_label": "Host",
+      "co_host_label": "Co-host",
+      "search": "Search users..."
+    }
   },
   "settings": {
     "menu_screen": {
