@@ -164,7 +164,6 @@ class _ParticipantListDialogState extends State<ParticipantListDialog> {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
