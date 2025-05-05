@@ -28,14 +28,10 @@
     "title": "Event Feed",
     "no_events": "Keine Events verfügbar",
     "create_event": "Event erstellen",
-    "hosted_by": "Veranstalter",
     "search": "Events durchsuchen...",
-    "access": "Zugriff",
     "access_public": "Öffentlich",
     "access_invite_only": "Nur per Einladung",
-    "filter_own_events": "Nur meine Events anzeigen",
-    "waitlist": "Warteliste",
-    "open_waitlist": "Warteliste öffnen"
+    "filter_own_events": "Nur meine Events anzeigen"
   },
   "waitlist_dialog": {
     "title": "Warteliste - {title}",
@@ -45,7 +41,7 @@
   "event_form": {
     "title": "Titel",
     "description": "Beschreibung",
-    "location": "Standort",
+    "location": "Ort",
     "participant_limit": "Teilnehmerlimit",
     "select_date": "Datum auswählen",
     "select_time": "Uhrzeit auswählen",
@@ -95,7 +91,7 @@
     "description": "Beschreibung",
     "date": "Datum",
     "time": "Uhrzeit",
-    "location": "Standort",
+    "location": "Ort",
     "join": "Event beitreten",
     "leave": "Event verlassen",
     "edit_event": "Event bearbeiten",
@@ -112,6 +108,7 @@
     "waitlist_full": "Warteliste ist voll",
     "invite_users": "Teilnehmer einladen",
     "participant_list": "Teilnehmerliste",
+    "waitlist": "Warteliste",
     "participant_list_dialog": {
       "search_label": "Teilnehmer suchen",
       "make_cohost": "Zum Co-Host machen",
@@ -121,6 +118,15 @@
       "host_label": "Gastgeber",
       "co_host_label": "Co-Host",
       "search": "Nutzer suchen..."
+    },
+    "read_more": "Mehr anzeigen",
+    "description_dialog": {
+      "title": "Beschreibung",
+      "close": "Schließen"
+    },
+    "location_dialog": {
+      "title": "Ort",
+      "close": "Schließen"
     },
     "cancel_event": "Event absagen",
     "event_canceled": "Event wurde abgesagt",

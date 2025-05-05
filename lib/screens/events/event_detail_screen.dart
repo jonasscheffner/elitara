@@ -7,19 +7,54 @@ import 'package:elitara/models/membership_type.dart';
 import 'package:elitara/screens/events/widgets/invite_users_dialog.dart';
 import 'package:elitara/screens/events/widgets/participant_list_dialog.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
+import 'package:elitara/screens/events/widgets/waitlist_dialog.dart';
 import 'package:elitara/services/membership_service.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:elitara/services/event_service.dart';
 
-class EventDetailScreen extends StatelessWidget {
+class EventDetailScreen extends StatefulWidget {
   final String eventId;
+
+  const EventDetailScreen({super.key, required this.eventId});
+
+  @override
+  State<EventDetailScreen> createState() => _EventDetailScreenState();
+}
+
+class _EventDetailScreenState extends State<EventDetailScreen> {
   final String section = 'event_detail_screen';
   final EventService _eventService = EventService();
+  int _currentWaitlistCount = 0;
 
-  EventDetailScreen({super.key, required this.eventId});
+  Future<void> _updateWaitlistForEvent(String eventId) async {
+    final doc = await _eventService.getEvent(eventId);
+    final fresh = Event.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+    setState(() {
+      _currentWaitlistCount = fresh.waitlist.length;
+    });
+  }
+
+  String _truncateTextToFit(String text, TextStyle style, String trailingText,
+      double maxWidth, int maxLines) {
+    final tp = TextPainter(
+      text: TextSpan(text: text + trailingText, style: style),
+      maxLines: maxLines,
+      textDirection: TextDirection.ltr,
+    );
+
+    String truncated = text;
+    while (truncated.isNotEmpty) {
+      tp.text = TextSpan(text: truncated + '...' + trailingText, style: style);
+      tp.layout(maxWidth: maxWidth);
+      if (!tp.didExceedMaxLines) break;
+      truncated = truncated.substring(0, truncated.length - 1);
+    }
+    return '$truncated...';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +71,7 @@ class EventDetailScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: _eventService.getEventStream(eventId),
+        stream: _eventService.getEventStream(widget.eventId),
         builder: (context, snap) {
           if (!snap.hasData)
             return const Center(child: CircularProgressIndicator());
@@ -47,13 +82,38 @@ class EventDetailScreen extends StatelessWidget {
           final int? participantLimit = ev.participantLimit;
           final int currentCount = ev.participants.length;
 
+          final availableWidth = MediaQuery.of(context).size.width - 32 - 48;
+          final locationTextSpan = TextSpan(
+            text: ev.location,
+            style: const TextStyle(fontSize: 16, height: 1.4),
+          );
+          final locationTp = TextPainter(
+            text: locationTextSpan,
+            maxLines: 2,
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: availableWidth);
+          final bool isLongLocation = locationTp.didExceedMaxLines;
+
+          final textSpan = TextSpan(
+            text: ev.description,
+            style: const TextStyle(fontSize: 16, height: 1.4),
+          );
+          final tp = TextPainter(
+            text: textSpan,
+            maxLines: 3,
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: availableWidth);
+          final bool isLongDescription = tp.didExceedMaxLines;
+
           final accessEnum = ev.accessType;
           final String accessText = accessEnum == AccessType.inviteOnly
               ? locale.translate(section, 'access_invite_only')
               : locale.translate(section, 'access_public');
 
           final bool waitlistEnabled = ev.waitlistEnabled;
-          final int currentWaitlistCount = ev.waitlist.length;
+          final int currentWaitlistCount = _currentWaitlistCount > 0
+              ? _currentWaitlistCount
+              : ev.waitlist.length;
           final int? waitlistLimit = ev.waitlistLimit;
 
           final bool isJoined =
@@ -82,62 +142,354 @@ class EventDetailScreen extends StatelessWidget {
                               style: const TextStyle(
                                   fontSize: 28, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 16),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.calendar_today),
-                            title: Text(
-                                LocalizedDateTimeFormatter.getFormattedDate(
-                                    context, dateTime)),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.calendar_today, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(LocalizedDateTimeFormatter
+                                        .getFormattedDate(context, dateTime)),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.access_time, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(LocalizedDateTimeFormatter
+                                        .getFormattedTime(context, dateTime)),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.access_time),
-                            title: Text(
-                                LocalizedDateTimeFormatter.getFormattedTime(
-                                    context, dateTime)),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                        accessEnum == AccessType.inviteOnly
+                                            ? Icons.lock
+                                            : Icons.public,
+                                        size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(accessText),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.person, size: 20),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: UserDisplayName(
+                                          uid: hostId,
+                                          style: const TextStyle(fontSize: 16)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.place),
-                            title: Text(ev.location),
-                          ),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: Icon(accessEnum == AccessType.inviteOnly
-                                ? Icons.lock
-                                : Icons.public),
-                            title: Text(accessText),
+                          const SizedBox(height: 12),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.place, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final text = ev.location;
+                                    const textStyle = TextStyle(
+                                      fontSize: 16,
+                                      height: 1.4,
+                                    );
+                                    final readMoreText =
+                                        ' ${locale.translate(section, 'read_more')}';
+
+                                    final span =
+                                        TextSpan(text: text, style: textStyle);
+                                    final tp = TextPainter(
+                                      text: span,
+                                      maxLines: 1,
+                                      textDirection: TextDirection.ltr,
+                                    )..layout(maxWidth: constraints.maxWidth);
+
+                                    if (!tp.didExceedMaxLines) {
+                                      return Text(text, style: textStyle);
+                                    }
+
+                                    final truncatedText = _truncateTextToFit(
+                                        text,
+                                        textStyle,
+                                        readMoreText,
+                                        constraints.maxWidth,
+                                        2);
+
+                                    return RichText(
+                                      text: TextSpan(
+                                        children: [
+                                          TextSpan(
+                                              text: truncatedText,
+                                              style: textStyle),
+                                          TextSpan(
+                                            text: readMoreText,
+                                            style: textStyle.copyWith(
+                                                color: Colors.blue),
+                                            recognizer: TapGestureRecognizer()
+                                              ..onTap = () {
+                                                showGeneralDialog(
+                                                  context: context,
+                                                  barrierDismissible: true,
+                                                  barrierLabel: locale.translate(
+                                                      section,
+                                                      'location_dialog.title'),
+                                                  pageBuilder: (c, a1, a2) =>
+                                                      Stack(
+                                                    children: [
+                                                      BackdropFilter(
+                                                        filter:
+                                                            ImageFilter.blur(
+                                                                sigmaX: 5,
+                                                                sigmaY: 5),
+                                                        child: Container(
+                                                            color: const Color(
+                                                                    0x80000000)
+                                                                .withOpacity(
+                                                                    0)),
+                                                      ),
+                                                      Center(
+                                                        child: Dialog(
+                                                          shape: RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          16)),
+                                                          child: SizedBox(
+                                                            width: 400,
+                                                            height: 300,
+                                                            child: Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .all(20),
+                                                              child: Column(
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .stretch,
+                                                                children: [
+                                                                  Expanded(
+                                                                      child: SingleChildScrollView(
+                                                                          child: Text(
+                                                                              ev.location,
+                                                                              style: textStyle))),
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          16),
+                                                                  Align(
+                                                                    alignment:
+                                                                        Alignment
+                                                                            .centerRight,
+                                                                    child:
+                                                                        TextButton(
+                                                                      onPressed:
+                                                                          () =>
+                                                                              Navigator.of(context).pop(),
+                                                                      child: Text(
+                                                                          locale.translate(
+                                                                              section,
+                                                                              'location_dialog.close'),
+                                                                          style:
+                                                                              const TextStyle(fontSize: 16)),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                           const Divider(height: 32),
                           Text(locale.translate(section, 'description'),
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
-                          Text(ev.description,
-                              style:
-                                  const TextStyle(fontSize: 16, height: 1.4)),
-                          const Divider(height: 32),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.group),
-                            title: Text(
-                              participantLimit != null
-                                  ? '$currentCount / $participantLimit'
-                                  : '$currentCount',
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w500),
-                            ),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final text = ev.description;
+                              const textStyle =
+                                  TextStyle(fontSize: 16, height: 1.4);
+                              final readMoreText =
+                                  ' ${locale.translate(section, 'read_more')}';
+
+                              final span =
+                                  TextSpan(text: text, style: textStyle);
+                              final tp = TextPainter(
+                                text: span,
+                                maxLines: 3,
+                                textDirection: TextDirection.ltr,
+                              )..layout(maxWidth: constraints.maxWidth);
+
+                              if (!tp.didExceedMaxLines) {
+                                return Text(text, style: textStyle);
+                              }
+
+                              final truncatedText = _truncateTextToFit(
+                                  text,
+                                  textStyle,
+                                  readMoreText,
+                                  constraints.maxWidth,
+                                  3);
+
+                              return RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                        text: truncatedText, style: textStyle),
+                                    TextSpan(
+                                      text: readMoreText,
+                                      style: textStyle.copyWith(
+                                          color: Colors.blue),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () {
+                                          showGeneralDialog(
+                                            context: context,
+                                            barrierDismissible: true,
+                                            barrierLabel: locale.translate(
+                                                section,
+                                                'description_dialog.title'),
+                                            pageBuilder: (c, a1, a2) => Stack(
+                                              children: [
+                                                BackdropFilter(
+                                                  filter: ImageFilter.blur(
+                                                      sigmaX: 5, sigmaY: 5),
+                                                  child: Container(
+                                                      color: const Color(
+                                                              0x80000000)
+                                                          .withOpacity(0)),
+                                                ),
+                                                Center(
+                                                  child: Dialog(
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        16)),
+                                                    child: SizedBox(
+                                                      width: 400,
+                                                      height: 500,
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(20),
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .stretch,
+                                                          children: [
+                                                            Expanded(
+                                                              child:
+                                                                  SingleChildScrollView(
+                                                                child: Text(
+                                                                    ev
+                                                                        .description,
+                                                                    style:
+                                                                        textStyle),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                height: 16),
+                                                            Align(
+                                                              alignment: Alignment
+                                                                  .centerRight,
+                                                              child: TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop(),
+                                                                child: Text(
+                                                                    locale.translate(
+                                                                        section,
+                                                                        'description_dialog.close'),
+                                                                    style: const TextStyle(
+                                                                        fontSize:
+                                                                            16)),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
-                          const SizedBox(height: 8),
+                          const Divider(height: 32),
                           Row(
                             children: [
-                              Text('${locale.translate(section, 'host')}: ',
-                                  style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold)),
-                              UserDisplayName(
-                                  uid: hostId,
-                                  style: const TextStyle(fontSize: 16)),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.group, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      participantLimit != null
+                                          ? '$currentCount / $participantLimit'
+                                          : '$currentCount',
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: waitlistEnabled
+                                    ? Row(
+                                        children: [
+                                          const Icon(Icons.hourglass_bottom,
+                                              size: 20),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            waitlistLimit != null
+                                                ? '$currentWaitlistCount / $waitlistLimit'
+                                                : '$currentWaitlistCount',
+                                            style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                        ],
+                                      )
+                                    : Container(),
+                              ),
                             ],
                           ),
                         ],
@@ -204,6 +556,59 @@ class EventDetailScreen extends StatelessWidget {
                           ),
                         ));
                         buttons.add(const SizedBox(height: 12));
+
+                        if (waitlistEnabled && isHost) {
+                          buttons.add(ElevatedButton.icon(
+                            onPressed: () async {
+                              final currentParticipants =
+                                  ev.participants.length;
+                              final entries = ev.waitlist;
+                              final result = await showDialog(
+                                context: context,
+                                barrierColor: Colors.transparent,
+                                builder: (_) {
+                                  return Stack(
+                                    children: [
+                                      BackdropFilter(
+                                        filter: ImageFilter.blur(
+                                            sigmaX: 5, sigmaY: 5),
+                                        child: Container(
+                                            color: const Color(0x80000000)
+                                                .withOpacity(0)),
+                                      ),
+                                      WaitlistDialog(
+                                        eventId: ev.id,
+                                        eventTitle: ev.title,
+                                        waitlistEntries: entries,
+                                        participantLimit: ev.participantLimit,
+                                        currentParticipants:
+                                            currentParticipants,
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                              if (result == true) {
+                                await _updateWaitlistForEvent(ev.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(locale.translate(
+                                        section, 'waitlist_updated')),
+                                  ),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.hourglass_bottom),
+                            label: Text(locale.translate(section, 'waitlist')),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              backgroundColor: Colors.orangeAccent,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ));
+                          buttons.add(const SizedBox(height: 12));
+                        }
 
                         if (showInvite) {
                           buttons.add(ElevatedButton.icon(
@@ -307,7 +712,7 @@ class EventDetailScreen extends StatelessWidget {
                                 ),
                               );
                               if (confirm == true) {
-                                await _eventService.cancelEvent(eventId);
+                                await _eventService.cancelEvent(widget.eventId);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                         content: Text(locale.translate(
@@ -374,6 +779,7 @@ class EventDetailScreen extends StatelessWidget {
                                   };
                                   await _eventService.leaveWaitlist(
                                       ev.id, entry);
+                                  await _updateWaitlistForEvent(ev.id);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                           content: Text(locale.translate(
@@ -400,6 +806,7 @@ class EventDetailScreen extends StatelessWidget {
                                   };
                                   await _eventService.joinWaitlist(
                                       ev.id, entry);
+                                  await _updateWaitlistForEvent(ev.id);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                           content: Text(locale.translate(

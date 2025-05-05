@@ -140,14 +140,6 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
     }
   }
 
-  Future<void> _updateWaitlistForEvent(String eventId) async {
-    final doc = await _eventService.getEvent(eventId);
-    final fresh = Event.fromMap(doc.id, doc.data() as Map<String, dynamic>);
-    setState(() {
-      _waitlistCounts[eventId] = fresh.waitlist.length;
-    });
-  }
-
   List<Event> get _filteredEvents {
     if (_searchQuery.isEmpty) return _events;
     return _events.where((ev) {
@@ -254,94 +246,76 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(LocalizedDateTimeFormatter
-                                  .getFormattedDateTime(context, dateTime)),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 12),
                               Row(
                                 children: [
-                                  Text(
-                                    "${locale.translate(section, 'hosted_by')}: ",
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                  UserDisplayName(
-                                    uid: ev.host,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Text(
-                                    "${locale.translate(section, 'access')}: ",
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                  Text(
-                                    accessText,
-                                    style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                              if (ev.waitlistEnabled)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.hourglass_top),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        waitlistLimit != null
-                                            ? "${_waitlistCounts[ev.id] ?? 0} / $waitlistLimit"
-                                            : "${_waitlistCounts[ev.id] ?? 0}",
-                                        style: const TextStyle(fontSize: 14),
-                                      ),
-                                      if (_currentUserId == ev.host &&
-                                          (_waitlistCounts[ev.id] ?? 0) > 0)
-                                        TextButton(
-                                          child: Text(locale.translate(
-                                              section, 'open_waitlist')),
-                                          onPressed: () async {
-                                            final currentParticipants =
-                                                ev.participants.length;
-                                            final entries = ev.waitlist;
-                                            final result = await showDialog(
-                                              context: ctx,
-                                              barrierColor: Colors.transparent,
-                                              builder: (_) {
-                                                return Stack(
-                                                  children: [
-                                                    BackdropFilter(
-                                                      filter: ImageFilter.blur(
-                                                          sigmaX: 5, sigmaY: 5),
-                                                      child: Container(
-                                                        color: const Color(
-                                                                0x80000000)
-                                                            .withOpacity(0),
-                                                      ),
-                                                    ),
-                                                    WaitlistDialog(
-                                                      eventId: ev.id,
-                                                      eventTitle: ev.title,
-                                                      waitlistEntries: entries,
-                                                      participantLimit:
-                                                          ev.participantLimit,
-                                                      currentParticipants:
-                                                          currentParticipants,
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                            if (result == true) {
-                                              _updateWaitlistForEvent(ev.id);
-                                            }
-                                          },
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.calendar_today,
+                                            size: 16),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          LocalizedDateTimeFormatter
+                                              .getFormattedDate(
+                                                  context, dateTime),
+                                          style: const TextStyle(fontSize: 14),
                                         ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.access_time, size: 16),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          LocalizedDateTimeFormatter
+                                              .getFormattedTime(
+                                                  context, dateTime),
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          accessEnum == AccessType.inviteOnly
+                                              ? Icons.lock
+                                              : Icons.public,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          accessText,
+                                          style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.person, size: 16),
+                                        const SizedBox(width: 6),
+                                        UserDisplayName(
+                                          uid: ev.host,
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                           trailing: const Icon(Icons.arrow_forward_ios),
