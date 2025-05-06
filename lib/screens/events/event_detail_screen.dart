@@ -644,7 +644,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 Text(locale.translate(section, 'invite_users')),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              backgroundColor: Colors.blueGrey,
+                              backgroundColor: Colors.deepPurpleAccent,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
                             ),
@@ -725,7 +725,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 Text(locale.translate(section, 'cancel_event')),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              backgroundColor: Colors.red,
+                              backgroundColor: Colors.redAccent,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
                             ),
