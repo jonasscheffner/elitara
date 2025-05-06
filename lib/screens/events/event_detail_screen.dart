@@ -83,27 +83,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           final int currentCount = ev.participants.length;
 
           final availableWidth = MediaQuery.of(context).size.width - 32 - 48;
-          final locationTextSpan = TextSpan(
-            text: ev.location,
-            style: const TextStyle(fontSize: 16, height: 1.4),
-          );
-          final locationTp = TextPainter(
-            text: locationTextSpan,
-            maxLines: 2,
-            textDirection: TextDirection.ltr,
-          )..layout(maxWidth: availableWidth);
-          final bool isLongLocation = locationTp.didExceedMaxLines;
 
           final textSpan = TextSpan(
             text: ev.description,
             style: const TextStyle(fontSize: 16, height: 1.4),
           );
-          final tp = TextPainter(
-            text: textSpan,
-            maxLines: 3,
-            textDirection: TextDirection.ltr,
-          )..layout(maxWidth: availableWidth);
-          final bool isLongDescription = tp.didExceedMaxLines;
 
           final accessEnum = ev.accessType;
           final String accessText = accessEnum == AccessType.inviteOnly
@@ -149,8 +133,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   children: [
                                     const Icon(Icons.calendar_today, size: 20),
                                     const SizedBox(width: 8),
-                                    Text(LocalizedDateTimeFormatter
-                                        .getFormattedDate(context, dateTime)),
+                                    Text(
+                                      LocalizedDateTimeFormatter
+                                          .getFormattedDate(context, dateTime),
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.4),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -159,8 +149,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   children: [
                                     const Icon(Icons.access_time, size: 20),
                                     const SizedBox(width: 8),
-                                    Text(LocalizedDateTimeFormatter
-                                        .getFormattedTime(context, dateTime)),
+                                    Text(
+                                      LocalizedDateTimeFormatter
+                                          .getFormattedTime(context, dateTime),
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.4),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -178,7 +174,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                             : Icons.public,
                                         size: 20),
                                     const SizedBox(width: 8),
-                                    Text(accessText),
+                                    Text(
+                                      accessText,
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.4),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -190,7 +192,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     Expanded(
                                       child: UserDisplayName(
                                           uid: hostId,
-                                          style: const TextStyle(fontSize: 16)),
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              height: 1.4)),
                                     ),
                                   ],
                                 ),
@@ -208,9 +213,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   builder: (context, constraints) {
                                     final text = ev.location;
                                     const textStyle = TextStyle(
-                                      fontSize: 16,
-                                      height: 1.4,
-                                    );
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        height: 1.4);
                                     final readMoreText =
                                         ' ${locale.translate(section, 'read_more')}';
 
@@ -336,8 +341,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           LayoutBuilder(
                             builder: (context, constraints) {
                               final text = ev.description;
-                              const textStyle =
-                                  TextStyle(fontSize: 16, height: 1.4);
+                              const textStyle = TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  height: 1.4);
                               final readMoreText =
                                   ' ${locale.translate(section, 'read_more')}';
 
