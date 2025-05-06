@@ -166,7 +166,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           Row(
                             children: [
                               Expanded(
@@ -197,7 +197,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
