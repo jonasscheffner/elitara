@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:elitara/screens/login/widgets/register_dialog.dart';
 import 'package:elitara/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -102,9 +104,27 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _openRegisterDialog() {
-    showDialog(
+    showGeneralDialog(
       context: context,
-      builder: (context) => RegisterDialog(),
+      barrierDismissible: true,
+      barrierLabel: 'Register',
+      barrierColor: Colors.black.withOpacity(0.3),
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Stack(
+          children: [
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(
+                color: Colors.black.withOpacity(0),
+              ),
+            ),
+            Center(
+              child: RegisterDialog(),
+            ),
+          ],
+        );
+      },
     );
   }
 

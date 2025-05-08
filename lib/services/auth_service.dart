@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<User?> signInWithEmailPassword(String email, String password) async {
     try {
@@ -21,7 +22,7 @@ class AuthService {
       String email, String username, String password) async {
     try {
       UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -37,5 +38,54 @@ class AuthService {
     } catch (e) {
       throw e;
     }
+  }
+
+  Future<bool> checkUsernameExists(String username) async {
+    final result = await _firestore
+        .collection('users')
+        .where('displayName', isEqualTo: username)
+        .limit(1)
+        .get();
+    print(result);
+    return result.docs.isNotEmpty;
+  }
+
+  Future<bool> checkEmailExists(String email) async {
+    final result = await _firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+    return result.docs.isNotEmpty;
+  }
+
+  String? validateEmail(String email) {
+    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+      return 'invalid_email';
+    }
+    return null;
+  }
+
+  String? validateUsername(String username) {
+    if (username.length < 3 || username.length > 20) {
+      return 'username_length';
+    }
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(username)) {
+      return 'username_chars';
+    }
+    return null;
+  }
+
+  String? validatePassword(String password) {
+    if (password.length < 6) {
+      return 'password_length';
+    }
+    if (!RegExp(r'[A-Z]').hasMatch(password)) {
+      return 'password_upper';
+    }
+    if (!RegExp(r'[!@#\$&*~.,;:_\-]').hasMatch(password)) {
+      return 'password_special';
+    }
+    return null;
   }
 }

@@ -94,7 +94,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              "${Localizations.of<LocaleProvider>(context, LocaleProvider)!.translate(section, 'profile_update_error')}$error"),
+              Localizations.of<LocaleProvider>(context, LocaleProvider)!
+                  .translate(section, 'profile_update_error')),
         ),
       );
     }

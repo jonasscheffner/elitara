@@ -8,9 +8,9 @@
     "messages": {
       "login_error": "Login failed. Please check your credentials."
     },
-    "enter_email_for_reset": "Please enter your email to reset your password.",
+    "enter_email_for_reset": "Please enter your email to reset your password",
     "reset_email_sent": "Password reset email has been sent.",
-    "reset_email_error": "E-Mail zum Zurücksetzen des Passworts konnte nicht gesendet werden."
+    "reset_email_error": "Failed to send password reset email."
   },
   "register_dialog": {
     "create_account": "Create Your Elitara Account",
@@ -22,6 +22,18 @@
     "messages": {
       "register_error": "Registration failed. Please try again.",
       "register_success": "Registration successful."
+    },
+    "validation": {
+      "invalid_email": "Please enter a valid email",
+      "email_exists": "This email is already in use",
+      "username_length": "Username: 3–20 characters",
+      "username_chars": "Only letters, numbers, and underscores allowed",
+      "username_exists": "Username already taken",
+      "password_length": "Password must be at least 6 characters",
+      "password_upper": "Password must contain at least one uppercase letter",
+      "password_special": "Password must contain at least one special character",
+      "weak_password": "The password is too weak",
+      "email_in_use": "This email is already in use"
     }
   },
   "event_feed_screen": {
@@ -63,7 +75,7 @@
       "event_created": "Event created successfully",
       "fill_all_fields": "Please fill in all required fields",
       "invalid_participant_limit": "Invalid participant limit",
-      "invalid_waitlist_limit": "Invalid waitlist limit."
+      "invalid_waitlist_limit": "Invalid waitlist limit"
     }
   },
   "edit_event_screen": {
@@ -73,7 +85,7 @@
       "fill_all_fields": "Please fill in all required fields",
       "event_updated": "Event updated successfully",
       "invalid_participant_limit": "Invalid participant limit",
-      "invalid_waitlist_limit": "Invalid waitlist limit.",
+      "invalid_waitlist_limit": "Invalid waitlist limit",
       "participant_limit_error": "Limit is below current participants ({count})",
       "waitlist_limit_error": "Limit is below current waitlist ({count})"
     }
@@ -155,7 +167,7 @@
       "password_hint": "Password (leave blank if unchanged)",
       "save_changes": "Save Changes",
       "profile_updated": "Profile updated successfully",
-      "profile_update_error": "Error updating profile: "
+      "profile_update_error": "Error updating profile"
     },
     "membership_screen": {
       "title": "Membership Management",
@@ -212,8 +224,8 @@
       "join_event": "Join",
       "view_event": "View Event",
       "joined_successfully": "You have joined the event!",
-      "event_full": "The event is full.",
-      "event_not_found": "Event not found."
+      "event_full": "The event is full",
+      "event_not_found": "Event not found"
     }
   },
   "invite_users": {
@@ -222,7 +234,7 @@
     "invite_button": "Invite",
     "already_invited": "Already invited",
     "already_participant": "Already participant",
-    "no_users_found": "No users found.",
+    "no_users_found": "No users found",
     "close": "Close"
   }
 }

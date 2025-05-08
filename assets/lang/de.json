@@ -8,7 +8,7 @@
     "messages": {
       "login_error": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten."
     },
-    "enter_email_for_reset": "Bitte geben Sie Ihre E-Mail ein, um das Passwort zurückzusetzen.",
+    "enter_email_for_reset": "Bitte geben Sie Ihre E-Mail ein, um das Passwort zurückzusetzen",
     "reset_email_sent": "Eine E-Mail zum Zurücksetzen des Passworts wurde gesendet.",
     "reset_email_error": "Passwort-Zurücksetzung fehlgeschlagen."
   },
@@ -22,6 +22,18 @@
     "messages": {
       "register_error": "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
       "register_success": "Registrierung erfolgreich."
+    },
+    "validation": {
+      "invalid_email": "Bitte gib eine gültige E-Mail ein",
+      "email_exists": "Diese E-Mail wird bereits verwendet",
+      "username_length": "Benutzername: 3–20 Zeichen",
+      "username_chars": "Nur Buchstaben, Zahlen und Unterstriche erlaubt",
+      "username_exists": "Benutzername bereits vergeben",
+      "password_length": "Passwort muss mindestens 6 Zeichen haben",
+      "password_upper": "Passwort muss mindestens einen Großbuchstaben enthalten",
+      "password_special": "Passwort muss mindestens ein Sonderzeichen enthalten",
+      "weak_password": "Das Passwort ist zu schwach",
+      "email_in_use": "Diese E-Mail wird bereits verwendet"
     }
   },
   "event_feed_screen": {
@@ -63,7 +75,7 @@
       "event_created": "Event erfolgreich erstellt",
       "fill_all_fields": "Bitte füllen Sie alle Pflichtfelder aus",
       "invalid_participant_limit": "Ungültiges Teilnehmerlimit",
-      "invalid_waitlist_limit": "Ungültiges Wartelistenlimit."
+      "invalid_waitlist_limit": "Ungültiges Wartelistenlimit"
     }
   },
   "edit_event_screen": {
@@ -73,7 +85,7 @@
       "fill_all_fields": "Bitte füllen Sie alle Pflichtfelder aus",
       "event_updated": "Event erfolgreich aktualisiert",
       "invalid_participant_limit": "Ungültiges Teilnehmerlimit",
-      "invalid_waitlist_limit": "Ungültiges Wartelistenlimit.",
+      "invalid_waitlist_limit": "Ungültiges Wartelistenlimit",
       "participant_limit_error": "Limit liegt unter den aktuellen Teilnehmern ({count})",
       "waitlist_limit_error": "Limit liegt unter der aktuellen Warteliste ({count})"
     }
@@ -155,7 +167,7 @@
       "password_hint": "Passwort (leer lassen, wenn unverändert)",
       "save_changes": "Änderungen speichern",
       "profile_updated": "Profil erfolgreich aktualisiert",
-      "profile_update_error": "Fehler beim Aktualisieren des Profils: "
+      "profile_update_error": "Fehler beim Aktualisieren des Profils"
     },
     "membership_screen": {
       "title": "Mitgliedschaftsverwaltung",
@@ -212,8 +224,8 @@
       "join_event": "Beitreten",
       "view_event": "Event ansehen",
       "joined_successfully": "Du bist dem Event beigetreten!",
-      "event_full": "Das Event ist voll.",
-      "event_not_found": "Event nicht gefunden."
+      "event_full": "Das Event ist voll",
+      "event_not_found": "Event nicht gefunden"
     }
   },
   "invite_users": {
@@ -222,7 +234,7 @@
     "invite_button": "Einladen",
     "already_invited": "Bereits eingeladen",
     "already_participant": "Bereits Teilnehmer",
-    "no_users_found": "Keine Nutzer gefunden.",
+    "no_users_found": "Keine Nutzer gefunden",
     "close": "Schließen"
   }
 }
