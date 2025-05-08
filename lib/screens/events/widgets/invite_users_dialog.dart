@@ -159,24 +159,17 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
         height: 500,
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Column(
+          child: Stack(
             children: [
-              SearchFilter(
-                focusNode: _searchFocusNode,
-                section: section,
-                controller: _searchController,
-                onChanged: _searchUsers,
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _isLoading
-                    ? const Padding(
-                        padding: EdgeInsets.all(10),
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
-                    : (_searchController.text.isNotEmpty
+              Column(
+                children: [
+                  SearchFilter(
+                    focusNode: _searchFocusNode,
+                    section: section,
+                    controller: _searchController,
+                    onChanged: _searchUsers,
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: (_searchController.text.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear),
                             onPressed: () {
@@ -190,92 +183,100 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
                             },
                           )
                         : null),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _searchResults.isEmpty
-                    ? Center(
-                        child: Text(
-                          locale.translate(section, 'title'),
-                          style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey),
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: EdgeInsets.zero,
-                        itemCount:
-                            _searchResults.length + (_isLoadingMore ? 1 : 0),
-                        itemBuilder: (ctx, idx) {
-                          if (idx == _searchResults.length && _isLoadingMore) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 12),
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
-                                ),
-                              ),
-                            );
-                          }
-                          final doc = _searchResults[idx];
-                          final data = doc.data() as Map<String, dynamic>;
-                          final userId = doc.id;
-                          final name = data['displayName'] ?? 'Unknown';
-                          final invited = _invitedUserIds.contains(userId);
-
-                          return ListTile(
-                            title: Tooltip(
-                              message: name,
-                              child: Text(
-                                name,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                            trailing: invited
-                                ? Text(
-                                    locale.translate(
-                                        section, 'already_invited'),
-                                    style: const TextStyle(
-                                        color: Colors.grey, fontSize: 14),
-                                  )
-                                : _loadingUserIds.contains(userId)
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2),
-                                      )
-                                    : TextButton(
-                                        onPressed: () =>
-                                            _sendInvitation(userId),
-                                        child: Text(
-                                          locale.translate(
-                                              section, 'invite_button'),
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                          );
-                        },
-                      ),
-              ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(
-                    locale.translate(section, 'close'),
-                    style: const TextStyle(fontSize: 16),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: _searchResults.isEmpty
+                        ? Center(
+                            child: Text(
+                              locale.translate(section, 'title'),
+                              style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : ListView.builder(
+                            controller: _scrollController,
+                            padding: EdgeInsets.zero,
+                            itemCount: _searchResults.length +
+                                (_isLoadingMore ? 1 : 0),
+                            itemBuilder: (ctx, idx) {
+                              if (idx == _searchResults.length &&
+                                  _isLoadingMore) {
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 12),
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    ),
+                                  ),
+                                );
+                              }
+                              final doc = _searchResults[idx];
+                              final data = doc.data() as Map<String, dynamic>;
+                              final userId = doc.id;
+                              final name = data['displayName'] ?? 'Unknown';
+                              final invited = _invitedUserIds.contains(userId);
+
+                              return ListTile(
+                                title: Tooltip(
+                                  message: name,
+                                  child: Text(
+                                    name,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                                trailing: invited
+                                    ? Text(
+                                        locale.translate(
+                                            section, 'already_invited'),
+                                        style: const TextStyle(
+                                            color: Colors.grey, fontSize: 14),
+                                      )
+                                    : _loadingUserIds.contains(userId)
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
+                                          )
+                                        : TextButton(
+                                            onPressed: () =>
+                                                _sendInvitation(userId),
+                                            child: Text(
+                                              locale.translate(
+                                                  section, 'invite_button'),
+                                              style:
+                                                  const TextStyle(fontSize: 14),
+                                            ),
+                                          ),
+                              );
+                            },
+                          ),
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        locale.translate(section, 'close'),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              if (_isLoading)
+                const Center(
+                  child: CircularProgressIndicator(),
+                ),
             ],
           ),
         ),
