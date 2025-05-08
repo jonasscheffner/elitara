@@ -28,6 +28,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   late String _currentUserId;
   String? _chatId;
   bool _isMessageValid = false;
+  bool _isMounted = true;
 
   bool _hasAutoScrolledInitially = false;
 
@@ -50,14 +51,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void _onTextChanged() {
     final bool valid = _messageController.text.trim().isNotEmpty;
     if (valid != _isMessageValid) {
-      setState(() {
-        _isMessageValid = valid;
-      });
+      if (_isMounted) {
+        setState(() {
+          _isMessageValid = valid;
+        });
+      }
     }
   }
 
   @override
   void dispose() {
+    _isMounted = false;
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -80,11 +84,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _chatService.markChatRead(_chatId!, _currentUserId);
       });
-      setState(() {});
+      if (_isMounted) {
+        setState(() {});
+      }
     }
 
     await _chatService.sendMessage(_chatId!, msg);
-    _messageController.clear();
+    if (_isMounted) {
+      _messageController.clear();
+    }
 
     await _chatService.markChatRead(_chatId!, _currentUserId);
 
