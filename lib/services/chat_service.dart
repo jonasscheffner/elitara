@@ -107,6 +107,30 @@ class ChatService {
     } catch (e, stack) {}
   }
 
+  Future<bool> hasUnreadChats(String userId) async {
+    final snapshot = await _firestore
+        .collection('chats')
+        .where('participants', arrayContains: userId)
+        .get();
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+      final Timestamp? lastUpdatedTs = data['lastUpdated'];
+      final Timestamp? lastReadTs =
+          data['lastReadAt'] != null ? data['lastReadAt'][userId] : null;
+
+      if (lastUpdatedTs != null) {
+        final lastUpdated = lastUpdatedTs.toDate();
+        final lastRead = lastReadTs?.toDate();
+        if (lastRead == null || lastUpdated.isAfter(lastRead)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   Future<void> updateMessage(
       String chatId, String messageId, Map<String, dynamic> data) async {
     await _firestore

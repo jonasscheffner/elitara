@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/models/event.dart';
 import 'package:elitara/models/access_type.dart';
+import 'package:elitara/services/chat_service.dart';
 import 'package:elitara/widgets/search_filter.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
 import 'package:elitara/screens/events/widgets/waitlist_dialog.dart';
@@ -37,11 +38,13 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   bool _showOnlyOwnEvents = false;
   final Map<String, String> _hostNames = {};
   final Map<String, int> _waitlistCounts = {};
+  bool _hasUnreadChats = false;
 
   @override
   void initState() {
     super.initState();
     _loadEvents();
+    _checkUnreadChats();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
               _scrollController.position.maxScrollExtent - 200 &&
@@ -68,6 +71,14 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   @override
   void didPopNext() {
     _loadEvents();
+  }
+
+  Future<void> _checkUnreadChats() async {
+    final userId = await _userService.getCurrentUserId();
+    final hasUnread = await ChatService().hasUnreadChats(userId);
+    setState(() {
+      _hasUnreadChats = hasUnread;
+    });
   }
 
   Future<void> _loadEvents() async {
@@ -166,9 +177,29 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
         title: Text(locale.translate(section, 'title')),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.message),
-            onPressed: () => Navigator.pushNamed(context, '/chatList'),
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.message),
+                onPressed: () async {
+                  await Navigator.pushNamed(context, '/chatList');
+                  _checkUnreadChats();
+                },
+              ),
+              if (_hasUnreadChats)
+                Positioned(
+                  right: 11,
+                  top: 11,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: Colors.blue,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
           IconButton(
             icon: const Icon(Icons.settings),
