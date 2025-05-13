@@ -167,7 +167,19 @@
       "password_hint": "Passwort (leer lassen, wenn unverändert)",
       "save_changes": "Änderungen speichern",
       "profile_updated": "Profil erfolgreich aktualisiert",
-      "profile_update_error": "Fehler beim Aktualisieren des Profils"
+      "profile_update_error": "Fehler beim Aktualisieren des Profils",
+      "validation": {
+        "invalid_email": "Bitte gib eine gültige E-Mail ein",
+        "email_exists": "Diese E-Mail wird bereits verwendet",
+        "username_length": "Benutzername: 3–20 Zeichen",
+        "username_chars": "Nur Buchstaben, Zahlen und Unterstriche erlaubt",
+        "username_exists": "Benutzername bereits vergeben",
+        "password_length": "Passwort muss mindestens 6 Zeichen haben",
+        "password_upper": "Passwort muss mindestens einen Großbuchstaben enthalten",
+        "password_special": "Mindestens ein Sonderzeichen erforderlich (z. B. !@#$%^&*)",
+        "weak_password": "Das Passwort ist zu schwach",
+        "email_in_use": "Diese E-Mail wird bereits verwendet"
+      }
     },
     "membership_screen": {
       "title": "Mitgliedschaftsverwaltung",

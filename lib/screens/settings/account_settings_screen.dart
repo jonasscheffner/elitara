@@ -2,26 +2,47 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/services/user_service.dart';
+import 'package:elitara/utils/validators.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({super.key});
+
   @override
   _AccountSettingsScreenState createState() => _AccountSettingsScreenState();
 }
 
 class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
-  final _formKey = GlobalKey<FormState>();
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
   final TextEditingController _passwordController = TextEditingController();
+
   bool _isSaving = false;
-  bool _hasChanged = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _currentUser;
+
   final String section = 'settings.account_screen';
   final UserService _userService = UserService();
+
   String _initialUsername = '';
   String _initialEmail = '';
+
+  String? usernameError;
+  String? emailError;
+  String? passwordError;
+
+  bool get isFormValid =>
+      usernameError == null &&
+      emailError == null &&
+      passwordError == null &&
+      _usernameController.text.trim().isNotEmpty &&
+      _emailController.text.trim().isNotEmpty;
+
+  bool get hasChanged =>
+      _usernameController.text.trim() != _initialUsername ||
+      _emailController.text.trim() != _initialEmail ||
+      _passwordController.text.isNotEmpty;
+
+  late LocaleProvider localeProvider;
 
   @override
   void initState() {
@@ -29,22 +50,23 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     _currentUser = _auth.currentUser;
     _initialUsername = _currentUser?.displayName ?? '';
     _initialEmail = _currentUser?.email ?? '';
+
     _usernameController = TextEditingController(text: _initialUsername);
     _emailController = TextEditingController(text: _initialEmail);
-    _usernameController.addListener(_checkForChanges);
-    _emailController.addListener(_checkForChanges);
-    _passwordController.addListener(_checkForChanges);
+
+    _usernameController.addListener(_validateUsername);
+    _emailController.addListener(_validateEmail);
+    _passwordController.addListener(_validatePassword);
   }
 
-  void _checkForChanges() {
-    bool changed = _usernameController.text != _initialUsername ||
-        _emailController.text != _initialEmail ||
-        _passwordController.text.isNotEmpty;
-    if (changed != _hasChanged) {
-      setState(() {
-        _hasChanged = changed;
-      });
-    }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    localeProvider = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+
+    _validateUsername();
+    _validateEmail();
+    _validatePassword();
   }
 
   @override
@@ -55,126 +77,180 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     super.dispose();
   }
 
+  void _validateUsername() async {
+    final username = _usernameController.text.trim();
+    final current = _auth.currentUser?.displayName ?? '';
+    final error = await Validators.validateUsername(
+      username,
+      localeProvider,
+      section,
+      checkExistence: username != current,
+    );
+    setState(() {
+      usernameError = error;
+    });
+  }
+
+  void _validateEmail() async {
+    final email = _emailController.text.trim();
+    final current = _auth.currentUser?.email ?? '';
+    final error = await Validators.validateEmail(
+      email,
+      localeProvider,
+      section,
+      checkExistence: email != current,
+    );
+    setState(() {
+      emailError = error;
+    });
+  }
+
+  void _validatePassword() {
+    final password = _passwordController.text;
+    final error = password.isNotEmpty
+        ? Validators.validatePassword(password, localeProvider, section)
+        : null;
+    setState(() {
+      passwordError = error;
+    });
+  }
+
   Future<void> _saveChanges() async {
     setState(() {
       _isSaving = true;
     });
+
     try {
-      if (_usernameController.text.isNotEmpty &&
-          _usernameController.text != _currentUser?.displayName) {
-        await _currentUser?.updateDisplayName(_usernameController.text);
+      final username = _usernameController.text.trim();
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+
+      if (username != _initialUsername) {
+        await _currentUser?.updateDisplayName(username);
       }
-      if (_emailController.text.isNotEmpty &&
-          _emailController.text != _currentUser?.email) {
-        await _currentUser?.updateEmail(_emailController.text);
+      if (email != _initialEmail) {
+        await _currentUser?.updateEmail(email);
       }
-      if (_passwordController.text.isNotEmpty) {
-        await _currentUser?.updatePassword(_passwordController.text);
+      if (password.isNotEmpty) {
+        await _currentUser?.updatePassword(password);
       }
+
       await _currentUser?.reload();
       _currentUser = _auth.currentUser;
+
       await _userService.updateUser(_currentUser!.uid, {
-        'displayName': _usernameController.text,
-        'email': _emailController.text,
+        'displayName': username,
+        'email': email,
       });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-              Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                  .translate(section, 'profile_updated')),
+          content: Text(localeProvider.translate(section, 'profile_updated')),
+          backgroundColor: Colors.green,
         ),
       );
-      _initialUsername = _usernameController.text;
-      _initialEmail = _emailController.text;
-      _passwordController.clear();
+
       setState(() {
-        _hasChanged = false;
+        _initialUsername = username;
+        _initialEmail = email;
+        _passwordController.clear();
       });
+
+      Navigator.pop(context);
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-              Localizations.of<LocaleProvider>(context, LocaleProvider)!
-                  .translate(section, 'profile_update_error')),
+          content:
+              Text(localeProvider.translate(section, 'profile_update_error')),
+          backgroundColor: Colors.red,
         ),
       );
     }
+
     setState(() {
       _isSaving = false;
     });
-    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final localeProvider =
-        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(localeProvider.translate(section, 'title')),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'username'),
-                  border: const OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return localeProvider.translate(
-                        section, 'username_required');
-                  }
-                  return null;
-                },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _usernameController,
+              decoration: InputDecoration(
+                labelText: localeProvider.translate(section, 'username'),
+                border: const OutlineInputBorder(),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'email'),
-                  border: const OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return localeProvider.translate(section, 'email_required');
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'password_hint'),
-                  border: const OutlineInputBorder(),
-                ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: (!_hasChanged || _isSaving)
-                      ? null
-                      : () {
-                          if (_formKey.currentState!.validate()) {
-                            _saveChanges();
-                          }
-                        },
-                  child: _isSaving
-                      ? const CircularProgressIndicator()
-                      : Text(localeProvider.translate(section, 'save_changes')),
+            ),
+            if (usernameError != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, left: 4),
+                child: Text(
+                  usernameError!,
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
                 ),
               ),
-            ],
-          ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _emailController,
+              decoration: InputDecoration(
+                labelText: localeProvider.translate(section, 'email'),
+                border: const OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            if (emailError != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, left: 4),
+                child: Text(
+                  emailError!,
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _passwordController,
+              decoration: InputDecoration(
+                labelText: localeProvider.translate(section, 'password_hint'),
+                border: const OutlineInputBorder(),
+              ),
+              obscureText: true,
+            ),
+            if (passwordError != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, left: 4),
+                child: Text(
+                  passwordError!,
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: (!_isSaving && isFormValid && hasChanged)
+                    ? _saveChanges
+                    : null,
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(localeProvider.translate(section, 'save_changes')),
+              ),
+            ),
+          ],
         ),
       ),
     );

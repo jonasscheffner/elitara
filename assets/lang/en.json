@@ -167,7 +167,19 @@
       "password_hint": "Password (leave blank if unchanged)",
       "save_changes": "Save Changes",
       "profile_updated": "Profile updated successfully",
-      "profile_update_error": "Error updating profile"
+      "profile_update_error": "Error updating profile",
+      "validation": {
+        "invalid_email": "Please enter a valid email",
+        "email_exists": "This email is already in use",
+        "username_length": "Username: 3–20 characters",
+        "username_chars": "Only letters, numbers, and underscores allowed",
+        "username_exists": "Username already taken",
+        "password_length": "Password must be at least 6 characters",
+        "password_upper": "Password must contain at least one uppercase letter",
+        "password_special": "Password must contain at least one special character (e.g. !@#$%^&*)",
+        "weak_password": "The password is too weak",
+        "email_in_use": "This email is already in use"
+      }
     },
     "membership_screen": {
       "title": "Membership Management",

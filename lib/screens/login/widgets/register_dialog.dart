@@ -1,4 +1,5 @@
 import 'package:elitara/services/auth_service.dart';
+import 'package:elitara/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -43,48 +44,29 @@ class _RegisterDialogState extends State<RegisterDialog> {
 
   void validateEmail() async {
     final email = emailController.text.trim();
-    final result = _authService.validateEmail(email);
-    if (result != null) {
-      setState(() {
-        emailError = localeProvider.translate(section, 'validation.$result');
-        emailUnique = false;
-      });
-      return;
-    }
-    final exists = await _authService.checkEmailExists(email);
+    final error =
+        await Validators.validateEmail(email, localeProvider, section);
     setState(() {
-      emailError = exists
-          ? localeProvider.translate(section, 'validation.email_exists')
-          : null;
-      emailUnique = !exists;
+      emailError = error;
+      emailUnique = error == null;
     });
   }
 
   void validateUsername() async {
     final username = usernameController.text.trim();
-    final result = _authService.validateUsername(username);
-    if (result != null) {
-      setState(() {
-        usernameError = localeProvider.translate(section, 'validation.$result');
-        usernameUnique = false;
-      });
-      return;
-    }
-    final exists = await _authService.checkUsernameExists(username);
+    final error =
+        await Validators.validateUsername(username, localeProvider, section);
     setState(() {
-      usernameError = exists
-          ? localeProvider.translate(section, 'validation.username_exists')
-          : null;
-      usernameUnique = !exists;
+      usernameError = error;
+      usernameUnique = error == null;
     });
   }
 
   void validatePassword() {
-    final result = _authService.validatePassword(passwordController.text);
+    final error = Validators.validatePassword(
+        passwordController.text, localeProvider, section);
     setState(() {
-      passwordError = result != null
-          ? localeProvider.translate(section, 'validation.$result')
-          : null;
+      passwordError = error;
     });
   }
 
