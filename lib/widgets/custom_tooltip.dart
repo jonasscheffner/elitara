@@ -8,7 +8,7 @@ class CustomTooltip extends StatefulWidget {
   const CustomTooltip({
     super.key,
     required this.message,
-    this.duration = const Duration(seconds: 5),
+    this.duration = const Duration(seconds: 3),
   });
 
   @override
