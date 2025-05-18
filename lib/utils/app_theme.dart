@@ -10,6 +10,10 @@ class AppTheme {
       bodyLarge: TextStyle(color: Colors.black, fontSize: 16),
       bodyMedium: TextStyle(color: Colors.black, fontSize: 14),
     ),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.blue,
+      brightness: Brightness.light,
+    ),
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.blue,
       foregroundColor: Colors.white,
@@ -76,6 +80,26 @@ class AppTheme {
         return Colors.grey.shade300;
       }),
     ),
+    datePickerTheme: DatePickerThemeData(
+      headerBackgroundColor: Colors.blue,
+      headerForegroundColor: Colors.white,
+      dayBackgroundColor: WidgetStateColor.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return Colors.blue;
+        return Colors.transparent;
+      }),
+      dayForegroundColor: WidgetStateColor.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return Colors.white;
+        return Colors.black;
+      }),
+    ),
+    timePickerTheme: const TimePickerThemeData(
+      hourMinuteColor: Colors.blue,
+      hourMinuteTextColor: Colors.white,
+      dayPeriodColor: Colors.blue,
+      dayPeriodTextColor: Colors.white,
+      dialHandColor: Colors.blue,
+      entryModeIconColor: Colors.blue,
+    ),
   );
 
   static final ThemeData darkTheme = ThemeData(
@@ -85,6 +109,10 @@ class AppTheme {
     textTheme: const TextTheme(
       bodyLarge: TextStyle(color: Colors.white, fontSize: 16),
       bodyMedium: TextStyle(color: Colors.white, fontSize: 14),
+    ),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.blue,
+      brightness: Brightness.dark,
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFF1C1C1E),
@@ -151,6 +179,27 @@ class AppTheme {
         }
         return Colors.grey.shade700;
       }),
+    ),
+    datePickerTheme: DatePickerThemeData(
+      backgroundColor: const Color(0xFF1C1C1E),
+      headerBackgroundColor: Colors.blue,
+      headerForegroundColor: Colors.white,
+      dayBackgroundColor: MaterialStateColor.resolveWith((states) {
+        if (states.contains(MaterialState.selected)) return Colors.blue;
+        return Colors.transparent;
+      }),
+      dayForegroundColor: MaterialStateColor.resolveWith((states) {
+        if (states.contains(MaterialState.selected)) return Colors.white;
+        return Colors.white;
+      }),
+    ),
+    timePickerTheme: const TimePickerThemeData(
+      hourMinuteColor: Colors.blue,
+      hourMinuteTextColor: Colors.white,
+      dayPeriodColor: Colors.blue,
+      dayPeriodTextColor: Colors.white,
+      dialHandColor: Colors.blue,
+      entryModeIconColor: Colors.blue,
     ),
   );
 
