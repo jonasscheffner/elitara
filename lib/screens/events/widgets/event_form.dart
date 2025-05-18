@@ -151,58 +151,54 @@ class EventForm extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Row(
+        Column(
           children: [
-            Expanded(
-              child: DropdownButtonFormField<VisibilityOption>(
-                decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'visibility'),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0)),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
-                value: visibility,
-                items: [
-                  DropdownMenuItem(
-                    value: VisibilityOption.everyone,
-                    child: Text(localeProvider.translate(
-                        section, 'visibility_everyone')),
-                  ),
-                  DropdownMenuItem(
-                    value: VisibilityOption.participantsOnly,
-                    child: Text(localeProvider.translate(
-                        section, 'visibility_participants_only')),
-                  ),
-                ],
-                onChanged: onVisibilityChanged,
+            DropdownButtonFormField<VisibilityOption>(
+              decoration: InputDecoration(
+                labelText: localeProvider.translate(section, 'visibility'),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0)),
+                contentPadding: const EdgeInsets.symmetric(
+                    vertical: 16.0, horizontal: 12.0),
               ),
+              value: visibility,
+              items: [
+                DropdownMenuItem(
+                  value: VisibilityOption.everyone,
+                  child: Text(
+                      localeProvider.translate(section, 'visibility_everyone')),
+                ),
+                DropdownMenuItem(
+                  value: VisibilityOption.participantsOnly,
+                  child: Text(localeProvider.translate(
+                      section, 'visibility_participants_only')),
+                ),
+              ],
+              onChanged: onVisibilityChanged,
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: DropdownButtonFormField<AccessType>(
-                decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'access'),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0)),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
-                value: accessType,
-                items: [
-                  DropdownMenuItem(
-                    value: AccessType.public,
-                    child: Text(
-                        localeProvider.translate(section, 'access_public')),
-                  ),
-                  DropdownMenuItem(
-                    value: AccessType.inviteOnly,
-                    child: Text(localeProvider.translate(
-                        section, 'access_invite_only')),
-                  ),
-                ],
-                onChanged: onAccessTypeChanged,
+            const SizedBox(height: 16),
+            DropdownButtonFormField<AccessType>(
+              decoration: InputDecoration(
+                labelText: localeProvider.translate(section, 'access'),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0)),
+                contentPadding: const EdgeInsets.symmetric(
+                    vertical: 16.0, horizontal: 12.0),
               ),
+              value: accessType,
+              items: [
+                DropdownMenuItem(
+                  value: AccessType.public,
+                  child:
+                      Text(localeProvider.translate(section, 'access_public')),
+                ),
+                DropdownMenuItem(
+                  value: AccessType.inviteOnly,
+                  child: Text(
+                      localeProvider.translate(section, 'access_invite_only')),
+                ),
+              ],
+              onChanged: onAccessTypeChanged,
             ),
           ],
         ),
