@@ -26,7 +26,8 @@ class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
   }
 
   Future<void> _loadMembership() async {
-    MembershipType membership = await _membershipService.getCurrentMembership();
+    MembershipType? membership =
+        await _membershipService.getCurrentMembership();
     setState(() {
       _currentMembership = membership;
       _isLoading = false;

@@ -505,7 +505,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   ),
                   const SizedBox(height: 32),
                   Center(
-                    child: FutureBuilder<MembershipType>(
+                    child: FutureBuilder<MembershipType?>(
                       future: MembershipService().getCurrentMembership(),
                       builder: (ctx, msnap) {
                         if (msnap.connectionState == ConnectionState.waiting) {

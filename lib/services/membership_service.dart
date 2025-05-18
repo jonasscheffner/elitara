@@ -6,7 +6,7 @@ class MembershipService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<MembershipType> getCurrentMembership() async {
+  Future<MembershipType?> getCurrentMembership() async {
     final user = _auth.currentUser;
     if (user == null) throw Exception("No user is logged in");
 
@@ -17,9 +17,19 @@ class MembershipService {
     }
 
     final membershipStr =
-        (userDoc.data() as Map<String, dynamic>)['membership'] ?? '';
+        (userDoc.data() as Map<String, dynamic>)['membership'];
 
-    return MembershipTypeExtension.fromString(membershipStr);
+    if (membershipStr == null ||
+        membershipStr is! String ||
+        membershipStr.isEmpty) {
+      return null;
+    }
+
+    try {
+      return MembershipTypeExtension.fromString(membershipStr);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> updateMembership(String newMembership) async {
