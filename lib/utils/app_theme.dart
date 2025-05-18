@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AppTheme {
@@ -25,10 +26,13 @@ class AppTheme {
       labelStyle: const TextStyle(color: Colors.black),
       floatingLabelStyle: const TextStyle(color: Colors.blue),
     ),
-    textSelectionTheme: const TextSelectionThemeData(
+    textSelectionTheme: TextSelectionThemeData(
       cursorColor: Colors.blue,
-      selectionColor: Colors.blueAccent,
+      selectionColor: Colors.blue.withOpacity(0.3),
       selectionHandleColor: Colors.blue,
+    ),
+    cupertinoOverrideTheme: const CupertinoThemeData(
+      primaryColor: Colors.blue,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -98,10 +102,13 @@ class AppTheme {
       labelStyle: const TextStyle(color: Colors.white),
       floatingLabelStyle: const TextStyle(color: Colors.white),
     ),
-    textSelectionTheme: const TextSelectionThemeData(
+    textSelectionTheme: TextSelectionThemeData(
       cursorColor: Colors.blue,
-      selectionColor: Colors.lightBlueAccent,
+      selectionColor: Colors.lightBlueAccent.withOpacity(0.3),
       selectionHandleColor: Colors.blue,
+    ),
+    cupertinoOverrideTheme: const CupertinoThemeData(
+      primaryColor: Colors.blue,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
