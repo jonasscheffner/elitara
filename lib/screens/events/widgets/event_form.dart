@@ -1,5 +1,6 @@
 import 'package:elitara/models/access_type.dart';
 import 'package:elitara/models/visibility_option.dart';
+import 'package:elitara/widgets/custom_tooltip.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
@@ -274,10 +275,9 @@ class EventForm extends StatelessWidget {
                   Text(localeProvider.translate(section, 'invite_permission'),
                       style: const TextStyle(fontSize: 16)),
                   const SizedBox(width: 4),
-                  Tooltip(
+                  CustomTooltip(
                     message: localeProvider.translate(
                         section, 'invite_permission_info'),
-                    child: const Icon(Icons.info_outline, size: 18),
                   ),
                 ],
               ),
