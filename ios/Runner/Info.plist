@@ -46,8 +46,19 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
-		<string></string>
+	<string></string>
 	<key>NSCameraUsageDescription</key>
-		<string></string>
+	<string></string>
+
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>elitara</string>
+			</array>
+		</dict>
+	</array>
+
 </dict>
 </plist>

@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:elitara/screens/chat/chat_detail_screen.dart';
 import 'package:elitara/screens/chat/chat_list_screen.dart';
 import 'package:elitara/screens/events/edit_event_screen.dart';
+import 'package:elitara/screens/login/reset_password_screen.dart';
 import 'package:elitara/screens/settings/account_settings_screen.dart';
 import 'package:elitara/screens/settings/settings_menu_screen.dart';
 import 'package:elitara/screens/settings/membership_settings_screen.dart';
@@ -10,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:uni_links/uni_links.dart';
 import 'localization/locale_provider.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/login/login_screen.dart';
@@ -17,6 +20,8 @@ import 'screens/events/event_feed_screen.dart';
 import 'screens/events/event_detail_screen.dart';
 import 'screens/events/create_event_screen.dart';
 import 'utils/app_theme.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,7 +43,7 @@ Future<String> _getSavedLanguageCode() async {
   return prefs.getString('language_code') ?? 'en';
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final bool isDarkMode;
   final String languageCode;
 
@@ -46,14 +51,57 @@ class MyApp extends StatelessWidget {
       : super(key: key);
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  StreamSubscription? _linkSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenToDeepLinks();
+  }
+
+  void _listenToDeepLinks() {
+    _linkSub = linkStream.listen((String? link) {
+      if (link != null) _handleLink(link);
+    }, onError: (err) {
+      print('Deep link error: $err');
+    });
+  }
+
+  void _handleLink(String link) {
+    final uri = Uri.tryParse(link);
+    if (uri != null &&
+        uri.scheme == 'elitara' &&
+        uri.host == 'resetpassword' &&
+        uri.queryParameters.containsKey('oobCode')) {
+      final oobCode = uri.queryParameters['oobCode']!;
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => ResetPasswordScreen(oobCode: oobCode),
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _linkSub?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Elitara',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      locale: Locale(languageCode),
+      themeMode: widget.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      locale: Locale(widget.languageCode),
       supportedLocales: const [Locale('en', 'US'), Locale('de', 'DE')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
@@ -69,9 +117,11 @@ class MyApp extends StatelessWidget {
           case '/login':
             return MaterialPageRoute(builder: (context) => LoginScreen());
           case '/eventFeed':
-            return MaterialPageRoute(builder: (context) => EventFeedScreen());
+            return MaterialPageRoute(
+                builder: (context) => const EventFeedScreen());
           case '/createEvent':
-            return MaterialPageRoute(builder: (context) => CreateEventScreen());
+            return MaterialPageRoute(
+                builder: (context) => const CreateEventScreen());
           case '/eventDetail':
             if (settings.arguments is String) {
               final String eventId = settings.arguments as String;

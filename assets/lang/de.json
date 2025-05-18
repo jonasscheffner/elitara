@@ -36,6 +36,22 @@
       "email_in_use": "Diese E-Mail wird bereits verwendet"
     }
   },
+  "reset_password": {
+    "title": "Passwort zurücksetzen",
+    "new_password": "Neues Passwort",
+    "submit": "Bestätigen",
+    "reset_success": "Dein Passwort wurde erfolgreich geändert.",
+    "reset_failed": "Fehler beim Zurücksetzen des Passworts.",
+    "validation.password_length": "Das Passwort muss mindestens 6 Zeichen lang sein.",
+    "validation.password_upper": "Das Passwort muss einen Großbuchstaben enthalten.",
+    "validation.password_special": "Das Passwort muss ein Sonderzeichen enthalten.",
+    "validation": {
+      "password_length": "Passwort muss mindestens 6 Zeichen haben",
+      "password_upper": "Passwort muss mindestens einen Großbuchstaben enthalten",
+      "password_special": "Passwort muss mindestens ein Sonderzeichen enthalten",
+      "weak_password": "Das Passwort ist zu schwach"
+    }
+  },
   "event_feed_screen": {
     "title": "Event Feed",
     "no_events": "Keine Events verfügbar",

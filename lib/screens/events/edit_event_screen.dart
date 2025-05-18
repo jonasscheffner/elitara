@@ -253,64 +253,68 @@ class _EditEventScreenState extends State<EditEventScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 20),
-              EventForm(
-                titleController: _titleController,
-                descriptionController: _descriptionController,
-                locationController: _locationController,
-                participantLimitController: _participantLimitController,
-                waitlistLimitController: _waitlistLimitController,
-                selectedDate: _selectedDate,
-                selectedTime: _selectedTime,
-                onSelectDate: () => _selectDate(context),
-                onSelectTime: () => _selectTime(context),
-                accessType: _accessType,
-                onAccessTypeChanged: (v) => setState(() {
-                  _accessType = v ?? AccessType.public;
-                  _onChanged();
-                }),
-                waitlistEnabled: _waitlistEnabled,
-                onWaitlistChanged: (v) => setState(() {
-                  _waitlistEnabled = v;
-                  _validateWaitlistLimit();
-                  _onChanged();
-                }),
-                visibility: _visibility,
-                onVisibilityChanged: (v) => setState(() {
-                  _visibility = v ?? VisibilityOption.everyone;
-                  _onChanged();
-                }),
-                canInvite: _canInvite,
-                onCanInviteChanged: (v) => setState(() {
-                  _canInvite = v;
-                  _onChanged();
-                }),
-                participantLimitError: _participantLimitError,
-                waitlistLimitError: _waitlistLimitError,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: !_hasChanged ||
-                        _participantLimitError != null ||
-                        _waitlistLimitError != null
-                    ? null
-                    : _updateEvent,
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.translucent,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 20),
+                EventForm(
+                  titleController: _titleController,
+                  descriptionController: _descriptionController,
+                  locationController: _locationController,
+                  participantLimitController: _participantLimitController,
+                  waitlistLimitController: _waitlistLimitController,
+                  selectedDate: _selectedDate,
+                  selectedTime: _selectedTime,
+                  onSelectDate: () => _selectDate(context),
+                  onSelectTime: () => _selectTime(context),
+                  accessType: _accessType,
+                  onAccessTypeChanged: (v) => setState(() {
+                    _accessType = v ?? AccessType.public;
+                    _onChanged();
+                  }),
+                  waitlistEnabled: _waitlistEnabled,
+                  onWaitlistChanged: (v) => setState(() {
+                    _waitlistEnabled = v;
+                    _validateWaitlistLimit();
+                    _onChanged();
+                  }),
+                  visibility: _visibility,
+                  onVisibilityChanged: (v) => setState(() {
+                    _visibility = v ?? VisibilityOption.everyone;
+                    _onChanged();
+                  }),
+                  canInvite: _canInvite,
+                  onCanInviteChanged: (v) => setState(() {
+                    _canInvite = v;
+                    _onChanged();
+                  }),
+                  participantLimitError: _participantLimitError,
+                  waitlistLimitError: _waitlistLimitError,
                 ),
-                child: Text(
-                  locale.translate(section, 'update_event'),
-                  style: const TextStyle(fontSize: 18),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: !_hasChanged ||
+                          _participantLimitError != null ||
+                          _waitlistLimitError != null
+                      ? null
+                      : _updateEvent,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15, horizontal: 30),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(
+                    locale.translate(section, 'update_event'),
+                    style: const TextStyle(fontSize: 18),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

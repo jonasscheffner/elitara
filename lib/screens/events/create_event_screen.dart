@@ -181,53 +181,57 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 20),
-              EventForm(
-                titleController: _titleController,
-                descriptionController: _descriptionController,
-                locationController: _locationController,
-                participantLimitController: _participantLimitController,
-                waitlistLimitController: _waitlistLimitController,
-                selectedDate: _selectedDate,
-                selectedTime: _selectedTime,
-                onSelectDate: () => _selectDate(context),
-                onSelectTime: () => _selectTime(context),
-                accessType: _accessType,
-                onAccessTypeChanged: (val) =>
-                    setState(() => _accessType = val ?? AccessType.public),
-                waitlistEnabled: _waitlistEnabled,
-                onWaitlistChanged: (val) => setState(() {
-                  _waitlistEnabled = val;
-                  _validateWaitlistLimit();
-                }),
-                visibility: _visibility,
-                onVisibilityChanged: (val) => setState(
-                    () => _visibility = val ?? VisibilityOption.everyone),
-                canInvite: _canInvite,
-                onCanInviteChanged: (val) => setState(() => _canInvite = val),
-                participantLimitError: _participantLimitError,
-                waitlistLimitError: _waitlistLimitError,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _createEvent,
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.translucent,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 20),
+                EventForm(
+                  titleController: _titleController,
+                  descriptionController: _descriptionController,
+                  locationController: _locationController,
+                  participantLimitController: _participantLimitController,
+                  waitlistLimitController: _waitlistLimitController,
+                  selectedDate: _selectedDate,
+                  selectedTime: _selectedTime,
+                  onSelectDate: () => _selectDate(context),
+                  onSelectTime: () => _selectTime(context),
+                  accessType: _accessType,
+                  onAccessTypeChanged: (val) =>
+                      setState(() => _accessType = val ?? AccessType.public),
+                  waitlistEnabled: _waitlistEnabled,
+                  onWaitlistChanged: (val) => setState(() {
+                    _waitlistEnabled = val;
+                    _validateWaitlistLimit();
+                  }),
+                  visibility: _visibility,
+                  onVisibilityChanged: (val) => setState(
+                      () => _visibility = val ?? VisibilityOption.everyone),
+                  canInvite: _canInvite,
+                  onCanInviteChanged: (val) => setState(() => _canInvite = val),
+                  participantLimitError: _participantLimitError,
+                  waitlistLimitError: _waitlistLimitError,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _createEvent,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15, horizontal: 30),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    locale.translate(section, 'create_event'),
+                    style: const TextStyle(fontSize: 18),
                   ),
                 ),
-                child: Text(
-                  locale.translate(section, 'create_event'),
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

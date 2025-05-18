@@ -131,81 +131,86 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                localeProvider.translate(section, 'login'),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  labelText: localeProvider.translate(section, 'email'),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  localeProvider.translate(section, 'login'),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                  suffixIcon: showPasswordField
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.arrow_forward),
-                          onPressed: _showPasswordField,
-                        ),
+                  textAlign: TextAlign.center,
                 ),
-                keyboardType: TextInputType.emailAddress,
-                onChanged: (value) {
-                  if (value.isNotEmpty && showPasswordField) {
-                    _hidePasswordField();
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              SizeTransition(
-                sizeFactor: _heightAnimation,
-                axis: Axis.vertical,
-                axisAlignment: -1.0,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: TextField(
-                    controller: passwordController,
-                    decoration: InputDecoration(
-                      labelText: localeProvider.translate(section, 'password'),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0, horizontal: 12.0),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.arrow_forward),
-                        onPressed: _login,
-                      ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: emailController,
+                  decoration: InputDecoration(
+                    labelText: localeProvider.translate(section, 'email'),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
                     ),
-                    obscureText: true,
-                    onSubmitted: (_) => _login(),
+                    suffixIcon: showPasswordField
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.arrow_forward),
+                            onPressed: _showPasswordField,
+                          ),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: (value) {
+                    if (value.isNotEmpty && showPasswordField) {
+                      _hidePasswordField();
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                SizeTransition(
+                  sizeFactor: _heightAnimation,
+                  axis: Axis.vertical,
+                  axisAlignment: -1.0,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: TextField(
+                      controller: passwordController,
+                      decoration: InputDecoration(
+                        labelText:
+                            localeProvider.translate(section, 'password'),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16.0, horizontal: 12.0),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.arrow_forward),
+                          onPressed: _login,
+                        ),
+                      ),
+                      obscureText: true,
+                      onSubmitted: (_) => _login(),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              TextButton(
-                onPressed: _forgotPassword,
-                child: Text(
-                    localeProvider.translate(section, 'forgotten_password')),
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: _openRegisterDialog,
-                child:
-                    Text(localeProvider.translate(section, 'create_account')),
-              ),
-            ],
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: _forgotPassword,
+                  child: Text(
+                      localeProvider.translate(section, 'forgotten_password')),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: _openRegisterDialog,
+                  child:
+                      Text(localeProvider.translate(section, 'create_account')),
+                ),
+              ],
+            ),
           ),
         ),
       ),

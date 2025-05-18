@@ -36,6 +36,22 @@
       "email_in_use": "This email is already in use"
     }
   },
+  "reset_password": {
+    "title": "Reset Password",
+    "new_password": "New Password",
+    "submit": "Submit",
+    "reset_success": "Password has been reset successfully.",
+    "reset_failed": "Failed to reset password. Please try again.",
+    "validation.password_length": "Password must be at least 6 characters.",
+    "validation.password_upper": "Password must contain an uppercase letter.",
+    "validation.password_special": "Password must contain a special character.",
+    "validation": {
+      "password_length": "Password must be at least 6 characters",
+      "password_upper": "Password must contain at least one uppercase letter",
+      "password_special": "Password must contain at least one special character",
+      "weak_password": "The password is too weak"
+    }
+  },
   "event_feed_screen": {
     "title": "Event Feed",
     "no_events": "No events available",

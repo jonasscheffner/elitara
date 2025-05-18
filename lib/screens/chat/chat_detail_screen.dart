@@ -120,146 +120,153 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: _chatId == null || _messagesStream == null
-                ? Center(
-                    child:
-                        Text(localeProvider.translate(section, 'no_messages')))
-                : StreamBuilder<List<Message>>(
-                    stream: _messagesStream,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final messages = snapshot.data ?? [];
-
-                      if (!_hasAutoScrolledInitially && messages.isNotEmpty) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (_scrollController.hasClients) {
-                            _scrollController.jumpTo(
-                              _scrollController.position.maxScrollExtent,
-                            );
-                            _hasAutoScrolledInitially = true;
-                          }
-                        });
-                      }
-
-                      if (messages.isNotEmpty) {
-                        final lastMessage = messages.last;
-                        if (lastMessage.senderId != _currentUserId) {
-                          _chatService.markChatRead(_chatId!, _currentUserId);
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: Column(
+          children: [
+            Expanded(
+              child: _chatId == null || _messagesStream == null
+                  ? Center(
+                      child: Text(
+                          localeProvider.translate(section, 'no_messages')))
+                  : StreamBuilder<List<Message>>(
+                      stream: _messagesStream,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
                         }
-                      }
 
-                      if (messages.isEmpty) {
-                        return Center(
-                          child: Text(
-                              localeProvider.translate(section, 'no_messages')),
-                        );
-                      }
+                        final messages = snapshot.data ?? [];
 
-                      return ListView.builder(
-                        controller: _scrollController,
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message = messages[index];
-                          final isCurrentUser =
-                              message.senderId == _currentUserId;
+                        if (!_hasAutoScrolledInitially && messages.isNotEmpty) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (_scrollController.hasClients) {
+                              _scrollController.jumpTo(
+                                _scrollController.position.maxScrollExtent,
+                              );
+                              _hasAutoScrolledInitially = true;
+                            }
+                          });
+                        }
 
-                          final messageDate = DateTime(
-                            message.timestamp.year,
-                            message.timestamp.month,
-                            message.timestamp.day,
+                        if (messages.isNotEmpty) {
+                          final lastMessage = messages.last;
+                          if (lastMessage.senderId != _currentUserId) {
+                            _chatService.markChatRead(_chatId!, _currentUserId);
+                          }
+                        }
+
+                        if (messages.isEmpty) {
+                          return Center(
+                            child: Text(localeProvider.translate(
+                                section, 'no_messages')),
                           );
+                        }
 
-                          DateTime? previousMessageDate;
-                          if (index > 0) {
-                            final prevMessage = messages[index - 1];
-                            previousMessageDate = DateTime(
-                              prevMessage.timestamp.year,
-                              prevMessage.timestamp.month,
-                              prevMessage.timestamp.day,
+                        return ListView.builder(
+                          controller: _scrollController,
+                          itemCount: messages.length,
+                          itemBuilder: (context, index) {
+                            final message = messages[index];
+                            final isCurrentUser =
+                                message.senderId == _currentUserId;
+
+                            final messageDate = DateTime(
+                              message.timestamp.year,
+                              message.timestamp.month,
+                              message.timestamp.day,
                             );
-                          }
 
-                          bool showDateHeader = previousMessageDate == null ||
-                              messageDate != previousMessageDate;
+                            DateTime? previousMessageDate;
+                            if (index > 0) {
+                              final prevMessage = messages[index - 1];
+                              previousMessageDate = DateTime(
+                                prevMessage.timestamp.year,
+                                prevMessage.timestamp.month,
+                                prevMessage.timestamp.day,
+                              );
+                            }
 
-                          Widget messageContent;
+                            bool showDateHeader = previousMessageDate == null ||
+                                messageDate != previousMessageDate;
 
-                          if (message.type == MessageType.eventInvitation &&
-                              message.data != null) {
-                            messageContent = EventInvitationMessage(
-                              eventId: message.data!['eventId'] ?? '',
-                              eventTitle: message.data!['eventTitle'] ?? '',
-                              chatId: _chatId!,
-                              messageId: message.id!,
-                              isSender: isCurrentUser,
-                            );
-                          } else {
-                            messageContent = Container(
-                              decoration: BoxDecoration(
-                                color: isCurrentUser
-                                    ? Colors.blue[300]
-                                    : Colors.grey[800],
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                              constraints: BoxConstraints(
-                                maxWidth:
-                                    MediaQuery.of(context).size.width * 0.7,
-                              ),
-                              child: Text(
-                                message.text,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            );
-                          }
+                            Widget messageContent;
 
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              if (showDateHeader)
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  child: Center(
-                                    child: Text(
-                                      LocalizedDateTimeFormatter
-                                          .getChatFormattedDate(
-                                              context, message.timestamp),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.grey,
+                            if (message.type == MessageType.eventInvitation &&
+                                message.data != null) {
+                              messageContent = EventInvitationMessage(
+                                eventId: message.data!['eventId'] ?? '',
+                                eventTitle: message.data!['eventTitle'] ?? '',
+                                chatId: _chatId!,
+                                messageId: message.id!,
+                                isSender: isCurrentUser,
+                              );
+                            } else {
+                              messageContent = Container(
+                                decoration: BoxDecoration(
+                                  color: isCurrentUser
+                                      ? Colors.blue[300]
+                                      : Colors.grey[800],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                constraints: BoxConstraints(
+                                  maxWidth:
+                                      MediaQuery.of(context).size.width * 0.7,
+                                ),
+                                child: Text(
+                                  message.text,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              );
+                            }
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (showDateHeader)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    child: Center(
+                                      child: Text(
+                                        LocalizedDateTimeFormatter
+                                            .getChatFormattedDate(
+                                                context, message.timestamp),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              Container(
+                                Container(
                                   alignment: isCurrentUser
                                       ? Alignment.centerRight
                                       : Alignment.centerLeft,
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16, vertical: 4),
-                                  child: messageContent),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-          ),
-          ChatInputWidget(
-            controller: _messageController,
-            onSend: _sendMessage,
-            isMessageValid: _isMessageValid,
-          ),
-        ],
+                                  child: messageContent,
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+            ),
+            ChatInputWidget(
+              controller: _messageController,
+              onSend: _sendMessage,
+              isMessageValid: _isMessageValid,
+            ),
+          ],
+        ),
       ),
     );
   }

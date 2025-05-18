@@ -165,165 +165,172 @@ class _ParticipantListDialogState extends State<ParticipantListDialog> {
   Widget build(BuildContext context) {
     final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: SizedBox(
-        width: 400,
-        height: 500,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SearchFilter(
-                      focusNode: _searchFocusNode,
-                      section: section,
-                      controller: _searchController,
-                      onChanged: (_) {},
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                _onSearchChanged();
-                              },
-                            )
-                          : null,
-                    ),
-                    if (_isFiltering)
-                      const Expanded(
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    else
-                      Expanded(
-                        child: Scrollbar(
-                          controller: _scrollController,
-                          child: ListView.builder(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: SizedBox(
+          width: 400,
+          height: 500,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SearchFilter(
+                        focusNode: _searchFocusNode,
+                        section: section,
+                        controller: _searchController,
+                        onChanged: (_) {},
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _onSearchChanged();
+                                },
+                              )
+                            : null,
+                      ),
+                      if (_isFiltering)
+                        const Expanded(
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      else
+                        Expanded(
+                          child: Scrollbar(
                             controller: _scrollController,
-                            padding: EdgeInsets.zero,
-                            itemCount: _displayedParticipants.length +
-                                (_hasMore ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              if (index >= _displayedParticipants.length) {
-                                return const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 8),
-                                  child: Center(
-                                      child: CircularProgressIndicator()),
-                                );
-                              }
-                              final p = _displayedParticipants[index];
-                              final isHost = p.uid == widget.hostId;
-                              final isCoHost = widget.coHosts.contains(p.uid);
-                              final currentUserId =
-                                  FirebaseAuth.instance.currentUser?.uid;
-                              final isSelf = p.uid == currentUserId;
-
-                              Widget? trailing;
-                              if (!isSelf && p.uid != widget.hostId) {
-                                if (_isCurrentUserHost) {
-                                  trailing = PopupMenuButton<String>(
-                                    onSelected: (value) {
-                                      if (value == 'make_cohost') {
-                                        _makeCoHost(p.uid);
-                                      } else if (value == 'remove_cohost') {
-                                        _removeCoHost(p.uid);
-                                      } else if (value ==
-                                          'remove_participant') {
-                                        _removeParticipant(p.uid);
-                                      }
-                                    },
-                                    itemBuilder: (_) => [
-                                      if (isCoHost)
-                                        PopupMenuItem(
-                                          value: 'remove_cohost',
-                                          child: Text(locale.translate(
-                                              section, 'remove_cohost')),
-                                        )
-                                      else
-                                        PopupMenuItem(
-                                          value: 'make_cohost',
-                                          child: Text(locale.translate(
-                                              section, 'make_cohost')),
-                                        ),
-                                      PopupMenuItem(
-                                        value: 'remove_participant',
-                                        child: Text(locale.translate(
-                                            section, 'remove_participant')),
-                                      ),
-                                    ],
-                                  );
-                                } else if (_isCurrentUserCoHost) {
-                                  trailing = PopupMenuButton<String>(
-                                    onSelected: (value) {
-                                      if (value == 'remove_participant') {
-                                        _removeParticipant(p.uid);
-                                      }
-                                    },
-                                    itemBuilder: (_) => [
-                                      PopupMenuItem(
-                                        value: 'remove_participant',
-                                        child: Text(locale.translate(
-                                            section, 'remove_participant')),
-                                      ),
-                                    ],
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              padding: EdgeInsets.zero,
+                              itemCount: _displayedParticipants.length +
+                                  (_hasMore ? 1 : 0),
+                              itemBuilder: (context, index) {
+                                if (index >= _displayedParticipants.length) {
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8),
+                                    child: Center(
+                                        child: CircularProgressIndicator()),
                                   );
                                 }
-                              }
+                                final p = _displayedParticipants[index];
+                                final isHost = p.uid == widget.hostId;
+                                final isCoHost = widget.coHosts.contains(p.uid);
+                                final currentUserId =
+                                    FirebaseAuth.instance.currentUser?.uid;
+                                final isSelf = p.uid == currentUserId;
 
-                              return ListTile(
-                                title: RichText(
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  text: TextSpan(
-                                    style: DefaultTextStyle.of(context).style,
-                                    children: [
-                                      WidgetSpan(
-                                        child: UserDisplayName(
-                                          uid: p.uid,
-                                          style: const TextStyle(fontSize: 16),
-                                        ),
-                                        alignment: PlaceholderAlignment.middle,
-                                      ),
-                                      if (isHost)
-                                        TextSpan(
-                                          text:
-                                              ' (${locale.translate(section, 'host_label')})',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
+                                Widget? trailing;
+                                if (!isSelf && p.uid != widget.hostId) {
+                                  if (_isCurrentUserHost) {
+                                    trailing = PopupMenuButton<String>(
+                                      onSelected: (value) {
+                                        if (value == 'make_cohost') {
+                                          _makeCoHost(p.uid);
+                                        } else if (value == 'remove_cohost') {
+                                          _removeCoHost(p.uid);
+                                        } else if (value ==
+                                            'remove_participant') {
+                                          _removeParticipant(p.uid);
+                                        }
+                                      },
+                                      itemBuilder: (_) => [
+                                        if (isCoHost)
+                                          PopupMenuItem(
+                                            value: 'remove_cohost',
+                                            child: Text(locale.translate(
+                                                section, 'remove_cohost')),
+                                          )
+                                        else
+                                          PopupMenuItem(
+                                            value: 'make_cohost',
+                                            child: Text(locale.translate(
+                                                section, 'make_cohost')),
                                           ),
+                                        PopupMenuItem(
+                                          value: 'remove_participant',
+                                          child: Text(locale.translate(
+                                              section, 'remove_participant')),
                                         ),
-                                      if (!isHost && isCoHost)
-                                        TextSpan(
-                                          text:
-                                              ' (${locale.translate(section, 'co_host_label')})',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
+                                      ],
+                                    );
+                                  } else if (_isCurrentUserCoHost) {
+                                    trailing = PopupMenuButton<String>(
+                                      onSelected: (value) {
+                                        if (value == 'remove_participant') {
+                                          _removeParticipant(p.uid);
+                                        }
+                                      },
+                                      itemBuilder: (_) => [
+                                        PopupMenuItem(
+                                          value: 'remove_participant',
+                                          child: Text(locale.translate(
+                                              section, 'remove_participant')),
+                                        ),
+                                      ],
+                                    );
+                                  }
+                                }
+
+                                return ListTile(
+                                  title: RichText(
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    text: TextSpan(
+                                      style: DefaultTextStyle.of(context).style,
+                                      children: [
+                                        WidgetSpan(
+                                          child: UserDisplayName(
+                                            uid: p.uid,
+                                            style:
+                                                const TextStyle(fontSize: 16),
                                           ),
+                                          alignment:
+                                              PlaceholderAlignment.middle,
                                         ),
-                                    ],
+                                        if (isHost)
+                                          TextSpan(
+                                            text:
+                                                ' (${locale.translate(section, 'host_label')})',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        if (!isHost && isCoHost)
+                                          TextSpan(
+                                            text:
+                                                ' (${locale.translate(section, 'co_host_label')})',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                trailing: trailing,
-                              );
-                            },
+                                  trailing: trailing,
+                                );
+                              },
+                            ),
                           ),
                         ),
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child:
+                              Text(locale.translate(section, 'close_button')),
+                        ),
                       ),
-                    const SizedBox(height: 16),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(locale.translate(section, 'close_button')),
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );

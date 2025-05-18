@@ -26,6 +26,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   final EventService _eventService = EventService(itemsPerPage: 10);
   final UserService _userService = UserService();
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
 
   final String section = 'event_feed_screen';
   List<Event> _events = [];
@@ -171,205 +172,228 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   Widget build(BuildContext context) {
     final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(locale.translate(section, 'title')),
-        centerTitle: true,
-        actions: [
-          Stack(
-            children: [
+    return GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: Text(locale.translate(section, 'title')),
+            centerTitle: true,
+            actions: [
+              Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.message),
+                    onPressed: () async {
+                      FocusScope.of(context).unfocus();
+                      _searchController.clear();
+                      await Navigator.pushNamed(context, '/chatList');
+                      _checkUnreadChats();
+                    },
+                  ),
+                  if (_hasUnreadChats)
+                    Positioned(
+                      right: 11,
+                      top: 11,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Colors.blue,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
               IconButton(
-                icon: const Icon(Icons.message),
-                onPressed: () async {
-                  await Navigator.pushNamed(context, '/chatList');
-                  _checkUnreadChats();
+                icon: const Icon(Icons.settings),
+                onPressed: () {
+                  FocusScope.of(context).unfocus();
+                  _searchController.clear();
+                  Navigator.pushNamed(context, '/settingsMenu');
                 },
               ),
-              if (_hasUnreadChats)
-                Positioned(
-                  right: 11,
-                  top: 11,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
-                      shape: BoxShape.circle,
+            ],
+          ),
+          body: Column(
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: SearchFilter(
+                  section: section,
+                  controller: _searchController,
+                  onChanged: (v) => setState(() {
+                    _searchQuery = v.toLowerCase();
+                  }),
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() => _showOnlyOwnEvents = !_showOnlyOwnEvents);
+                      _loadEvents();
+                    },
+                    icon: const Icon(Icons.person, size: 20),
+                    label: Text(
+                      locale.translate(section, 'filter_own_events'),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      backgroundColor:
+                          _showOnlyOwnEvents ? Colors.blue : Colors.grey,
                     ),
                   ),
                 ),
+              ),
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : ListView.builder(
+                        controller: _scrollController,
+                        itemCount:
+                            _filteredEvents.length + (_isLoadingMore ? 1 : 0),
+                        itemBuilder: (ctx, i) {
+                          if (i == _filteredEvents.length) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          final ev = _filteredEvents[i];
+                          final dateTime = ev.date;
+                          final accessEnum = ev.accessType;
+                          final accessText = accessEnum == AccessType.inviteOnly
+                              ? locale.translate(section, 'access_invite_only')
+                              : locale.translate(section, 'access_public');
+                          final waitlistLimit = ev.waitlistLimit;
+
+                          return Card(
+                            margin: const EdgeInsets.all(10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(15),
+                              title: Text(
+                                ev.title,
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.calendar_today,
+                                                size: 16),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              LocalizedDateTimeFormatter
+                                                  .getFormattedDate(
+                                                      context, dateTime),
+                                              style:
+                                                  const TextStyle(fontSize: 14),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.access_time,
+                                                size: 16),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              LocalizedDateTimeFormatter
+                                                  .getFormattedTime(
+                                                      context, dateTime),
+                                              style:
+                                                  const TextStyle(fontSize: 14),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              accessEnum ==
+                                                      AccessType.inviteOnly
+                                                  ? Icons.lock
+                                                  : Icons.public,
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              accessText,
+                                              style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.person, size: 16),
+                                            const SizedBox(width: 6),
+                                            UserDisplayName(
+                                              uid: ev.host,
+                                              style:
+                                                  const TextStyle(fontSize: 14),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              trailing: const Icon(Icons.arrow_forward_ios),
+                              onTap: () async {
+                                FocusScope.of(context).unfocus();
+                                _searchController.clear();
+                                await Navigator.pushNamed(
+                                    context, '/eventDetail',
+                                    arguments: ev.id);
+                                _loadEvents();
+                              },
+                            ),
+                          );
+                        },
+                      ),
+              ),
             ],
           ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => Navigator.pushNamed(context, '/settingsMenu'),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () async {
+              FocusScope.of(context).unfocus();
+              _searchController.clear();
+              await Navigator.pushNamed(context, '/createEvent');
+              _loadEvents();
+            },
+            label: Text(locale.translate(section, 'create_event')),
+            icon: const Icon(Icons.add),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            child: SearchFilter(
-              section: section,
-              onChanged: (v) => setState(() {
-                _searchQuery = v.toLowerCase();
-              }),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  setState(() => _showOnlyOwnEvents = !_showOnlyOwnEvents);
-                  _loadEvents();
-                },
-                icon: const Icon(Icons.person, size: 20),
-                label: Text(
-                  locale.translate(section, 'filter_own_events'),
-                  style: const TextStyle(fontSize: 16),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  backgroundColor:
-                      _showOnlyOwnEvents ? Colors.blue : Colors.grey,
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    controller: _scrollController,
-                    itemCount:
-                        _filteredEvents.length + (_isLoadingMore ? 1 : 0),
-                    itemBuilder: (ctx, i) {
-                      if (i == _filteredEvents.length) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      final ev = _filteredEvents[i];
-                      final dateTime = ev.date;
-                      final accessEnum = ev.accessType;
-                      final accessText = accessEnum == AccessType.inviteOnly
-                          ? locale.translate(section, 'access_invite_only')
-                          : locale.translate(section, 'access_public');
-                      final waitlistLimit = ev.waitlistLimit;
-
-                      return Card(
-                        margin: const EdgeInsets.all(10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(15),
-                          title: Text(
-                            ev.title,
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.calendar_today,
-                                            size: 16),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          LocalizedDateTimeFormatter
-                                              .getFormattedDate(
-                                                  context, dateTime),
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.access_time, size: 16),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          LocalizedDateTimeFormatter
-                                              .getFormattedTime(
-                                                  context, dateTime),
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          accessEnum == AccessType.inviteOnly
-                                              ? Icons.lock
-                                              : Icons.public,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          accessText,
-                                          style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.person, size: 16),
-                                        const SizedBox(width: 6),
-                                        UserDisplayName(
-                                          uid: ev.host,
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          trailing: const Icon(Icons.arrow_forward_ios),
-                          onTap: () async {
-                            await Navigator.pushNamed(context, '/eventDetail',
-                                arguments: ev.id);
-                            _loadEvents();
-                          },
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await Navigator.pushNamed(context, '/createEvent');
-          _loadEvents();
-        },
-        label: Text(locale.translate(section, 'create_event')),
-        icon: const Icon(Icons.add),
-      ),
-    );
+        ));
   }
 }
