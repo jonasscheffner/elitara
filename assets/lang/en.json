@@ -125,6 +125,7 @@
     "location": "Location",
     "join": "Join Event",
     "leave": "Leave Event",
+    "left": "You have left the event",
     "edit_event": "Edit Event",
     "registered": "You have been registered for the event",
     "host": "Host",

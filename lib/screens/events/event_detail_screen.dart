@@ -861,7 +861,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   ev.id, currentUser!.uid);
                               AppSnackBar.show(
                                 context,
-                                locale.translate(section, 'leave'),
+                                locale.translate(section, 'left'),
                                 type: SnackBarType.info,
                               );
                             },

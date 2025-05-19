@@ -125,6 +125,7 @@
     "location": "Ort",
     "join": "Event beitreten",
     "leave": "Event verlassen",
+    "left": "Du hast das Event verlassen",
     "edit_event": "Event bearbeiten",
     "registered": "Du hast dich für das Event registriert",
     "host": "Veranstalter",
