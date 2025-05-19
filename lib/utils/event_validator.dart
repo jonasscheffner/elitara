@@ -4,7 +4,24 @@ import 'package:elitara/localization/locale_provider.dart';
 class EventValidator {
   static const String _section = "event_validation";
 
-  // Validdate participant limit
+  static String? validateTitle(String title, BuildContext context) {
+    final localeProvider =
+        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+    if (title.trim().length > 50) {
+      return localeProvider.translate(_section, 'title_too_long');
+    }
+    return null;
+  }
+
+  static String? validateDescription(String description, BuildContext context) {
+    final localeProvider =
+        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+    if (description.trim().length > 500) {
+      return localeProvider.translate(_section, 'description_too_long');
+    }
+    return null;
+  }
+
   static String? validateParticipantLimit(
     String text,
     BuildContext context, {
@@ -30,7 +47,6 @@ class EventValidator {
     return null;
   }
 
-  // Validate waitlist limit
   static String? validateWaitlistLimit(
     String text,
     BuildContext context, {

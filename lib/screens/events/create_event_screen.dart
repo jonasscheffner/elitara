@@ -36,14 +36,32 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   final String section = 'create_event_screen';
   final EventService _eventService = EventService();
 
+  String? _titleError;
+  String? _descriptionError;
   String? _participantLimitError;
   String? _waitlistLimitError;
 
   @override
   void initState() {
     super.initState();
+    _titleController.addListener(_validateTitle);
+    _descriptionController.addListener(_validateDescription);
     _participantLimitController.addListener(_validateParticipantLimit);
     _waitlistLimitController.addListener(_validateWaitlistLimit);
+  }
+
+  void _validateTitle() {
+    setState(() {
+      _titleError =
+          EventValidator.validateTitle(_titleController.text, context);
+    });
+  }
+
+  void _validateDescription() {
+    setState(() {
+      _descriptionError = EventValidator.validateDescription(
+          _descriptionController.text, context);
+    });
   }
 
   void _validateParticipantLimit() {
@@ -67,24 +85,18 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     });
   }
 
+  bool get _isFormValid {
+    return _titleController.text.isNotEmpty &&
+        _descriptionController.text.isNotEmpty &&
+        _locationController.text.isNotEmpty &&
+        _titleError == null &&
+        _descriptionError == null &&
+        _participantLimitError == null &&
+        _waitlistLimitError == null;
+  }
+
   Future<void> _createEvent() async {
     final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
-
-    if (_titleController.text.isEmpty ||
-        _descriptionController.text.isEmpty ||
-        _locationController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(locale.translate(section, 'messages.fill_all_fields')),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    if (_participantLimitError != null || _waitlistLimitError != null) {
-      return;
-    }
-
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
 
@@ -214,10 +226,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   onCanInviteChanged: (val) => setState(() => _canInvite = val),
                   participantLimitError: _participantLimitError,
                   waitlistLimitError: _waitlistLimitError,
+                  titleError: _titleError,
+                  descriptionError: _descriptionError,
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: _createEvent,
+                  onPressed: _isFormValid ? _createEvent : null,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         vertical: 15, horizontal: 30),

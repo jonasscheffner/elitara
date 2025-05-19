@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/models/event.dart';
@@ -40,6 +39,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
   bool _hasChanged = false;
 
   Event? _originalEvent;
+  String? _titleError;
+  String? _descriptionError;
   String? _participantLimitError;
   String? _waitlistLimitError;
 
@@ -47,6 +48,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
   void initState() {
     super.initState();
     _loadEvent();
+    _titleController.addListener(_validateTitle);
+    _descriptionController.addListener(_validateDescription);
     _participantLimitController.addListener(_validateParticipantLimit);
     _waitlistLimitController.addListener(_validateWaitlistLimit);
   }
@@ -86,6 +89,11 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _participantLimitController.addListener(_onChanged);
     _waitlistLimitController.addListener(_onChanged);
 
+    _validateTitle();
+    _validateDescription();
+    _validateParticipantLimit();
+    _validateWaitlistLimit();
+
     setState(() {
       _isLoading = false;
     });
@@ -103,7 +111,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       _selectedTime.minute,
     );
 
-    bool changed = _titleController.text != ev.title ||
+    final changed = _titleController.text != ev.title ||
         _descriptionController.text != ev.description ||
         _locationController.text != ev.location ||
         !dt.isAtSameMomentAs(ev.date) ||
@@ -124,6 +132,20 @@ class _EditEventScreenState extends State<EditEventScreen> {
     });
   }
 
+  void _validateTitle() {
+    setState(() {
+      _titleError =
+          EventValidator.validateTitle(_titleController.text, context);
+    });
+  }
+
+  void _validateDescription() {
+    setState(() {
+      _descriptionError = EventValidator.validateDescription(
+          _descriptionController.text, context);
+    });
+  }
+
   void _validateParticipantLimit() {
     final error = EventValidator.validateParticipantLimit(
       _participantLimitController.text,
@@ -141,6 +163,16 @@ class _EditEventScreenState extends State<EditEventScreen> {
       existingWaitlistCount: _originalEvent?.waitlist.length ?? 0,
     );
     setState(() => _waitlistLimitError = error);
+  }
+
+  bool get _isFormValid {
+    return _titleController.text.isNotEmpty &&
+        _descriptionController.text.isNotEmpty &&
+        _locationController.text.isNotEmpty &&
+        _titleError == null &&
+        _descriptionError == null &&
+        _participantLimitError == null &&
+        _waitlistLimitError == null;
   }
 
   Future<void> _selectDate(BuildContext ctx) async {
@@ -174,33 +206,17 @@ class _EditEventScreenState extends State<EditEventScreen> {
   Future<void> _updateEvent() async {
     final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
 
-    if (_titleController.text.isEmpty ||
-        _descriptionController.text.isEmpty ||
-        _locationController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(locale.translate(section, 'messages.fill_all_fields')),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    if (_participantLimitError != null || _waitlistLimitError != null) return;
-
-    final original = _originalEvent!;
-    final newDate = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      _selectedTime.hour,
-      _selectedTime.minute,
-    );
-
-    final updatedEvent = original.copyWith(
+    final updatedEvent = _originalEvent!.copyWith(
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
       location: _locationController.text.trim(),
-      date: newDate,
+      date: DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      ),
       accessType: _accessType,
       waitlistEnabled: _waitlistEnabled,
       visibility: _visibility,
@@ -214,10 +230,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
               : null,
     );
 
-    await _eventService.updateEvent(
-      widget.eventId,
-      updatedEvent.toMap(),
-    );
+    await _eventService.updateEvent(widget.eventId, updatedEvent.toMap());
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -294,14 +307,13 @@ class _EditEventScreenState extends State<EditEventScreen> {
                   }),
                   participantLimitError: _participantLimitError,
                   waitlistLimitError: _waitlistLimitError,
+                  titleError: _titleError,
+                  descriptionError: _descriptionError,
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: !_hasChanged ||
-                          _participantLimitError != null ||
-                          _waitlistLimitError != null
-                      ? null
-                      : _updateEvent,
+                  onPressed:
+                      !_hasChanged || !_isFormValid ? null : _updateEvent,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         vertical: 15, horizontal: 30),

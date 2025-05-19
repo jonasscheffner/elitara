@@ -107,6 +107,8 @@
     }
   },
   "event_validation": {
+    "title_too_long": "The title must be at most 50 characters.",
+    "description_too_long": "The description must be at most 500 characters.",
     "participant_limit_invalid": "Invalid number",
     "participant_limit_min": "Limit must be at least 1",
     "participant_limit_error": "Limit is below current participants ({count})",

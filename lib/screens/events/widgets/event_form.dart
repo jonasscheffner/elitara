@@ -27,6 +27,8 @@ class EventForm extends StatelessWidget {
   final String section = "event_form";
   final String? participantLimitError;
   final String? waitlistLimitError;
+  final String? titleError;
+  final String? descriptionError;
 
   const EventForm({
     Key? key,
@@ -49,12 +51,15 @@ class EventForm extends StatelessWidget {
     required this.onCanInviteChanged,
     this.participantLimitError,
     this.waitlistLimitError,
+    this.titleError,
+    this.descriptionError,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -62,19 +67,29 @@ class EventForm extends StatelessWidget {
           controller: titleController,
           decoration: InputDecoration(
             label: RequiredFieldLabel(
-                label: localeProvider.translate(section, 'title')),
+              label: localeProvider.translate(section, 'title'),
+            ),
             border:
                 OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
             contentPadding:
                 const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
           ),
         ),
+        if (titleError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 4),
+            child: Text(
+              titleError!,
+              style: const TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
         const SizedBox(height: 16),
         TextField(
           controller: descriptionController,
           decoration: InputDecoration(
             label: RequiredFieldLabel(
-                label: localeProvider.translate(section, 'description')),
+              label: localeProvider.translate(section, 'description'),
+            ),
             border:
                 OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
             contentPadding:
@@ -82,12 +97,21 @@ class EventForm extends StatelessWidget {
           ),
           maxLines: 3,
         ),
+        if (descriptionError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 4),
+            child: Text(
+              descriptionError!,
+              style: const TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
         const SizedBox(height: 16),
         TextField(
           controller: locationController,
           decoration: InputDecoration(
             label: RequiredFieldLabel(
-                label: localeProvider.translate(section, 'location')),
+              label: localeProvider.translate(section, 'location'),
+            ),
             border:
                 OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
             contentPadding:
@@ -129,11 +153,12 @@ class EventForm extends StatelessWidget {
                       text: LocalizedDateTimeFormatter.getFormattedTime(
                         context,
                         DateTime(
-                            selectedDate.year,
-                            selectedDate.month,
-                            selectedDate.day,
-                            selectedTime.hour,
-                            selectedTime.minute),
+                          selectedDate.year,
+                          selectedDate.month,
+                          selectedDate.day,
+                          selectedTime.hour,
+                          selectedTime.minute,
+                        ),
                       ),
                     ),
                     decoration: InputDecoration(
@@ -152,95 +177,108 @@ class EventForm extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Column(
-          children: [
-            DropdownButtonFormField<VisibilityOption>(
-              decoration: InputDecoration(
-                labelText: localeProvider.translate(section, 'visibility'),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0)),
-                contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16.0, horizontal: 12.0),
-              ),
-              value: visibility,
-              items: [
-                DropdownMenuItem(
-                  value: VisibilityOption.everyone,
-                  child: Text(
-                      localeProvider.translate(section, 'visibility_everyone')),
-                ),
-                DropdownMenuItem(
-                  value: VisibilityOption.participantsOnly,
-                  child: Text(localeProvider.translate(
-                      section, 'visibility_participants_only')),
-                ),
-              ],
-              onChanged: onVisibilityChanged,
+        DropdownButtonFormField<VisibilityOption>(
+          decoration: InputDecoration(
+            labelText: localeProvider.translate(section, 'visibility'),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+          ),
+          value: visibility,
+          items: [
+            DropdownMenuItem(
+              value: VisibilityOption.everyone,
+              child: Text(
+                  localeProvider.translate(section, 'visibility_everyone')),
             ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<AccessType>(
-              decoration: InputDecoration(
-                labelText: localeProvider.translate(section, 'access'),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0)),
-                contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16.0, horizontal: 12.0),
-              ),
-              value: accessType,
-              items: [
-                DropdownMenuItem(
-                  value: AccessType.public,
-                  child:
-                      Text(localeProvider.translate(section, 'access_public')),
-                ),
-                DropdownMenuItem(
-                  value: AccessType.inviteOnly,
-                  child: Text(
-                      localeProvider.translate(section, 'access_invite_only')),
-                ),
-              ],
-              onChanged: onAccessTypeChanged,
+            DropdownMenuItem(
+              value: VisibilityOption.participantsOnly,
+              child: Text(localeProvider.translate(
+                  section, 'visibility_participants_only')),
             ),
           ],
+          onChanged: onVisibilityChanged,
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<AccessType>(
+          decoration: InputDecoration(
+            labelText: localeProvider.translate(section, 'access'),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+          ),
+          value: accessType,
+          items: [
+            DropdownMenuItem(
+              value: AccessType.public,
+              child: Text(localeProvider.translate(section, 'access_public')),
+            ),
+            DropdownMenuItem(
+              value: AccessType.inviteOnly,
+              child:
+                  Text(localeProvider.translate(section, 'access_invite_only')),
+            ),
+          ],
+          onChanged: onAccessTypeChanged,
         ),
         const SizedBox(height: 16),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 1,
-              child: TextField(
-                controller: participantLimitController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText:
-                      localeProvider.translate(section, 'participant_limit'),
-                  errorText: participantLimitError,
-                  errorMaxLines: 2,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0)),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: participantLimitController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: localeProvider.translate(
+                          section, 'participant_limit'),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16.0, horizontal: 12.0),
+                    ),
+                  ),
+                  if (participantLimitError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, left: 4),
+                      child: Text(
+                        participantLimitError!,
+                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
+                ],
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
-              flex: 1,
-              child: TextField(
-                controller: waitlistLimitController,
-                keyboardType: TextInputType.number,
-                enabled: waitlistEnabled,
-                decoration: InputDecoration(
-                  labelText:
-                      localeProvider.translate(section, 'waitlist_limit'),
-                  errorText: waitlistLimitError,
-                  errorMaxLines: 2,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0)),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 12.0),
-                ),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: waitlistLimitController,
+                    keyboardType: TextInputType.number,
+                    enabled: waitlistEnabled,
+                    decoration: InputDecoration(
+                      labelText:
+                          localeProvider.translate(section, 'waitlist_limit'),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16.0, horizontal: 12.0),
+                    ),
+                  ),
+                  if (waitlistLimitError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, left: 4),
+                      child: Text(
+                        waitlistLimitError!,
+                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
@@ -249,14 +287,9 @@ class EventForm extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    localeProvider.translate(section, 'enable_waitlist'),
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                ],
+              child: Text(
+                localeProvider.translate(section, 'enable_waitlist'),
+                style: const TextStyle(fontSize: 18),
               ),
             ),
             Switch(
@@ -270,10 +303,11 @@ class EventForm extends StatelessWidget {
           children: [
             Expanded(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Text(localeProvider.translate(section, 'invite_permission'),
-                      style: const TextStyle(fontSize: 16)),
+                  Text(
+                    localeProvider.translate(section, 'invite_permission'),
+                    style: const TextStyle(fontSize: 16),
+                  ),
                   const SizedBox(width: 4),
                   CustomTooltip(
                     message: localeProvider.translate(
