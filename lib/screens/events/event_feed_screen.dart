@@ -6,7 +6,6 @@ import 'package:elitara/models/access_type.dart';
 import 'package:elitara/services/chat_service.dart';
 import 'package:elitara/widgets/search_filter.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
-import 'package:elitara/screens/events/widgets/waitlist_dialog.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:elitara/services/user_service.dart';
@@ -39,6 +38,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   bool _showOnlyOwnEvents = false;
   final Map<String, String> _hostNames = {};
   final Map<String, int> _waitlistCounts = {};
+  final Map<String, bool> _isParticipating = {};
   bool _hasUnreadChats = false;
 
   @override
@@ -105,7 +105,9 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
 
       for (var ev in _events) {
         _waitlistCounts[ev.id] = ev.waitlist.length;
+        _isParticipating[ev.id] = ev.participants.contains(_currentUserId);
       }
+
       await _loadHostNamesForEvents(_events);
     } catch (e) {
       debugPrint("Fehler beim Laden der Events: $e");
@@ -131,6 +133,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
 
       for (var ev in more) {
         _waitlistCounts[ev.id] = ev.waitlist.length;
+        _isParticipating[ev.id] = ev.participants.contains(_currentUserId);
       }
       await _loadHostNamesForEvents(more);
     } else {
@@ -283,10 +286,21 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                             ),
                             child: ListTile(
                               contentPadding: const EdgeInsets.all(15),
-                              title: Text(
-                                ev.title,
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      ev.title,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  if (_isParticipating[ev.id] == true)
+                                    const Icon(Icons.check_circle,
+                                        color: Colors.green, size: 20),
+                                ],
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
