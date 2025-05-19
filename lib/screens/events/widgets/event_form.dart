@@ -178,50 +178,67 @@ class EventForm extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<VisibilityOption>(
+          value: visibility,
+          onChanged: onVisibilityChanged,
+          icon: const Icon(Icons.arrow_drop_down_rounded, size: 28),
           decoration: InputDecoration(
             labelText: localeProvider.translate(section, 'visibility'),
-            border:
-                OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
             contentPadding:
-                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+                const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
           ),
-          value: visibility,
+          borderRadius: BorderRadius.circular(12),
+          elevation: 4,
           items: [
             DropdownMenuItem(
               value: VisibilityOption.everyone,
               child: Text(
-                  localeProvider.translate(section, 'visibility_everyone')),
+                localeProvider.translate(section, 'visibility_everyone'),
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
             DropdownMenuItem(
               value: VisibilityOption.participantsOnly,
-              child: Text(localeProvider.translate(
-                  section, 'visibility_participants_only')),
+              child: Text(
+                localeProvider.translate(
+                    section, 'visibility_participants_only'),
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
           ],
-          onChanged: onVisibilityChanged,
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<AccessType>(
+          value: accessType,
+          onChanged: onAccessTypeChanged,
+          icon: const Icon(Icons.arrow_drop_down_rounded, size: 28),
           decoration: InputDecoration(
             labelText: localeProvider.translate(section, 'access'),
             border:
                 OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
             contentPadding:
-                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+                const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
           ),
-          value: accessType,
+          borderRadius: BorderRadius.circular(12),
+          elevation: 4,
           items: [
             DropdownMenuItem(
               value: AccessType.public,
-              child: Text(localeProvider.translate(section, 'access_public')),
+              child: Text(
+                localeProvider.translate(section, 'access_public'),
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
             DropdownMenuItem(
               value: AccessType.inviteOnly,
-              child:
-                  Text(localeProvider.translate(section, 'access_invite_only')),
+              child: Text(
+                localeProvider.translate(section, 'access_invite_only'),
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
           ],
-          onChanged: onAccessTypeChanged,
         ),
         const SizedBox(height: 16),
         Row(
