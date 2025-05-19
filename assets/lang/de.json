@@ -172,7 +172,7 @@
   "settings": {
     "menu_screen": {
       "title": "Einstellungen",
-      "account_settings": "Account",
+      "account_settings": "Kontoeinstellungen",
       "membership": "Mitgliedschaft",
       "notifications": "Benachrichtigungen",
       "app_info": "App-Info",
@@ -202,7 +202,7 @@
       }
     },
     "membership_screen": {
-      "title": "Mitgliedschaftsverwaltung",
+      "title": "Mitgliedschaft",
       "guest_title": "Guest-Mitgliedschaft – Dein Zugang zur Event-Welt",
       "guest_feature_1": "Exklusive Events erleben",
       "guest_feature_2": "Teilnahme als Gast & Netzwerk erweitern",
