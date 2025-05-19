@@ -128,6 +128,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
         child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

@@ -84,6 +84,7 @@ class _WaitlistDialogState extends State<WaitlistDialog> {
         constraints:
             BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

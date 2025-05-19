@@ -297,6 +297,8 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : ListView.builder(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
                         controller: _scrollController,
                         itemCount:
                             _filteredEvents.length + (_isLoadingMore ? 1 : 0),

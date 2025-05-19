@@ -136,6 +136,7 @@ class _LoginScreenState extends State<LoginScreen>
         behavior: HitTestBehavior.translucent,
         child: Center(
           child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

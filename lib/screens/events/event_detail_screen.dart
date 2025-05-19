@@ -106,6 +106,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               ev.waitlist.any((e) => e['uid'] == currentUser.uid);
 
           return SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(

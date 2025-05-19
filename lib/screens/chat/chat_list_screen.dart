@@ -112,6 +112,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
               constraints: const BoxConstraints(maxHeight: 250),
               child: _searchResults.isNotEmpty
                   ? ListView.builder(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
                       padding: EdgeInsets.zero,
                       shrinkWrap: true,
                       itemCount: _searchResults.length,

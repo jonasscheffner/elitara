@@ -202,6 +202,8 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
                                 ),
                               )
                             : ListView.builder(
+                                keyboardDismissBehavior:
+                                    ScrollViewKeyboardDismissBehavior.onDrag,
                                 controller: _scrollController,
                                 padding: EdgeInsets.zero,
                                 itemCount: _searchResults.length +

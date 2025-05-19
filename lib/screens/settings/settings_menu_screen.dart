@@ -20,6 +20,7 @@ class SettingsMenuScreen extends StatelessWidget {
         title: Text(localeProvider.translate(section, 'title')),
       ),
       body: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         children: [
           ListTile(
             leading: const Icon(Icons.person),

@@ -205,6 +205,8 @@ class _ParticipantListDialogState extends State<ParticipantListDialog> {
                           child: Scrollbar(
                             controller: _scrollController,
                             child: ListView.builder(
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.onDrag,
                               controller: _scrollController,
                               padding: EdgeInsets.zero,
                               itemCount: _displayedParticipants.length +
