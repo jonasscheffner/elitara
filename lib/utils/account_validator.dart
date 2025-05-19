@@ -1,7 +1,7 @@
 import 'package:elitara/services/auth_service.dart';
 import 'package:elitara/localization/locale_provider.dart';
 
-class Validators {
+class AccountValidator {
   static final AuthService _authService = AuthService();
 
   static Future<String?> validateEmail(

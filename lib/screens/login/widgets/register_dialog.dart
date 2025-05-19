@@ -1,5 +1,5 @@
 import 'package:elitara/services/auth_service.dart';
-import 'package:elitara/utils/validators.dart';
+import 'package:elitara/utils/account_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -45,7 +45,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
   void validateEmail() async {
     final email = emailController.text.trim();
     final error =
-        await Validators.validateEmail(email, localeProvider, section);
+        await AccountValidator.validateEmail(email, localeProvider, section);
     setState(() {
       emailError = error;
       emailUnique = error == null;
@@ -54,8 +54,8 @@ class _RegisterDialogState extends State<RegisterDialog> {
 
   void validateUsername() async {
     final username = usernameController.text.trim();
-    final error =
-        await Validators.validateUsername(username, localeProvider, section);
+    final error = await AccountValidator.validateUsername(
+        username, localeProvider, section);
     setState(() {
       usernameError = error;
       usernameUnique = error == null;
@@ -63,7 +63,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
   }
 
   void validatePassword() {
-    final error = Validators.validatePassword(
+    final error = AccountValidator.validatePassword(
         passwordController.text, localeProvider, section);
     setState(() {
       passwordError = error;

@@ -1,8 +1,8 @@
+import 'package:elitara/utils/account_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/services/user_service.dart';
-import 'package:elitara/utils/validators.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({super.key});
@@ -80,7 +80,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   void _validateUsername() async {
     final username = _usernameController.text.trim();
     final current = _auth.currentUser?.displayName ?? '';
-    final error = await Validators.validateUsername(
+    final error = await AccountValidator.validateUsername(
       username,
       localeProvider,
       section,
@@ -94,7 +94,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   void _validateEmail() async {
     final email = _emailController.text.trim();
     final current = _auth.currentUser?.email ?? '';
-    final error = await Validators.validateEmail(
+    final error = await AccountValidator.validateEmail(
       email,
       localeProvider,
       section,
@@ -108,7 +108,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   void _validatePassword() {
     final password = _passwordController.text;
     final error = password.isNotEmpty
-        ? Validators.validatePassword(password, localeProvider, section)
+        ? AccountValidator.validatePassword(password, localeProvider, section)
         : null;
     setState(() {
       passwordError = error;

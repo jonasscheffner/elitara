@@ -1,6 +1,6 @@
+import 'package:elitara/utils/account_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:elitara/utils/validators.dart';
 import 'package:elitara/localization/locale_provider.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -30,7 +30,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       passwordError == null && passwordController.text.isNotEmpty;
 
   void validatePassword() {
-    final error = Validators.validatePassword(
+    final error = AccountValidator.validatePassword(
         passwordController.text, localeProvider, section);
     setState(() {
       passwordError = _touched ? error : null;
