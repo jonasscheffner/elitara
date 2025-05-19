@@ -1,4 +1,5 @@
 import 'package:elitara/utils/account_validator.dart';
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -45,17 +46,19 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         newPassword: passwordController.text,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(localeProvider.translate(section, 'reset_success')),
-        backgroundColor: Colors.green,
-      ));
+      AppSnackBar.show(
+        context,
+        localeProvider.translate(section, 'reset_success'),
+        type: SnackBarType.success,
+      );
 
       Navigator.of(context).pop();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(localeProvider.translate(section, 'reset_failed')),
-        backgroundColor: Colors.red,
-      ));
+      AppSnackBar.show(
+        context,
+        localeProvider.translate(section, 'reset_failed'),
+        type: SnackBarType.error,
+      );
     }
     setState(() => isLoading = false);
   }

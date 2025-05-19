@@ -1,4 +1,5 @@
 import 'package:elitara/utils/account_validator.dart';
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -143,11 +144,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         'email': email,
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(localeProvider.translate(section, 'profile_updated')),
-          backgroundColor: Colors.green,
-        ),
+      AppSnackBar.show(
+        context,
+        localeProvider.translate(section, 'profile_updated'),
+        type: SnackBarType.success,
       );
 
       setState(() {
@@ -158,12 +158,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
       Navigator.pop(context);
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text(localeProvider.translate(section, 'profile_update_error')),
-          backgroundColor: Colors.red,
-        ),
+      AppSnackBar.show(
+        context,
+        localeProvider.translate(section, 'profile_update_error'),
+        type: SnackBarType.error,
       );
     }
 

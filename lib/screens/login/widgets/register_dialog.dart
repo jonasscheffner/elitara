@@ -1,5 +1,6 @@
 import 'package:elitara/services/auth_service.dart';
 import 'package:elitara/utils/account_validator.dart';
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -83,12 +84,10 @@ class _RegisterDialogState extends State<RegisterDialog> {
       );
       Navigator.pop(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              localeProvider.translate(section, 'messages.register_success')),
-          backgroundColor: Colors.green,
-        ),
+      AppSnackBar.show(
+        context,
+        localeProvider.translate(section, 'messages.register_success'),
+        type: SnackBarType.success,
       );
     } catch (e) {
       setState(() {
@@ -105,11 +104,10 @@ class _RegisterDialogState extends State<RegisterDialog> {
           errorKey = 'validation.invalid_email';
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(localeProvider.translate(section, errorKey)),
-          backgroundColor: Colors.red,
-        ),
+      AppSnackBar.show(
+        context,
+        localeProvider.translate(section, errorKey),
+        type: SnackBarType.error,
       );
     }
   }

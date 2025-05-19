@@ -1,4 +1,5 @@
 import 'package:elitara/models/event_status.dart';
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -139,11 +140,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
     await _eventService.createEvent(newEvent.toMap());
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(locale.translate(section, 'messages.event_created')),
-      ),
+    AppSnackBar.show(
+      context,
+      locale.translate(section, 'messages.event_created'),
+      type: SnackBarType.success,
     );
+
     Navigator.pop(context);
   }
 

@@ -1,3 +1,4 @@
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/services/membership_service.dart';
@@ -151,12 +152,11 @@ class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
       _currentMembership = newMembership;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(Localizations.of<LocaleProvider>(context, LocaleProvider)!
-            .translate(widget.section, 'membership_updated')),
-        backgroundColor: Colors.green,
-      ),
+    AppSnackBar.show(
+      context,
+      Localizations.of<LocaleProvider>(context, LocaleProvider)!
+          .translate(widget.section, 'membership_updated'),
+      type: SnackBarType.success,
     );
   }
 
@@ -169,14 +169,11 @@ class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
       _currentMembership = null;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          Localizations.of<LocaleProvider>(context, LocaleProvider)!
-              .translate(widget.section, 'membership_canceled'),
-        ),
-        backgroundColor: Colors.green,
-      ),
+    AppSnackBar.show(
+      context,
+      Localizations.of<LocaleProvider>(context, LocaleProvider)!
+          .translate(widget.section, 'membership_canceled'),
+      type: SnackBarType.success,
     );
   }
 

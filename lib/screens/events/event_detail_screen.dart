@@ -9,6 +9,7 @@ import 'package:elitara/screens/events/widgets/participant_list_dialog.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
 import 'package:elitara/screens/events/widgets/waitlist_dialog.dart';
 import 'package:elitara/services/membership_service.dart';
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -598,11 +599,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               );
                               if (result == true) {
                                 await _updateWaitlistForEvent(ev.id);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(locale.translate(
-                                        section, 'waitlist_updated')),
-                                  ),
+                                AppSnackBar.show(
+                                  context,
+                                  locale.translate(section, 'waitlist_updated'),
+                                  type: SnackBarType.info,
                                 );
                               }
                             },
@@ -721,10 +721,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               );
                               if (confirm == true) {
                                 await _eventService.cancelEvent(widget.eventId);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(locale.translate(
-                                            section, 'event_canceled'))));
+                                AppSnackBar.show(
+                                  context,
+                                  locale.translate(section, 'event_canceled'),
+                                  type: SnackBarType.warning,
+                                );
+
                                 Navigator.pop(context);
                               }
                             },
@@ -748,10 +750,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               onPressed: () async {
                                 await _eventService.registerForEvent(
                                     ev.id, currentUser!.uid);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(locale.translate(
-                                            section, 'registered'))));
+                                AppSnackBar.show(
+                                  context,
+                                  locale.translate(section, 'registered'),
+                                  type: SnackBarType.success,
+                                );
                               },
                               icon: const Icon(Icons.event_available),
                               label: Text(locale.translate(section, 'join')),
@@ -788,10 +791,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   await _eventService.leaveWaitlist(
                                       ev.id, entry);
                                   await _updateWaitlistForEvent(ev.id);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(locale.translate(
-                                              section, 'leave_waitlist'))));
+                                  AppSnackBar.show(
+                                    context,
+                                    locale.translate(section, 'leave_waitlist'),
+                                    type: SnackBarType.info,
+                                  );
                                 },
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
@@ -815,11 +819,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   await _eventService.joinWaitlist(
                                       ev.id, entry);
                                   await _updateWaitlistForEvent(ev.id);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(locale.translate(
-                                              section,
-                                              'waitlist_registered'))));
+                                  AppSnackBar.show(
+                                    context,
+                                    locale.translate(
+                                        section, 'waitlist_registered'),
+                                    type: SnackBarType.success,
+                                  );
                                 },
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
@@ -854,10 +859,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             onPressed: () async {
                               await _eventService.leaveEvent(
                                   ev.id, currentUser!.uid);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(
-                                        locale.translate(section, 'leave'))),
+                              AppSnackBar.show(
+                                context,
+                                locale.translate(section, 'leave'),
+                                type: SnackBarType.info,
                               );
                             },
                             icon: const Icon(Icons.exit_to_app),

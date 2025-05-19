@@ -1,3 +1,4 @@
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 
 import 'package:elitara/localization/locale_provider.dart';
@@ -232,11 +233,12 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
     await _eventService.updateEvent(widget.eventId, updatedEvent.toMap());
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(locale.translate(section, 'messages.event_updated')),
-      ),
+    AppSnackBar.show(
+      context,
+      locale.translate(section, 'messages.event_updated'),
+      type: SnackBarType.success,
     );
+
     Navigator.pop(context);
   }
 

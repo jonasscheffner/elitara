@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:elitara/screens/login/widgets/register_dialog.dart';
 import 'package:elitara/services/auth_service.dart';
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -64,13 +65,10 @@ class _LoginScreenState extends State<LoginScreen>
         Navigator.pushReplacementNamed(context, '/eventFeed');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            localeProvider.translate(section, 'messages.login_error'),
-          ),
-          backgroundColor: Colors.red,
-        ),
+      AppSnackBar.show(
+        context,
+        localeProvider.translate(section, 'messages.login_error'),
+        type: SnackBarType.error,
       );
     }
   }
@@ -78,27 +76,26 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _forgotPassword() async {
     final email = emailController.text.trim();
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text(localeProvider.translate(section, 'enter_email_for_reset')),
-        ),
+      AppSnackBar.show(
+        context,
+        localeProvider.translate(section, 'enter_email_for_reset'),
+        type: SnackBarType.info,
       );
+
       return;
     }
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(localeProvider.translate(section, 'reset_email_sent')),
-        ),
+      AppSnackBar.show(
+        context,
+        localeProvider.translate(section, 'reset_email_sent'),
+        type: SnackBarType.success,
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(localeProvider.translate(section, 'reset_email_error')),
-          backgroundColor: Colors.red,
-        ),
+      AppSnackBar.show(
+        context,
+        localeProvider.translate(section, 'reset_email_error'),
+        type: SnackBarType.error,
       );
     }
   }
