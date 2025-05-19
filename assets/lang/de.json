@@ -59,7 +59,8 @@
     "search": "Events durchsuchen...",
     "access_public": "Öffentlich",
     "access_invite_only": "Nur per Einladung",
-    "filter_own_events": "Nur meine Events anzeigen"
+    "filter_own_events": "Nur meine Events anzeigen",
+    "filter_participating_events": "Nur teilgenommene Events anzeigen"
   },
   "waitlist_dialog": {
     "title": "Warteliste - {title}",

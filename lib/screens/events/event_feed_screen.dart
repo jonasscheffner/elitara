@@ -40,6 +40,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   final Map<String, int> _waitlistCounts = {};
   final Map<String, bool> _isParticipating = {};
   bool _hasUnreadChats = false;
+  bool _showOnlyParticipatingEvents = false;
 
   @override
   void initState() {
@@ -156,19 +157,29 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   }
 
   List<Event> get _filteredEvents {
-    if (_searchQuery.isEmpty) return _events;
-    return _events.where((ev) {
+    var filtered = _events;
+
+    if (_showOnlyParticipatingEvents) {
+      filtered =
+          filtered.where((ev) => _isParticipating[ev.id] == true).toList();
+    }
+
+    if (_searchQuery.isNotEmpty) {
       final q = _searchQuery;
-      final title = ev.title.toLowerCase();
-      final desc = ev.description.toLowerCase();
-      final loc = ev.location.toLowerCase();
-      final host =
-          (_hostNames[ev.host]?.toLowerCase() ?? ev.host.toLowerCase());
-      return title.contains(q) ||
-          desc.contains(q) ||
-          loc.contains(q) ||
-          host.contains(q);
-    }).toList();
+      filtered = filtered.where((ev) {
+        final title = ev.title.toLowerCase();
+        final desc = ev.description.toLowerCase();
+        final loc = ev.location.toLowerCase();
+        final host =
+            (_hostNames[ev.host]?.toLowerCase() ?? ev.host.toLowerCase());
+        return title.contains(q) ||
+            desc.contains(q) ||
+            loc.contains(q) ||
+            host.contains(q);
+      }).toList();
+    }
+
+    return filtered;
   }
 
   @override
@@ -225,40 +236,63 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                child: SearchFilter(
-                  section: section,
-                  controller: _searchController,
-                  onChanged: (v) => setState(() {
-                    _searchQuery = v.toLowerCase();
-                  }),
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() => _showOnlyOwnEvents = !_showOnlyOwnEvents);
-                      _loadEvents();
-                    },
-                    icon: const Icon(Icons.person, size: 20),
-                    label: Text(
-                      locale.translate(section, 'filter_own_events'),
-                      style: const TextStyle(fontSize: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SearchFilter(
+                      section: section,
+                      controller: _searchController,
+                      onChanged: (v) => setState(() {
+                        _searchQuery = v.toLowerCase();
+                      }),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 8),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(
+                            () => _showOnlyOwnEvents = !_showOnlyOwnEvents);
+                        _loadEvents();
+                      },
+                      icon: const Icon(Icons.star, size: 20),
+                      label: Text(
+                        locale.translate(section, 'filter_own_events'),
+                        style: const TextStyle(fontSize: 16),
                       ),
-                      backgroundColor:
-                          _showOnlyOwnEvents ? Colors.blue : Colors.grey,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        backgroundColor:
+                            _showOnlyOwnEvents ? Colors.blue : Colors.grey,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 4),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() => _showOnlyParticipatingEvents =
+                            !_showOnlyParticipatingEvents);
+                      },
+                      icon: const Icon(Icons.check_circle_outline, size: 20),
+                      label: Text(
+                        locale.translate(
+                            section, 'filter_participating_events'),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        backgroundColor: _showOnlyParticipatingEvents
+                            ? Colors.blue
+                            : Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(height: 4),
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
@@ -297,7 +331,10 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                                       ),
                                     ),
                                   ),
-                                  if (_isParticipating[ev.id] == true)
+                                  if (ev.host == _currentUserId)
+                                    const Icon(Icons.star,
+                                        color: Colors.amber, size: 20)
+                                  else if (_isParticipating[ev.id] == true)
                                     const Icon(Icons.check_circle,
                                         color: Colors.green, size: 20),
                                 ],

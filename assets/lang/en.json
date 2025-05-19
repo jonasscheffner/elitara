@@ -59,7 +59,8 @@
     "search": "Search events...",
     "access_public": "Public",
     "access_invite_only": "Invite Only",
-    "filter_own_events": "Show only my events"
+    "filter_own_events": "Show only my events",
+    "filter_participating_events": "Show participating events"
   },
   "waitlist_dialog": {
     "title": "Waitlist - {title}",
