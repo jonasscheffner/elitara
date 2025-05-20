@@ -6,11 +6,11 @@
     "forgotten_password": "Forgotten your password?",
     "create_account": "Create Elitara Account",
     "messages": {
-      "login_error": "Login failed. Please check your credentials."
+      "login_error": "Login failed. Please check your credentials"
     },
     "enter_email_for_reset": "Please enter your email to reset your password",
-    "reset_email_sent": "Password reset email has been sent.",
-    "reset_email_error": "Failed to send password reset email."
+    "reset_email_sent": "Password reset email has been sent",
+    "reset_email_error": "Failed to send password reset email"
   },
   "register_dialog": {
     "create_account": "Create Your Elitara Account",
@@ -20,8 +20,8 @@
     "cancel": "Cancel",
     "create": "Create",
     "messages": {
-      "register_error": "Registration failed. Please try again.",
-      "register_success": "Registration successful."
+      "register_error": "Registration failed",
+      "register_success": "Registration successful"
     },
     "validation": {
       "invalid_email": "Please enter a valid email",
@@ -40,8 +40,8 @@
     "title": "Reset Password",
     "new_password": "New Password",
     "submit": "Submit",
-    "reset_success": "Password has been reset successfully.",
-    "reset_failed": "Failed to reset password. Please try again.",
+    "reset_success": "Password has been reset successfully",
+    "reset_failed": "Failed to reset password. Please try again",
     "validation.password_length": "Password must be at least 6 characters.",
     "validation.password_upper": "Password must contain an uppercase letter.",
     "validation.password_special": "Password must contain a special character.",
@@ -60,7 +60,9 @@
     "access_public": "Public",
     "access_invite_only": "Invite Only",
     "filter_own_events": "Show only my events",
-    "filter_participating_events": "Show participating events"
+    "filter_participating_events": "Show participating events",
+    "upgrade_required_create": "You need a Gold or Platinum membership to create events",
+    "upgrade_required_messages": "You need a Gold or Platinum membership to send messages"
   },
   "waitlist_dialog": {
     "title": "Waitlist - {title}",
@@ -215,8 +217,8 @@
       "platinum_feature_2": "Monetize events with paid access",
       "platinum_feature_3": "Exclusive Platinum Organizer Badge",
       "cancel_membership_button": "Cancel Membership",
-      "membership_updated": "Your membership has been successfully updated.",
-      "membership_canceled": "Your membership has been successfully canceled.",
+      "membership_updated": "Your membership has been successfully updated",
+      "membership_canceled": "Your membership has been successfully canceled",
       "cancel_title": "Cancel Membership",
       "cancel_confirmation": "Are you sure you want to cancel your membership? This action cannot be undone.",
       "cancel_no": "Cancel",

@@ -6,11 +6,11 @@
     "forgotten_password": "Dein Passwort vergessen?",
     "create_account": "Elitara Account erstellen",
     "messages": {
-      "login_error": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten."
+      "login_error": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten"
     },
     "enter_email_for_reset": "Bitte geben Sie Ihre E-Mail ein, um das Passwort zurückzusetzen",
-    "reset_email_sent": "Eine E-Mail zum Zurücksetzen des Passworts wurde gesendet.",
-    "reset_email_error": "Passwort-Zurücksetzung fehlgeschlagen."
+    "reset_email_sent": "Eine E-Mail zum Zurücksetzen des Passworts wurde gesendet",
+    "reset_email_error": "Passwort-Zurücksetzung fehlgeschlagen"
   },
   "register_dialog": {
     "create_account": "Erstelle dein Elitara Account",
@@ -20,8 +20,8 @@
     "cancel": "Abbrechen",
     "create": "Erstellen",
     "messages": {
-      "register_error": "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
-      "register_success": "Registrierung erfolgreich."
+      "register_error": "Registrierung fehlgeschlagen",
+      "register_success": "Registrierung erfolgreich"
     },
     "validation": {
       "invalid_email": "Bitte gib eine gültige E-Mail ein",
@@ -40,8 +40,8 @@
     "title": "Passwort zurücksetzen",
     "new_password": "Neues Passwort",
     "submit": "Bestätigen",
-    "reset_success": "Dein Passwort wurde erfolgreich geändert.",
-    "reset_failed": "Fehler beim Zurücksetzen des Passworts.",
+    "reset_success": "Dein Passwort wurde erfolgreich geändert",
+    "reset_failed": "Fehler beim Zurücksetzen des Passworts",
     "validation.password_length": "Das Passwort muss mindestens 6 Zeichen lang sein.",
     "validation.password_upper": "Das Passwort muss einen Großbuchstaben enthalten.",
     "validation.password_special": "Das Passwort muss ein Sonderzeichen enthalten.",
@@ -60,7 +60,9 @@
     "access_public": "Öffentlich",
     "access_invite_only": "Nur per Einladung",
     "filter_own_events": "Nur meine Events anzeigen",
-    "filter_participating_events": "Nur teilgenommene Events anzeigen"
+    "filter_participating_events": "Nur teilgenommene Events anzeigen",
+    "upgrade_required_create": "Du benötigst eine Gold- oder Platin-Mitgliedschaft, um Events zu erstellen",
+    "upgrade_required_messages": "Du benötigst eine Gold- oder Platin-Mitgliedschaft, um Nachrichten zu senden"
   },
   "waitlist_dialog": {
     "title": "Warteliste - {title}",
@@ -215,8 +217,8 @@
       "platinum_feature_2": "Events monetarisieren mit kostenpflichtigem Zugang",
       "platinum_feature_3": "Exklusives Platin-Veranstalter-Badge",
       "cancel_membership_button": "Mitgliedschaft kündigen",
-      "membership_updated": "Deine Mitgliedschaft wurde erfolgreich aktualisiert.",
-      "membership_canceled": "Deine Mitgliedschaft wurde erfolgreich gekündigt.",
+      "membership_updated": "Deine Mitgliedschaft wurde erfolgreich aktualisiert",
+      "membership_canceled": "Deine Mitgliedschaft wurde erfolgreich gekündigt",
       "cancel_title": "Mitgliedschaft kündigen",
       "cancel_confirmation": "Bist du sicher, dass du deine Mitgliedschaft kündigen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
       "cancel_no": "Abbrechen",

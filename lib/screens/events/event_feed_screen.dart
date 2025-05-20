@@ -3,7 +3,10 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/models/event.dart';
 import 'package:elitara/models/access_type.dart';
+import 'package:elitara/models/membership_type.dart';
 import 'package:elitara/services/chat_service.dart';
+import 'package:elitara/services/membership_service.dart';
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:elitara/widgets/search_filter.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
 import 'package:elitara/localization/locale_provider.dart';
@@ -41,12 +44,14 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   final Map<String, bool> _isParticipating = {};
   bool _hasUnreadChats = false;
   bool _showOnlyParticipatingEvents = false;
+  MembershipType? _membership;
 
   @override
   void initState() {
     super.initState();
     _loadEvents();
     _checkUnreadChats();
+    _loadMembership();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
               _scrollController.position.maxScrollExtent - 200 &&
@@ -54,6 +59,13 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
           _hasMore) {
         _loadMoreEvents();
       }
+    });
+  }
+
+  Future<void> _loadMembership() async {
+    final membership = await MembershipService().getCurrentMembership();
+    setState(() {
+      _membership = membership;
     });
   }
 
@@ -202,6 +214,18 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                     onPressed: () async {
                       FocusScope.of(context).unfocus();
                       _searchController.clear();
+
+                      if (_membership == null ||
+                          _membership == MembershipType.guest) {
+                        AppSnackBar.show(
+                          context,
+                          locale.translate(
+                              section, 'upgrade_required_messages'),
+                          type: SnackBarType.warning,
+                        );
+                        return;
+                      }
+
                       await Navigator.pushNamed(context, '/chatList');
                       _checkUnreadChats();
                     },
@@ -441,6 +465,16 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
             onPressed: () async {
               FocusScope.of(context).unfocus();
               _searchController.clear();
+
+              if (_membership == null || _membership == MembershipType.guest) {
+                AppSnackBar.show(
+                  context,
+                  locale.translate(section, 'upgrade_required_create'),
+                  type: SnackBarType.warning,
+                );
+                return;
+              }
+
               await Navigator.pushNamed(context, '/createEvent');
               _loadEvents();
             },
