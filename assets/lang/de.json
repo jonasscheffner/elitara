@@ -62,7 +62,8 @@
     "filter_own_events": "Nur meine Events anzeigen",
     "filter_participating_events": "Nur teilgenommene Events anzeigen",
     "upgrade_required_create": "Du benötigst eine Gold- oder Platin-Mitgliedschaft, um Events zu erstellen",
-    "upgrade_required_messages": "Du benötigst eine Gold- oder Platin-Mitgliedschaft, um Nachrichten zu senden"
+    "upgrade_required_messages": "Du benötigst eine Gold- oder Platin-Mitgliedschaft, um Nachrichten zu senden",
+    "limit_reached_gold": "Du hast dein Limit für Event-Erstellungen in diesem Monat erreicht"
   },
   "waitlist_dialog": {
     "title": "Warteliste - {title}",

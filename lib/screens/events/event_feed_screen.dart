@@ -466,13 +466,30 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
               FocusScope.of(context).unfocus();
               _searchController.clear();
 
-              if (_membership == null || _membership == MembershipType.guest) {
+              final membership = _membership;
+
+              if (membership == null || membership == MembershipType.guest) {
                 AppSnackBar.show(
                   context,
                   locale.translate(section, 'upgrade_required_create'),
                   type: SnackBarType.warning,
                 );
                 return;
+              }
+
+              if (membership == MembershipType.gold) {
+                final userId = await _userService.getCurrentUserId();
+                final isLimitReached =
+                    await _eventService.isGoldLimitReached(userId);
+
+                if (isLimitReached) {
+                  AppSnackBar.show(
+                    context,
+                    locale.translate(section, 'limit_reached_gold'),
+                    type: SnackBarType.warning,
+                  );
+                  return;
+                }
               }
 
               await Navigator.pushNamed(context, '/createEvent');

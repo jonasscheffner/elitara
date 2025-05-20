@@ -62,7 +62,8 @@
     "filter_own_events": "Show only my events",
     "filter_participating_events": "Show participating events",
     "upgrade_required_create": "You need a Gold or Platinum membership to create events",
-    "upgrade_required_messages": "You need a Gold or Platinum membership to send messages"
+    "upgrade_required_messages": "You need a Gold or Platinum membership to send messages",
+    "limit_reached_gold": "You have reached your event creation limit for this month"
   },
   "waitlist_dialog": {
     "title": "Waitlist - {title}",

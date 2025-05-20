@@ -4,6 +4,7 @@ import 'package:elitara/models/event_status.dart';
 class EventService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int itemsPerPage;
+  static const int goldMonthlyLimit = 5;
 
   EventService({this.itemsPerPage = 10});
 
@@ -24,6 +25,19 @@ class EventService {
         .startAfterDocument(lastDocument)
         .limit(itemsPerPage)
         .get();
+  }
+
+  Future<bool> isGoldLimitReached(String userId) async {
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+
+    final snapshot = await _firestore
+        .collection('events')
+        .where('host', isEqualTo: userId)
+        .where('createdAt', isGreaterThanOrEqualTo: startOfMonth)
+        .get();
+
+    return snapshot.docs.length >= goldMonthlyLimit;
   }
 
   Stream<DocumentSnapshot> getEventStream(String eventId) {
