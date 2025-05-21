@@ -63,7 +63,8 @@
     "filter_participating_events": "Show participating events",
     "upgrade_required_create": "You need a Gold or Platinum membership to create events",
     "upgrade_required_messages": "You need a Gold or Platinum membership to send messages",
-    "limit_reached_gold": "You have reached your event creation limit for this month"
+    "limit_reached_gold": "You have reached your event creation limit for this month",
+    "platinum_organizer": "Platinum Organizer"
   },
   "waitlist_dialog": {
     "title": "Waitlist - {title}",
@@ -131,7 +132,6 @@
     "left": "You have left the event",
     "edit_event": "Edit Event",
     "registered": "You have been registered for the event",
-    "host": "Host",
     "participants": "Participants",
     "access": "Access",
     "access_public": "Public",
@@ -150,7 +150,7 @@
       "remove_cohost": "Remove co-host",
       "remove_participant": "Remove participant",
       "close_button": "Close",
-      "host_label": "Host",
+      "host_label": "Organizer",
       "co_host_label": "Co-host",
       "search": "Search users..."
     },

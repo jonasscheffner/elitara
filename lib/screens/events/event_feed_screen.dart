@@ -42,6 +42,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
   final Map<String, String> _hostNames = {};
   final Map<String, int> _waitlistCounts = {};
   final Map<String, bool> _isParticipating = {};
+  final Map<String, MembershipType> _hostMemberships = {};
   bool _hasUnreadChats = false;
   bool _showOnlyParticipatingEvents = false;
   MembershipType? _membership;
@@ -162,8 +163,17 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
 
     for (var id in hosts) {
       final userData = await _userService.getUser(id);
+
+      final membershipStr = userData['membership'] as String?;
+      final membership = membershipStr != null
+          ? MembershipTypeExtension.fromString(membershipStr)
+          : null;
+
       setState(() {
         _hostNames[id] = userData['displayName'] ?? 'Unknown';
+        if (membership != null) {
+          _hostMemberships[id] = membership;
+        }
       });
     }
   }
@@ -277,7 +287,8 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                             () => _showOnlyOwnEvents = !_showOnlyOwnEvents);
                         _loadEvents();
                       },
-                      icon: const Icon(Icons.star, size: 20),
+                      icon:
+                          const Icon(Icons.star, size: 20, color: Colors.amber),
                       label: Text(
                         locale.translate(section, 'filter_own_events'),
                         style: const TextStyle(fontSize: 16),
@@ -288,7 +299,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         backgroundColor:
-                            _showOnlyOwnEvents ? Colors.blue : Colors.grey,
+                            _showOnlyOwnEvents ? Colors.blue : Colors.grey[600],
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -297,7 +308,11 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                         setState(() => _showOnlyParticipatingEvents =
                             !_showOnlyParticipatingEvents);
                       },
-                      icon: const Icon(Icons.check_circle_outline, size: 20),
+                      icon: const Icon(
+                        Icons.check_circle,
+                        size: 20,
+                        color: Colors.green,
+                      ),
                       label: Text(
                         locale.translate(
                             section, 'filter_participating_events'),
@@ -310,7 +325,7 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                         ),
                         backgroundColor: _showOnlyParticipatingEvents
                             ? Colors.blue
-                            : Colors.grey,
+                            : Colors.grey[600],
                       ),
                     ),
                   ],
@@ -337,124 +352,203 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                           final accessText = accessEnum == AccessType.inviteOnly
                               ? locale.translate(section, 'access_invite_only')
                               : locale.translate(section, 'access_public');
-                          final waitlistLimit = ev.waitlistLimit;
 
-                          return Card(
-                            margin: const EdgeInsets.all(10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.all(15),
-                              title: Row(
-                                children: [
-                                  Expanded(
+                          return Stack(
+                            children: [
+                              Card(
+                                margin: const EdgeInsets.all(10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(15),
+                                  child: Stack(
+                                    children: [
+                                      ListTile(
+                                        contentPadding: EdgeInsets.zero,
+                                        title: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.6,
+                                              child: Text(
+                                                ev.title,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        subtitle: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const SizedBox(height: 12),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Row(
+                                                    children: [
+                                                      const Icon(
+                                                          Icons.calendar_today,
+                                                          size: 16),
+                                                      const SizedBox(width: 6),
+                                                      Text(
+                                                        LocalizedDateTimeFormatter
+                                                            .getFormattedDate(
+                                                                context,
+                                                                dateTime),
+                                                        style: const TextStyle(
+                                                            fontSize: 14),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Row(
+                                                    children: [
+                                                      const Icon(
+                                                          Icons.access_time,
+                                                          size: 16),
+                                                      const SizedBox(width: 6),
+                                                      Text(
+                                                        LocalizedDateTimeFormatter
+                                                            .getFormattedTime(
+                                                                context,
+                                                                dateTime),
+                                                        style: const TextStyle(
+                                                            fontSize: 14),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 10),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        accessEnum ==
+                                                                AccessType
+                                                                    .inviteOnly
+                                                            ? Icons.lock
+                                                            : Icons.public,
+                                                        size: 16,
+                                                      ),
+                                                      const SizedBox(width: 6),
+                                                      Text(
+                                                        accessText,
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Row(
+                                                    children: [
+                                                      const Icon(Icons.person,
+                                                          size: 16),
+                                                      const SizedBox(width: 6),
+                                                      UserDisplayName(
+                                                        uid: ev.host,
+                                                        style: const TextStyle(
+                                                            fontSize: 14),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        trailing: const Icon(
+                                            Icons.arrow_forward_ios,
+                                            size: 16),
+                                        onTap: () async {
+                                          FocusScope.of(context).unfocus();
+                                          _searchController.clear();
+                                          await Navigator.pushNamed(
+                                              context, '/eventDetail',
+                                              arguments: ev.id);
+                                          _loadEvents();
+                                        },
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Row(
+                                          children: [
+                                            if (ev.host == _currentUserId)
+                                              const Icon(Icons.star,
+                                                  size: 16,
+                                                  color: Colors.amber),
+                                            if (_isParticipating[ev.id] == true)
+                                              const Padding(
+                                                padding:
+                                                    EdgeInsets.only(left: 4),
+                                                child: Icon(Icons.check_circle,
+                                                    size: 16,
+                                                    color: Colors.green),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              if (_hostMemberships[ev.host] ==
+                                  MembershipType.platinum)
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.grey.shade300,
+                                          Colors.grey.shade700
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black26,
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
                                     child: Text(
-                                      ev.title,
+                                      locale.translate(
+                                          section, 'platinum_organizer'),
                                       style: const TextStyle(
-                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontSize: 11,
                                         fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.3,
                                       ),
                                     ),
                                   ),
-                                  if (ev.host == _currentUserId)
-                                    const Icon(Icons.star,
-                                        color: Colors.amber, size: 20)
-                                  else if (_isParticipating[ev.id] == true)
-                                    const Icon(Icons.check_circle,
-                                        color: Colors.green, size: 20),
-                                ],
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.calendar_today,
-                                                size: 16),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              LocalizedDateTimeFormatter
-                                                  .getFormattedDate(
-                                                      context, dateTime),
-                                              style:
-                                                  const TextStyle(fontSize: 14),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.access_time,
-                                                size: 16),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              LocalizedDateTimeFormatter
-                                                  .getFormattedTime(
-                                                      context, dateTime),
-                                              style:
-                                                  const TextStyle(fontSize: 14),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              accessEnum ==
-                                                      AccessType.inviteOnly
-                                                  ? Icons.lock
-                                                  : Icons.public,
-                                              size: 16,
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              accessText,
-                                              style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.person, size: 16),
-                                            const SizedBox(width: 6),
-                                            UserDisplayName(
-                                              uid: ev.host,
-                                              style:
-                                                  const TextStyle(fontSize: 14),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              trailing: const Icon(Icons.arrow_forward_ios),
-                              onTap: () async {
-                                FocusScope.of(context).unfocus();
-                                _searchController.clear();
-                                await Navigator.pushNamed(
-                                    context, '/eventDetail',
-                                    arguments: ev.id);
-                                _loadEvents();
-                              },
-                            ),
+                                ),
+                            ],
                           );
                         },
                       ),
