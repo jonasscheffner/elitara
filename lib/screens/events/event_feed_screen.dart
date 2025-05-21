@@ -493,16 +493,12 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                                           children: [
                                             if (ev.host == _currentUserId)
                                               const Icon(Icons.star,
+                                                  size: 16, color: Colors.amber)
+                                            else if (_isParticipating[ev.id] ==
+                                                true)
+                                              const Icon(Icons.check_circle,
                                                   size: 16,
-                                                  color: Colors.amber),
-                                            if (_isParticipating[ev.id] == true)
-                                              const Padding(
-                                                padding:
-                                                    EdgeInsets.only(left: 4),
-                                                child: Icon(Icons.check_circle,
-                                                    size: 16,
-                                                    color: Colors.green),
-                                              ),
+                                                  color: Colors.green),
                                           ],
                                         ),
                                       ),
