@@ -513,15 +513,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         if (msnap.connectionState == ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         }
-                        final membership = msnap.data ?? MembershipType.guest;
                         final isHost = currentUser?.uid == hostId;
                         final isCoHost = currentUser != null &&
                             ev.coHosts.contains(currentUser.uid);
-                        final canInvite = ev.canInvite;
-                        final showInvite = isHost ||
-                            (canInvite &&
-                                (membership == MembershipType.gold ||
-                                    membership == MembershipType.platinum));
+                        final showInvite = isHost || isCoHost;
                         final showEdit = isHost || isCoHost;
 
                         final buttons = <Widget>[];

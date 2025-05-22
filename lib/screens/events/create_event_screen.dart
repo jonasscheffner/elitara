@@ -32,7 +32,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   AccessType _accessType = AccessType.public;
   bool _waitlistEnabled = false;
   VisibilityOption _visibility = VisibilityOption.everyone;
-  bool _canInvite = false;
 
   final String section = 'create_event_screen';
   final EventService _eventService = EventService();
@@ -129,7 +128,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       status: EventStatus.active,
       accessType: _accessType,
       visibility: _visibility,
-      canInvite: _canInvite,
       waitlistEnabled:
           _accessType == AccessType.inviteOnly ? _waitlistEnabled : false,
       participantLimit: participantLimit,
@@ -225,8 +223,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   visibility: _visibility,
                   onVisibilityChanged: (val) => setState(
                       () => _visibility = val ?? VisibilityOption.everyone),
-                  canInvite: _canInvite,
-                  onCanInviteChanged: (val) => setState(() => _canInvite = val),
                   participantLimitError: _participantLimitError,
                   waitlistLimitError: _waitlistLimitError,
                   titleError: _titleError,

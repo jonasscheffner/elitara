@@ -34,7 +34,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
   AccessType _accessType = AccessType.public;
   bool _waitlistEnabled = false;
   VisibilityOption _visibility = VisibilityOption.everyone;
-  bool _canInvite = false;
 
   bool _isLoading = true;
   bool _hasChanged = false;
@@ -82,7 +81,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _accessType = ev.accessType;
     _waitlistEnabled = ev.waitlistEnabled;
     _visibility = ev.visibility;
-    _canInvite = ev.canInvite;
 
     _titleController.addListener(_onChanged);
     _descriptionController.addListener(_onChanged);
@@ -119,7 +117,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
         _accessType.value != ev.accessType ||
         _waitlistEnabled != ev.waitlistEnabled ||
         _visibility.value != ev.visibility ||
-        _canInvite != ev.canInvite ||
         (_participantLimitController.text.isEmpty
             ? ev.participantLimit != null
             : int.tryParse(_participantLimitController.text) !=
@@ -221,7 +218,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
       accessType: _accessType,
       waitlistEnabled: _waitlistEnabled,
       visibility: _visibility,
-      canInvite: _canInvite,
       participantLimit: _participantLimitController.text.isNotEmpty
           ? int.tryParse(_participantLimitController.text)
           : null,
@@ -301,11 +297,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
                   visibility: _visibility,
                   onVisibilityChanged: (v) => setState(() {
                     _visibility = v ?? VisibilityOption.everyone;
-                    _onChanged();
-                  }),
-                  canInvite: _canInvite,
-                  onCanInviteChanged: (v) => setState(() {
-                    _canInvite = v;
                     _onChanged();
                   }),
                   participantLimitError: _participantLimitError,

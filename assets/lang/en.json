@@ -85,9 +85,7 @@
     "waitlist_limit": "Waitlist Limit",
     "visibility": "Visibility",
     "visibility_everyone": "Everyone",
-    "visibility_participants_only": "Participants only",
-    "invite_permission": "Allow participants to invite",
-    "invite_permission_info": "Only Gold and Platinum members can invite others"
+    "visibility_participants_only": "Participants only"
   },
   "create_event_screen": {
     "create_event_title": "Create Event",
