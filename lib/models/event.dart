@@ -14,7 +14,6 @@ class Event {
   final EventStatus status;
   final AccessType accessType;
   final VisibilityOption visibility;
-  final bool canInvite;
   final bool waitlistEnabled;
   final int? participantLimit;
   final int? waitlistLimit;
@@ -32,7 +31,6 @@ class Event {
     required this.status,
     required this.accessType,
     required this.visibility,
-    required this.canInvite,
     required this.waitlistEnabled,
     this.participantLimit,
     this.waitlistLimit,
@@ -58,7 +56,6 @@ class Event {
       visibility: data['visibility'] is String
           ? VisibilityOptionExtension.fromString(data['visibility'] as String)
           : VisibilityOption.everyone,
-      canInvite: data['canInvite'] ?? false,
       waitlistEnabled: data['waitlistEnabled'] ?? false,
       participantLimit: data['participantLimit'] is int
           ? data['participantLimit'] as int
@@ -81,7 +78,6 @@ class Event {
       'status': status.value,
       'accessType': accessType.value,
       'visibility': visibility.value,
-      'canInvite': canInvite,
       'waitlistEnabled': waitlistEnabled,
       if (participantLimit != null) 'participantLimit': participantLimit,
       if (waitlistLimit != null) 'waitlistLimit': waitlistLimit,
@@ -101,7 +97,6 @@ class Event {
     EventStatus? status,
     AccessType? accessType,
     VisibilityOption? visibility,
-    bool? canInvite,
     bool? waitlistEnabled,
     int? participantLimit,
     int? waitlistLimit,
@@ -119,7 +114,6 @@ class Event {
       status: status ?? this.status,
       accessType: accessType ?? this.accessType,
       visibility: visibility ?? this.visibility,
-      canInvite: canInvite ?? this.canInvite,
       waitlistEnabled: waitlistEnabled ?? this.waitlistEnabled,
       participantLimit: participantLimit ?? this.participantLimit,
       waitlistLimit: waitlistLimit ?? this.waitlistLimit,
