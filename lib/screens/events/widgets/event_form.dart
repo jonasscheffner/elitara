@@ -1,6 +1,5 @@
 import 'package:elitara/models/access_type.dart';
 import 'package:elitara/models/visibility_option.dart';
-import 'package:elitara/widgets/custom_tooltip.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
@@ -22,8 +21,6 @@ class EventForm extends StatelessWidget {
   final ValueChanged<bool> onWaitlistChanged;
   final VisibilityOption visibility;
   final ValueChanged<VisibilityOption?> onVisibilityChanged;
-  final bool canInvite;
-  final ValueChanged<bool> onCanInviteChanged;
   final String section = "event_form";
   final String? participantLimitError;
   final String? waitlistLimitError;
@@ -47,8 +44,6 @@ class EventForm extends StatelessWidget {
     required this.onWaitlistChanged,
     required this.visibility,
     required this.onVisibilityChanged,
-    required this.canInvite,
-    required this.onCanInviteChanged,
     this.participantLimitError,
     this.waitlistLimitError,
     this.titleError,
@@ -312,30 +307,6 @@ class EventForm extends StatelessWidget {
             Switch(
               value: waitlistEnabled,
               onChanged: onWaitlistChanged,
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Text(
-                    localeProvider.translate(section, 'invite_permission'),
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(width: 4),
-                  CustomTooltip(
-                    message: localeProvider.translate(
-                        section, 'invite_permission_info'),
-                  ),
-                ],
-              ),
-            ),
-            Switch(
-              value: canInvite,
-              onChanged: onCanInviteChanged,
             ),
           ],
         ),
