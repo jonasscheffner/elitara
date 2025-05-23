@@ -60,7 +60,7 @@
     "access_public": "Public",
     "access_invite_only": "Invite Only",
     "filter_own_events": "Show only my events",
-    "filter_participating_events": "Show participating events",
+    "filter_participating_events": "Show only participating events",
     "upgrade_required_create": "You need a Gold or Platinum membership to create events",
     "upgrade_required_messages": "You need a Gold or Platinum membership to send messages",
     "limit_reached_gold": "You have reached your event creation limit for this month",
@@ -85,7 +85,17 @@
     "waitlist_limit": "Waitlist Limit",
     "visibility": "Visibility",
     "visibility_everyone": "Everyone",
-    "visibility_participants_only": "Participants only"
+    "visibility_participants_only": "Participants only",
+    "monetization_dialog": {
+      "price_label": "Price",
+      "currency_label": "Currency",
+      "confirm": "Confirm",
+      "priceErrorWithCurrency": "Minimum amount is 5 {{currency}}",
+      "cancel": "Cancel",
+      "enable_fee": "Enable participation fee"
+    },
+    "upgrade_required_monetization": "You need a Platinum membership to set a participation fee",
+    "monetize_button": "Set Participation Fee"
   },
   "create_event_screen": {
     "create_event_title": "Create Event",
@@ -110,7 +120,7 @@
     }
   },
   "event_validation": {
-    "title_too_long": "The title must be at most 50 characters.",
+    "title_too_long": "The title must be at most 30 characters.",
     "description_too_long": "The description must be at most 500 characters.",
     "participant_limit_invalid": "Invalid number",
     "participant_limit_min": "Limit must be at least 1",
@@ -168,7 +178,8 @@
       "content": "Are you sure you want to cancel this event?",
       "yes": "Yes",
       "no": "No"
-    }
+    },
+    "free_label": "Free"
   },
   "settings": {
     "menu_screen": {

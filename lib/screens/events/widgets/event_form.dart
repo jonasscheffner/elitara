@@ -1,11 +1,16 @@
 import 'package:elitara/models/access_type.dart';
+import 'package:elitara/models/event_price.dart';
+import 'package:elitara/models/membership_type.dart';
 import 'package:elitara/models/visibility_option.dart';
+import 'package:elitara/screens/events/widgets/monetiziation_dialog.dart';
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:elitara/widgets/required_field_label.dart';
 
 class EventForm extends StatelessWidget {
+  final String section = "event_form";
   final TextEditingController titleController;
   final TextEditingController descriptionController;
   final TextEditingController locationController;
@@ -21,14 +26,18 @@ class EventForm extends StatelessWidget {
   final ValueChanged<bool> onWaitlistChanged;
   final VisibilityOption visibility;
   final ValueChanged<VisibilityOption?> onVisibilityChanged;
-  final String section = "event_form";
+  final MembershipType? membershipType;
+  final bool isMonetized;
+  final EventPrice? price;
+  final ValueChanged<bool> onIsMonetizedChanged;
+  final ValueChanged<EventPrice?> onPriceChanged;
   final String? participantLimitError;
   final String? waitlistLimitError;
   final String? titleError;
   final String? descriptionError;
 
   const EventForm({
-    Key? key,
+    super.key,
     required this.titleController,
     required this.descriptionController,
     required this.locationController,
@@ -44,11 +53,16 @@ class EventForm extends StatelessWidget {
     required this.onWaitlistChanged,
     required this.visibility,
     required this.onVisibilityChanged,
+    required this.membershipType,
+    required this.isMonetized,
+    required this.price,
+    required this.onIsMonetizedChanged,
+    required this.onPriceChanged,
     this.participantLimitError,
     this.waitlistLimitError,
     this.titleError,
     this.descriptionError,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -309,6 +323,62 @@ class EventForm extends StatelessWidget {
               onChanged: onWaitlistChanged,
             ),
           ],
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () async {
+            if (membershipType != MembershipType.platinum) {
+              AppSnackBar.show(
+                context,
+                localeProvider.translate(
+                    section, 'upgrade_required_monetization'),
+                type: SnackBarType.warning,
+              );
+              return;
+            }
+
+            final result = await showDialog<EventPrice?>(
+              context: context,
+              builder: (_) => GestureDetector(
+                onTap: () => FocusScope.of(context).unfocus(),
+                child: MonetizationDialog(
+                  initialPrice: price,
+                ),
+              ),
+            );
+
+            if (result == null) {
+              onIsMonetizedChanged(false);
+              onPriceChanged(null);
+            } else {
+              onIsMonetizedChanged(true);
+              onPriceChanged(result);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.grey.shade300, Colors.grey.shade700],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.attach_money, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(
+                  localeProvider.translate(section, 'monetize_button'),
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );

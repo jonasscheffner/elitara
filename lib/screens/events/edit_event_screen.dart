@@ -1,3 +1,4 @@
+import 'package:elitara/models/event_price.dart';
 import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -5,9 +6,11 @@ import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/models/event.dart';
 import 'package:elitara/models/access_type.dart';
 import 'package:elitara/models/visibility_option.dart';
-import 'package:elitara/screens/events/widgets/event_form.dart';
+import 'package:elitara/models/membership_type.dart';
 import 'package:elitara/services/event_service.dart';
+import 'package:elitara/services/membership_service.dart';
 import 'package:elitara/utils/event_validator.dart';
+import 'package:elitara/screens/events/widgets/event_form.dart';
 
 class EditEventScreen extends StatefulWidget {
   final String eventId;
@@ -21,7 +24,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
   final String section = 'edit_event_screen';
 
   final EventService _eventService = EventService();
-
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
@@ -37,6 +39,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
   bool _isLoading = true;
   bool _hasChanged = false;
+  MembershipType? _membershipType;
+  bool _isMonetized = false;
+  EventPrice? _price;
 
   Event? _originalEvent;
   String? _titleError;
@@ -48,10 +53,17 @@ class _EditEventScreenState extends State<EditEventScreen> {
   void initState() {
     super.initState();
     _loadEvent();
+    _loadMembership();
     _titleController.addListener(_validateTitle);
     _descriptionController.addListener(_validateDescription);
     _participantLimitController.addListener(_validateParticipantLimit);
     _waitlistLimitController.addListener(_validateWaitlistLimit);
+  }
+
+  Future<void> _loadMembership() async {
+    final service = MembershipService();
+    final membership = await service.getCurrentMembership();
+    setState(() => _membershipType = membership);
   }
 
   Future<void> _loadEvent() async {
@@ -81,6 +93,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _accessType = ev.accessType;
     _waitlistEnabled = ev.waitlistEnabled;
     _visibility = ev.visibility;
+    _isMonetized = ev.isMonetized;
+    _price = ev.price;
 
     _titleController.addListener(_onChanged);
     _descriptionController.addListener(_onChanged);
@@ -123,7 +137,11 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 ev.participantLimit) ||
         (_waitlistLimitController.text.isEmpty
             ? ev.waitlistLimit != null
-            : int.tryParse(_waitlistLimitController.text) != ev.waitlistLimit);
+            : int.tryParse(_waitlistLimitController.text) !=
+                ev.waitlistLimit) ||
+        ev.isMonetized != _isMonetized ||
+        (ev.price?.amount != _price?.amount ||
+            ev.price?.currency != _price?.currency);
 
     setState(() {
       _hasChanged = changed;
@@ -225,6 +243,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
           _waitlistEnabled && _waitlistLimitController.text.isNotEmpty
               ? int.tryParse(_waitlistLimitController.text)
               : null,
+      isMonetized: _isMonetized,
+      price: _price,
     );
 
     await _eventService.updateEvent(widget.eventId, updatedEvent.toMap());
@@ -303,6 +323,17 @@ class _EditEventScreenState extends State<EditEventScreen> {
                   waitlistLimitError: _waitlistLimitError,
                   titleError: _titleError,
                   descriptionError: _descriptionError,
+                  membershipType: _membershipType,
+                  isMonetized: _isMonetized,
+                  price: _price,
+                  onIsMonetizedChanged: (val) => setState(() {
+                    _isMonetized = val;
+                    _onChanged();
+                  }),
+                  onPriceChanged: (val) => setState(() {
+                    _price = val;
+                    _onChanged();
+                  }),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(

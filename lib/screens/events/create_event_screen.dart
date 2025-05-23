@@ -1,3 +1,4 @@
+import 'package:elitara/models/event_price.dart';
 import 'package:elitara/models/event_status.dart';
 import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,8 @@ import 'package:elitara/localization/locale_provider.dart';
 import 'package:elitara/models/event.dart';
 import 'package:elitara/models/access_type.dart';
 import 'package:elitara/models/visibility_option.dart';
+import 'package:elitara/models/membership_type.dart';
+import 'package:elitara/services/membership_service.dart';
 import 'package:elitara/services/event_service.dart';
 import 'package:elitara/utils/event_validator.dart';
 import 'package:elitara/screens/events/widgets/event_form.dart';
@@ -32,6 +35,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   AccessType _accessType = AccessType.public;
   bool _waitlistEnabled = false;
   VisibilityOption _visibility = VisibilityOption.everyone;
+  MembershipType? _membershipType;
+  bool _isMonetized = false;
+  EventPrice? _price;
 
   final String section = 'create_event_screen';
   final EventService _eventService = EventService();
@@ -48,6 +54,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     _descriptionController.addListener(_validateDescription);
     _participantLimitController.addListener(_validateParticipantLimit);
     _waitlistLimitController.addListener(_validateWaitlistLimit);
+    _loadMembership();
+  }
+
+  Future<void> _loadMembership() async {
+    final service = MembershipService();
+    final membership = await service.getCurrentMembership();
+    setState(() => _membershipType = membership);
   }
 
   void _validateTitle() {
@@ -134,6 +147,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       waitlistLimit: waitlistLimit,
       coHosts: [],
       waitlist: [],
+      isMonetized: _isMonetized,
+      price: _price,
     );
 
     await _eventService.createEvent(newEvent.toMap());
@@ -227,6 +242,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   waitlistLimitError: _waitlistLimitError,
                   titleError: _titleError,
                   descriptionError: _descriptionError,
+                  membershipType: _membershipType,
+                  isMonetized: _isMonetized,
+                  price: _price,
+                  onIsMonetizedChanged: (v) => setState(() => _isMonetized = v),
+                  onPriceChanged: (v) => setState(() => _price = v),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(

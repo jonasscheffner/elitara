@@ -7,7 +7,7 @@ class EventValidator {
   static String? validateTitle(String title, BuildContext context) {
     final localeProvider =
         Localizations.of<LocaleProvider>(context, LocaleProvider)!;
-    if (title.trim().length > 50) {
+    if (title.trim().length > 30) {
       return localeProvider.translate(_section, 'title_too_long');
     }
     return null;

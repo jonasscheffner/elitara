@@ -85,7 +85,17 @@
     "waitlist_limit": "Wartelistenlimit",
     "visibility": "Sichtbarkeit",
     "visibility_everyone": "Alle",
-    "visibility_participants_only": "Nur Teilnehmer"
+    "visibility_participants_only": "Nur Teilnehmer",
+    "monetization_dialog": {
+      "price_label": "Preis",
+      "currency_label": "Währung",
+      "confirm": "Bestätigen",
+      "priceErrorWithCurrency": "Der Mindestbetrag beträgt 5 {{currency}}",
+      "cancel": "Abbrechen",
+      "enable_fee": "Teilnahmegebühr aktivieren"
+    },
+    "upgrade_required_monetization": "Du benötigst eine Platin-Mitgliedschaft, um eine Teilnahmegebühr festzulegen",
+    "monetize_button": "Teilnahmegebühr festlegen"
   },
   "create_event_screen": {
     "create_event_title": "Event erstellen",
@@ -110,7 +120,7 @@
     }
   },
   "event_validation": {
-    "title_too_long": "Der Titel darf maximal 50 Zeichen lang sein.",
+    "title_too_long": "Der Titel darf maximal 30 Zeichen lang sein.",
     "description_too_long": "Die Beschreibung darf maximal 500 Zeichen lang sein.",
     "participant_limit_invalid": "Ungültige Zahl",
     "participant_limit_min": "Limit muss mindestens 1 sein",
@@ -168,7 +178,8 @@
       "content": "Möchten Sie das Event wirklich absagen?",
       "yes": "Ja",
       "no": "Nein"
-    }
+    },
+    "free_label": "Kostenlos"
   },
   "settings": {
     "menu_screen": {

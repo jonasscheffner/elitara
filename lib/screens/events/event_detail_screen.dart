@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:elitara/models/currency.dart';
 import 'package:elitara/models/event.dart';
 import 'package:elitara/models/access_type.dart';
 import 'package:elitara/models/membership_type.dart';
@@ -16,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:elitara/services/event_service.dart';
+import 'package:intl/intl.dart' as intl;
 
 class EventDetailScreen extends StatefulWidget {
   final String eventId;
@@ -113,397 +115,454 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    elevation: 4,
-                    margin: EdgeInsets.zero,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(ev.title,
-                              style: const TextStyle(
-                                  fontSize: 28, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 16),
-                          Row(
+                  Stack(
+                    children: [
+                      Card(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: 4,
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.calendar_today, size: 20),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      LocalizedDateTimeFormatter
-                                          .getFormattedDate(context, dateTime),
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          height: 1.4),
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: constraints.maxWidth * 0.8,
                                     ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.access_time, size: 20),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      LocalizedDateTimeFormatter
-                                          .getFormattedTime(context, dateTime),
+                                    child: Text(
+                                      ev.title,
                                       style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          height: 1.4),
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      softWrap: true,
+                                      overflow: TextOverflow.visible,
                                     ),
-                                  ],
-                                ),
+                                  );
+                                },
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                        accessEnum == AccessType.inviteOnly
-                                            ? Icons.lock
-                                            : Icons.public,
-                                        size: 20),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      accessText,
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          height: 1.4),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.person, size: 20),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: UserDisplayName(
-                                          uid: hostId,
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.calendar_today,
+                                            size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          LocalizedDateTimeFormatter
+                                              .getFormattedDate(
+                                                  context, dateTime),
                                           style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w500,
-                                              height: 1.4)),
+                                              height: 1.4),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.access_time, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          LocalizedDateTimeFormatter
+                                              .getFormattedTime(
+                                                  context, dateTime),
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              height: 1.4),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Icon(Icons.place, size: 20),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final text = ev.location;
-                                    const textStyle = TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                        height: 1.4);
-                                    final readMoreText =
-                                        ' ${locale.translate(section, 'read_more')}';
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                            accessEnum == AccessType.inviteOnly
+                                                ? Icons.lock
+                                                : Icons.public,
+                                            size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          accessText,
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              height: 1.4),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.person, size: 20),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: UserDisplayName(
+                                              uid: hostId,
+                                              style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                  height: 1.4)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.place, size: 20),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final text = ev.location;
+                                        const textStyle = TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            height: 1.4);
+                                        final readMoreText =
+                                            ' ${locale.translate(section, 'read_more')}';
 
-                                    final span =
-                                        TextSpan(text: text, style: textStyle);
-                                    final tp = TextPainter(
-                                      text: span,
-                                      maxLines: 1,
-                                      textDirection: TextDirection.ltr,
-                                    )..layout(maxWidth: constraints.maxWidth);
+                                        final span = TextSpan(
+                                            text: text, style: textStyle);
+                                        final tp = TextPainter(
+                                          text: span,
+                                          maxLines: 1,
+                                          textDirection: TextDirection.ltr,
+                                        )..layout(
+                                            maxWidth: constraints.maxWidth);
 
-                                    if (!tp.didExceedMaxLines) {
-                                      return Text(text, style: textStyle);
-                                    }
+                                        if (!tp.didExceedMaxLines) {
+                                          return Text(text, style: textStyle);
+                                        }
 
-                                    final truncatedText = _truncateTextToFit(
-                                        text,
-                                        textStyle,
-                                        readMoreText,
-                                        constraints.maxWidth,
-                                        2);
+                                        final truncatedText =
+                                            _truncateTextToFit(
+                                                text,
+                                                textStyle,
+                                                readMoreText,
+                                                constraints.maxWidth,
+                                                2);
 
-                                    return RichText(
-                                      text: TextSpan(
-                                        children: [
-                                          TextSpan(
-                                              text: truncatedText,
-                                              style: textStyle),
-                                          TextSpan(
-                                            text: readMoreText,
-                                            style: textStyle.copyWith(
-                                                color: Colors.blue),
-                                            recognizer: TapGestureRecognizer()
-                                              ..onTap = () {
-                                                showGeneralDialog(
-                                                  context: context,
-                                                  barrierDismissible: true,
-                                                  barrierLabel: locale.translate(
-                                                      section,
-                                                      'location_dialog.title'),
-                                                  pageBuilder: (c, a1, a2) =>
-                                                      Stack(
-                                                    children: [
-                                                      BackdropFilter(
-                                                        filter:
-                                                            ImageFilter.blur(
-                                                                sigmaX: 5,
-                                                                sigmaY: 5),
-                                                        child: Container(
-                                                            color: const Color(
-                                                                    0x80000000)
-                                                                .withOpacity(
-                                                                    0)),
-                                                      ),
-                                                      Center(
-                                                        child: Dialog(
-                                                          shape: RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          16)),
-                                                          child: SizedBox(
-                                                            width: 400,
-                                                            height: 300,
-                                                            child: Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .all(20),
-                                                              child: Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .stretch,
-                                                                children: [
-                                                                  Expanded(
-                                                                      child: SingleChildScrollView(
-                                                                          child: Text(
-                                                                              ev.location,
-                                                                              style: textStyle))),
-                                                                  const SizedBox(
-                                                                      height:
-                                                                          16),
-                                                                  Align(
-                                                                    alignment:
-                                                                        Alignment
-                                                                            .centerRight,
+                                        return RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                  text: truncatedText,
+                                                  style: textStyle),
+                                              TextSpan(
+                                                text: readMoreText,
+                                                style: textStyle.copyWith(
+                                                    color: Colors.blue),
+                                                recognizer:
+                                                    TapGestureRecognizer()
+                                                      ..onTap = () {
+                                                        showGeneralDialog(
+                                                          context: context,
+                                                          barrierDismissible:
+                                                              true,
+                                                          barrierLabel:
+                                                              locale.translate(
+                                                                  section,
+                                                                  'location_dialog.title'),
+                                                          pageBuilder:
+                                                              (c, a1, a2) =>
+                                                                  Stack(
+                                                            children: [
+                                                              BackdropFilter(
+                                                                filter: ImageFilter
+                                                                    .blur(
+                                                                        sigmaX:
+                                                                            5,
+                                                                        sigmaY:
+                                                                            5),
+                                                                child: Container(
+                                                                    color: const Color(
+                                                                            0x80000000)
+                                                                        .withOpacity(
+                                                                            0)),
+                                                              ),
+                                                              Center(
+                                                                child: Dialog(
+                                                                  shape: RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              16)),
+                                                                  child:
+                                                                      SizedBox(
+                                                                    width: 400,
+                                                                    height: 300,
                                                                     child:
-                                                                        TextButton(
-                                                                      onPressed:
-                                                                          () =>
-                                                                              Navigator.of(context).pop(),
-                                                                      child: Text(
-                                                                          locale.translate(
-                                                                              section,
-                                                                              'location_dialog.close'),
-                                                                          style:
-                                                                              const TextStyle(fontSize: 16)),
+                                                                        Padding(
+                                                                      padding: const EdgeInsets
+                                                                          .all(
+                                                                          20),
+                                                                      child:
+                                                                          Column(
+                                                                        crossAxisAlignment:
+                                                                            CrossAxisAlignment.stretch,
+                                                                        children: [
+                                                                          Expanded(
+                                                                              child: SingleChildScrollView(child: Text(ev.location, style: textStyle))),
+                                                                          const SizedBox(
+                                                                              height: 16),
+                                                                          Align(
+                                                                            alignment:
+                                                                                Alignment.centerRight,
+                                                                            child:
+                                                                                TextButton(
+                                                                              onPressed: () => Navigator.of(context).pop(),
+                                                                              child: Text(locale.translate(section, 'location_dialog.close'), style: const TextStyle(fontSize: 16)),
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
                                                                     ),
                                                                   ),
-                                                                ],
+                                                                ),
                                                               ),
-                                                            ),
+                                                            ],
                                                           ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              },
+                                                        );
+                                                      },
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          const Divider(height: 32),
-                          Text(locale.translate(section, 'description'),
-                              style: const TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final text = ev.description;
-                              const textStyle = TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  height: 1.4);
-                              final readMoreText =
-                                  ' ${locale.translate(section, 'read_more')}';
+                              const Divider(height: 32),
+                              Text(locale.translate(section, 'description'),
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final text = ev.description;
+                                  const textStyle = TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.4);
+                                  final readMoreText =
+                                      ' ${locale.translate(section, 'read_more')}';
 
-                              final span =
-                                  TextSpan(text: text, style: textStyle);
-                              final tp = TextPainter(
-                                text: span,
-                                maxLines: 3,
-                                textDirection: TextDirection.ltr,
-                              )..layout(maxWidth: constraints.maxWidth);
+                                  final span =
+                                      TextSpan(text: text, style: textStyle);
+                                  final tp = TextPainter(
+                                    text: span,
+                                    maxLines: 3,
+                                    textDirection: TextDirection.ltr,
+                                  )..layout(maxWidth: constraints.maxWidth);
 
-                              if (!tp.didExceedMaxLines) {
-                                return Text(text, style: textStyle);
-                              }
+                                  if (!tp.didExceedMaxLines) {
+                                    return Text(text, style: textStyle);
+                                  }
 
-                              final truncatedText = _truncateTextToFit(
-                                  text,
-                                  textStyle,
-                                  readMoreText,
-                                  constraints.maxWidth,
-                                  3);
+                                  final truncatedText = _truncateTextToFit(
+                                      text,
+                                      textStyle,
+                                      readMoreText,
+                                      constraints.maxWidth,
+                                      3);
 
-                              return RichText(
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                        text: truncatedText, style: textStyle),
-                                    TextSpan(
-                                      text: readMoreText,
-                                      style: textStyle.copyWith(
-                                          color: Colors.blue),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {
-                                          showGeneralDialog(
-                                            context: context,
-                                            barrierDismissible: true,
-                                            barrierLabel: locale.translate(
-                                                section,
-                                                'description_dialog.title'),
-                                            pageBuilder: (c, a1, a2) => Stack(
-                                              children: [
-                                                BackdropFilter(
-                                                  filter: ImageFilter.blur(
-                                                      sigmaX: 5, sigmaY: 5),
-                                                  child: Container(
-                                                      color: const Color(
-                                                              0x80000000)
-                                                          .withOpacity(0)),
-                                                ),
-                                                Center(
-                                                  child: Dialog(
-                                                    shape:
-                                                        RoundedRectangleBorder(
+                                  return RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                            text: truncatedText,
+                                            style: textStyle),
+                                        TextSpan(
+                                          text: readMoreText,
+                                          style: textStyle.copyWith(
+                                              color: Colors.blue),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              showGeneralDialog(
+                                                context: context,
+                                                barrierDismissible: true,
+                                                barrierLabel: locale.translate(
+                                                    section,
+                                                    'description_dialog.title'),
+                                                pageBuilder: (c, a1, a2) =>
+                                                    Stack(
+                                                  children: [
+                                                    BackdropFilter(
+                                                      filter: ImageFilter.blur(
+                                                          sigmaX: 5, sigmaY: 5),
+                                                      child: Container(
+                                                          color: const Color(
+                                                                  0x80000000)
+                                                              .withOpacity(0)),
+                                                    ),
+                                                    Center(
+                                                      child: Dialog(
+                                                        shape: RoundedRectangleBorder(
                                                             borderRadius:
                                                                 BorderRadius
                                                                     .circular(
                                                                         16)),
-                                                    child: SizedBox(
-                                                      width: 400,
-                                                      height: 500,
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(20),
-                                                        child: Column(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .stretch,
-                                                          children: [
-                                                            Expanded(
-                                                              child:
-                                                                  SingleChildScrollView(
-                                                                child: Text(
-                                                                    ev
-                                                                        .description,
-                                                                    style:
-                                                                        textStyle),
-                                                              ),
+                                                        child: SizedBox(
+                                                          width: 400,
+                                                          height: 500,
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(20),
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .stretch,
+                                                              children: [
+                                                                Expanded(
+                                                                  child:
+                                                                      SingleChildScrollView(
+                                                                    child: Text(
+                                                                        ev
+                                                                            .description,
+                                                                        style:
+                                                                            textStyle),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(
+                                                                    height: 16),
+                                                                Align(
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .centerRight,
+                                                                  child:
+                                                                      TextButton(
+                                                                    onPressed: () =>
+                                                                        Navigator.of(context)
+                                                                            .pop(),
+                                                                    child: Text(
+                                                                        locale.translate(
+                                                                            section,
+                                                                            'description_dialog.close'),
+                                                                        style: const TextStyle(
+                                                                            fontSize:
+                                                                                16)),
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
-                                                            const SizedBox(
-                                                                height: 16),
-                                                            Align(
-                                                              alignment: Alignment
-                                                                  .centerRight,
-                                                              child: TextButton(
-                                                                onPressed: () =>
-                                                                    Navigator.of(
-                                                                            context)
-                                                                        .pop(),
-                                                                child: Text(
-                                                                    locale.translate(
-                                                                        section,
-                                                                        'description_dialog.close'),
-                                                                    style: const TextStyle(
-                                                                        fontSize:
-                                                                            16)),
-                                                              ),
-                                                            ),
-                                                          ],
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
-                                                  ),
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
-                                          );
-                                        },
+                                              );
+                                            },
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                          const Divider(height: 32),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.group, size: 20),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      participantLimit != null
-                                          ? '$currentCount / $participantLimit'
-                                          : '$currentCount',
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500),
-                                    ),
-                                  ],
-                                ),
+                                  );
+                                },
                               ),
-                              Expanded(
-                                child: waitlistEnabled
-                                    ? Row(
-                                        children: [
-                                          const Icon(Icons.hourglass_bottom,
-                                              size: 20),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            waitlistLimit != null
-                                                ? '$currentWaitlistCount / $waitlistLimit'
-                                                : '$currentWaitlistCount',
-                                            style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500),
-                                          ),
-                                        ],
-                                      )
-                                    : Container(),
+                              const Divider(height: 32),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.group, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          participantLimit != null
+                                              ? '$currentCount / $participantLimit'
+                                              : '$currentCount',
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: waitlistEnabled
+                                        ? Row(
+                                            children: [
+                                              const Icon(Icons.hourglass_bottom,
+                                                  size: 20),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                waitlistLimit != null
+                                                    ? '$currentWaitlistCount / $waitlistLimit'
+                                                    : '$currentWaitlistCount',
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.w500),
+                                              ),
+                                            ],
+                                          )
+                                        : Container(),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                      Positioned(
+                        top: 6,
+                        right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.green[700],
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            (ev.price == null || ev.price!.amount == 0)
+                                ? locale.translate(section, 'free_label')
+                                : '${ev.price!.currency.symbol}${intl.NumberFormat.currency(
+                                    locale: Localizations.localeOf(context)
+                                        .toString(),
+                                    symbol: '',
+                                    decimalDigits: 2,
+                                  ).format(ev.price!.amount)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 32),
                   Center(

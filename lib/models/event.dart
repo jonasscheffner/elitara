@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/models/access_type.dart';
+import 'package:elitara/models/event_price.dart';
 import 'package:elitara/models/event_status.dart';
 import 'package:elitara/models/visibility_option.dart';
 
@@ -19,6 +20,8 @@ class Event {
   final int? waitlistLimit;
   final List<String> coHosts;
   final List<Map<String, dynamic>> waitlist;
+  final bool isMonetized;
+  final EventPrice? price;
 
   Event({
     required this.id,
@@ -36,6 +39,8 @@ class Event {
     this.waitlistLimit,
     required this.coHosts,
     required this.waitlist,
+    required this.isMonetized,
+    this.price,
   });
 
   factory Event.fromMap(String id, Map<String, dynamic> data) {
@@ -64,6 +69,8 @@ class Event {
           data['waitlistLimit'] is int ? data['waitlistLimit'] as int : null,
       coHosts: List<String>.from(data['coHosts'] ?? <String>[]),
       waitlist: List<Map<String, dynamic>>.from(data['waitlist'] ?? <Map>[]),
+      isMonetized: data['isMonetized'] ?? false,
+      price: data['price'] != null ? EventPrice.fromMap(data['price']) : null,
     );
   }
 
@@ -79,10 +86,12 @@ class Event {
       'accessType': accessType.value,
       'visibility': visibility.value,
       'waitlistEnabled': waitlistEnabled,
-      if (participantLimit != null) 'participantLimit': participantLimit,
-      if (waitlistLimit != null) 'waitlistLimit': waitlistLimit,
+      'participantLimit': participantLimit,
+      'waitlistLimit': waitlistLimit,
       'coHosts': coHosts,
       'waitlist': waitlist,
+      'isMonetized': isMonetized,
+      'price': isMonetized ? price?.toMap() : null,
     };
   }
 
@@ -98,10 +107,12 @@ class Event {
     AccessType? accessType,
     VisibilityOption? visibility,
     bool? waitlistEnabled,
-    int? participantLimit,
-    int? waitlistLimit,
+    Object? participantLimit = const Object(),
+    Object? waitlistLimit = const Object(),
     List<String>? coHosts,
     List<Map<String, dynamic>>? waitlist,
+    bool? isMonetized,
+    EventPrice? price,
   }) {
     return Event(
       id: id ?? this.id,
@@ -115,10 +126,16 @@ class Event {
       accessType: accessType ?? this.accessType,
       visibility: visibility ?? this.visibility,
       waitlistEnabled: waitlistEnabled ?? this.waitlistEnabled,
-      participantLimit: participantLimit ?? this.participantLimit,
-      waitlistLimit: waitlistLimit ?? this.waitlistLimit,
+      participantLimit: participantLimit == const Object()
+          ? this.participantLimit
+          : participantLimit as int?,
+      waitlistLimit: waitlistLimit == const Object()
+          ? this.waitlistLimit
+          : waitlistLimit as int?,
       coHosts: coHosts ?? this.coHosts,
       waitlist: waitlist ?? this.waitlist,
+      isMonetized: isMonetized ?? this.isMonetized,
+      price: price ?? this.price,
     );
   }
 }
