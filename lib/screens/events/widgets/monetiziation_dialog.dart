@@ -78,120 +78,131 @@ class _MonetizationDialogState extends State<MonetizationDialog> {
           child: Dialog(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: GestureDetector(
+              onVerticalDragDown: (_) => FocusScope.of(context).unfocus(),
+              behavior: HitTestBehavior.opaque,
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        localeProvider.translate(section, 'enable_fee'),
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            localeProvider.translate(section, 'enable_fee'),
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
+                          Switch(
+                            value: _enabled,
+                            onChanged: (val) => setState(() => _enabled = val),
+                          ),
+                        ],
                       ),
-                      Switch(
-                        value: _enabled,
-                        onChanged: (val) => setState(() => _enabled = val),
+                      const SizedBox(height: 16),
+                      if (_enabled) ...[
+                        TextField(
+                          controller: _priceController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: false),
+                          inputFormatters: [
+                            CurrencySmartInputFormatter(locale)
+                          ],
+                          decoration: InputDecoration(
+                            labelText: localeProvider.translate(
+                                section, 'price_label'),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<Currency>(
+                          value: _selectedCurrency,
+                          onChanged: (value) =>
+                              setState(() => _selectedCurrency = value!),
+                          items: Currency.values.map((currency) {
+                            return DropdownMenuItem(
+                              value: currency,
+                              child:
+                                  Text('${currency.symbol} ${currency.code}'),
+                            );
+                          }).toList(),
+                          decoration: InputDecoration(
+                            labelText: localeProvider.translate(
+                                section, 'currency_label'),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(
+                                localeProvider.translate(section, 'cancel')),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(40, 36),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 16),
+                            ),
+                            onPressed: confirmEnabled
+                                ? () {
+                                    if (!_enabled) {
+                                      Navigator.of(context).pop(null);
+                                      return;
+                                    }
+
+                                    final parsed = _parseFormattedPrice(
+                                        _priceController.text, locale);
+                                    if (parsed == null || parsed < 5) {
+                                      final currencyText =
+                                          '${_selectedCurrency.symbol} ${_selectedCurrency.code}';
+                                      final errorMsg = localeProvider.translate(
+                                        section,
+                                        'priceErrorWithCurrency',
+                                        params: {'currency': currencyText},
+                                      );
+
+                                      AppSnackBar.show(
+                                        context,
+                                        errorMsg,
+                                        type: SnackBarType.error,
+                                      );
+                                      return;
+                                    }
+
+                                    final result = EventPrice(
+                                      amount: parsed,
+                                      currency: _selectedCurrency,
+                                    );
+                                    Navigator.of(context).pop(result);
+                                  }
+                                : null,
+                            child: Text(
+                                localeProvider.translate(section, 'confirm')),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  if (_enabled) ...[
-                    TextField(
-                      controller: _priceController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: false),
-                      inputFormatters: [CurrencySmartInputFormatter(locale)],
-                      decoration: InputDecoration(
-                        labelText:
-                            localeProvider.translate(section, 'price_label'),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<Currency>(
-                      value: _selectedCurrency,
-                      onChanged: (value) =>
-                          setState(() => _selectedCurrency = value!),
-                      items: Currency.values.map((currency) {
-                        return DropdownMenuItem(
-                          value: currency,
-                          child: Text('${currency.symbol} ${currency.code}'),
-                        );
-                      }).toList(),
-                      decoration: InputDecoration(
-                        labelText:
-                            localeProvider.translate(section, 'currency_label'),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child:
-                            Text(localeProvider.translate(section, 'cancel')),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(40, 36),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 16),
-                        ),
-                        onPressed: confirmEnabled
-                            ? () {
-                                if (!_enabled) {
-                                  Navigator.of(context).pop(null);
-                                  return;
-                                }
-
-                                final parsed = _parseFormattedPrice(
-                                    _priceController.text, locale);
-                                if (parsed == null || parsed < 5) {
-                                  final currencyText =
-                                      '${_selectedCurrency.symbol} ${_selectedCurrency.code}';
-                                  final errorMsg = localeProvider.translate(
-                                    section,
-                                    'priceErrorWithCurrency',
-                                    params: {'currency': currencyText},
-                                  );
-
-                                  AppSnackBar.show(
-                                    context,
-                                    errorMsg,
-                                    type: SnackBarType.error,
-                                  );
-                                  return;
-                                }
-
-                                final result = EventPrice(
-                                  amount: parsed,
-                                  currency: _selectedCurrency,
-                                );
-                                Navigator.of(context).pop(result);
-                              }
-                            : null,
-                        child:
-                            Text(localeProvider.translate(section, 'confirm')),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+        )
       ],
     );
   }
