@@ -1,4 +1,5 @@
 import 'package:elitara/models/access_type.dart';
+import 'package:elitara/models/currency.dart';
 import 'package:elitara/models/event_price.dart';
 import 'package:elitara/models/membership_type.dart';
 import 'package:elitara/models/visibility_option.dart';
@@ -368,15 +369,29 @@ class EventForm extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.attach_money, color: Colors.white),
-                const SizedBox(width: 8),
-                Text(
-                  localeProvider.translate(section, 'monetize_button'),
-                  style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w600),
-                ),
-              ],
+              children: price != null
+                  ? [
+                      Text(
+                        '${price!.currency.symbol}${price!.amount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ]
+                  : [
+                      const Icon(Icons.attach_money, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(
+                        localeProvider.translate(section, 'monetize_button'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
             ),
           ),
         ),

@@ -50,6 +50,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   @override
   void initState() {
     super.initState();
+    _setupChangeListeners();
     _titleController.addListener(_validateTitle);
     _descriptionController.addListener(_validateDescription);
     _participantLimitController.addListener(_validateParticipantLimit);
@@ -75,6 +76,18 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       _descriptionError = EventValidator.validateDescription(
           _descriptionController.text, context);
     });
+  }
+
+  void _setupChangeListeners() {
+    for (final controller in [
+      _titleController,
+      _descriptionController,
+      _locationController,
+      _participantLimitController,
+      _waitlistLimitController,
+    ]) {
+      controller.addListener(() => setState(() {}));
+    }
   }
 
   void _validateParticipantLimit() {
@@ -206,54 +219,61 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       appBar: AppBar(
         title: Text(locale.translate(section, 'create_event_title')),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          behavior: HitTestBehavior.translucent,
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
-                EventForm(
-                  titleController: _titleController,
-                  descriptionController: _descriptionController,
-                  locationController: _locationController,
-                  participantLimitController: _participantLimitController,
-                  waitlistLimitController: _waitlistLimitController,
-                  selectedDate: _selectedDate,
-                  selectedTime: _selectedTime,
-                  onSelectDate: () => _selectDate(context),
-                  onSelectTime: () => _selectTime(context),
-                  accessType: _accessType,
-                  onAccessTypeChanged: (val) =>
-                      setState(() => _accessType = val ?? AccessType.public),
-                  waitlistEnabled: _waitlistEnabled,
-                  onWaitlistChanged: (val) => setState(() {
-                    _waitlistEnabled = val;
-                    _validateWaitlistLimit();
-                  }),
-                  visibility: _visibility,
-                  onVisibilityChanged: (val) => setState(
-                      () => _visibility = val ?? VisibilityOption.everyone),
-                  participantLimitError: _participantLimitError,
-                  waitlistLimitError: _waitlistLimitError,
-                  titleError: _titleError,
-                  descriptionError: _descriptionError,
-                  membershipType: _membershipType,
-                  isMonetized: _isMonetized,
-                  price: _price,
-                  onIsMonetizedChanged: (v) => setState(() => _isMonetized = v),
-                  onPriceChanged: (v) => setState(() => _price = v),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => FocusScope.of(context).unfocus(),
+                behavior: HitTestBehavior.translucent,
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0, vertical: 20),
+                  child: EventForm(
+                    titleController: _titleController,
+                    descriptionController: _descriptionController,
+                    locationController: _locationController,
+                    participantLimitController: _participantLimitController,
+                    waitlistLimitController: _waitlistLimitController,
+                    selectedDate: _selectedDate,
+                    selectedTime: _selectedTime,
+                    onSelectDate: () => _selectDate(context),
+                    onSelectTime: () => _selectTime(context),
+                    accessType: _accessType,
+                    onAccessTypeChanged: (val) =>
+                        setState(() => _accessType = val ?? AccessType.public),
+                    waitlistEnabled: _waitlistEnabled,
+                    onWaitlistChanged: (val) => setState(() {
+                      _waitlistEnabled = val;
+                      _validateWaitlistLimit();
+                    }),
+                    visibility: _visibility,
+                    onVisibilityChanged: (val) => setState(
+                        () => _visibility = val ?? VisibilityOption.everyone),
+                    participantLimitError: _participantLimitError,
+                    waitlistLimitError: _waitlistLimitError,
+                    titleError: _titleError,
+                    descriptionError: _descriptionError,
+                    membershipType: _membershipType,
+                    isMonetized: _isMonetized,
+                    price: _price,
+                    onIsMonetizedChanged: (v) =>
+                        setState(() => _isMonetized = v),
+                    onPriceChanged: (v) => setState(() => _price = v),
+                  ),
                 ),
-                const SizedBox(height: 20),
-                ElevatedButton(
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
                   onPressed: _isFormValid ? _createEvent : null,
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 15, horizontal: 30),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -263,9 +283,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     style: const TextStyle(fontSize: 18),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(height: 24),
+          ],
         ),
       ),
     );

@@ -61,10 +61,12 @@ class _LoginScreenState extends State<LoginScreen>
         emailController.text,
         passwordController.text,
       );
-      if (user != null) {
+      if (user != null && mounted) {
         Navigator.pushReplacementNamed(context, '/eventFeed');
       }
     } catch (e) {
+      if (!mounted) return;
+
       AppSnackBar.show(
         context,
         localeProvider.translate(section, 'messages.login_error'),
@@ -76,22 +78,27 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _forgotPassword() async {
     final email = emailController.text.trim();
     if (email.isEmpty) {
+      if (!mounted) return;
+
       AppSnackBar.show(
         context,
         localeProvider.translate(section, 'enter_email_for_reset'),
         type: SnackBarType.info,
       );
-
       return;
     }
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (!mounted) return;
+
       AppSnackBar.show(
         context,
         localeProvider.translate(section, 'reset_email_sent'),
         type: SnackBarType.success,
       );
     } catch (e) {
+      if (!mounted) return;
+
       AppSnackBar.show(
         context,
         localeProvider.translate(section, 'reset_email_error'),

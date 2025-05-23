@@ -124,28 +124,32 @@ class _EditEventScreenState extends State<EditEventScreen> {
       _selectedTime.minute,
     );
 
-    final changed = _titleController.text != ev.title ||
-        _descriptionController.text != ev.description ||
-        _locationController.text != ev.location ||
-        !dt.isAtSameMomentAs(ev.date) ||
-        _accessType.value != ev.accessType ||
-        _waitlistEnabled != ev.waitlistEnabled ||
-        _visibility.value != ev.visibility ||
-        (_participantLimitController.text.isEmpty
-            ? ev.participantLimit != null
-            : int.tryParse(_participantLimitController.text) !=
-                ev.participantLimit) ||
-        (_waitlistLimitController.text.isEmpty
-            ? ev.waitlistLimit != null
-            : int.tryParse(_waitlistLimitController.text) !=
-                ev.waitlistLimit) ||
-        ev.isMonetized != _isMonetized ||
-        (ev.price?.amount != _price?.amount ||
-            ev.price?.currency != _price?.currency);
+    final newParticipantLimit = _participantLimitController.text.isNotEmpty
+        ? int.tryParse(_participantLimitController.text)
+        : null;
+    final newWaitlistLimit =
+        _waitlistEnabled && _waitlistLimitController.text.isNotEmpty
+            ? int.tryParse(_waitlistLimitController.text)
+            : null;
 
-    setState(() {
-      _hasChanged = changed;
-    });
+    final changed = _titleController.text.trim() != ev.title.trim() ||
+        _descriptionController.text.trim() != ev.description.trim() ||
+        _locationController.text.trim() != ev.location.trim() ||
+        !dt.isAtSameMomentAs(ev.date) ||
+        _accessType != ev.accessType ||
+        _waitlistEnabled != ev.waitlistEnabled ||
+        _visibility != ev.visibility ||
+        newParticipantLimit != ev.participantLimit ||
+        newWaitlistLimit != ev.waitlistLimit ||
+        _isMonetized != ev.isMonetized ||
+        (_price?.amount != ev.price?.amount ||
+            _price?.currency != ev.price?.currency);
+
+    if (changed != _hasChanged) {
+      setState(() {
+        _hasChanged = changed;
+      });
+    }
   }
 
   void _validateTitle() {
@@ -282,77 +286,93 @@ class _EditEventScreenState extends State<EditEventScreen> {
       appBar: AppBar(
         title: Text(locale.translate(section, 'edit_event_title')),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          behavior: HitTestBehavior.translucent,
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
-                EventForm(
-                  titleController: _titleController,
-                  descriptionController: _descriptionController,
-                  locationController: _locationController,
-                  participantLimitController: _participantLimitController,
-                  waitlistLimitController: _waitlistLimitController,
-                  selectedDate: _selectedDate,
-                  selectedTime: _selectedTime,
-                  onSelectDate: () => _selectDate(context),
-                  onSelectTime: () => _selectTime(context),
-                  accessType: _accessType,
-                  onAccessTypeChanged: (v) => setState(() {
-                    _accessType = v ?? AccessType.public;
-                    _onChanged();
-                  }),
-                  waitlistEnabled: _waitlistEnabled,
-                  onWaitlistChanged: (v) => setState(() {
-                    _waitlistEnabled = v;
-                    _validateWaitlistLimit();
-                    _onChanged();
-                  }),
-                  visibility: _visibility,
-                  onVisibilityChanged: (v) => setState(() {
-                    _visibility = v ?? VisibilityOption.everyone;
-                    _onChanged();
-                  }),
-                  participantLimitError: _participantLimitError,
-                  waitlistLimitError: _waitlistLimitError,
-                  titleError: _titleError,
-                  descriptionError: _descriptionError,
-                  membershipType: _membershipType,
-                  isMonetized: _isMonetized,
-                  price: _price,
-                  onIsMonetizedChanged: (val) => setState(() {
-                    _isMonetized = val;
-                    _onChanged();
-                  }),
-                  onPriceChanged: (val) => setState(() {
-                    _price = val;
-                    _onChanged();
-                  }),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: GestureDetector(
+                  onTap: () => FocusScope.of(context).unfocus(),
+                  behavior: HitTestBehavior.translucent,
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 20),
+                        EventForm(
+                          titleController: _titleController,
+                          descriptionController: _descriptionController,
+                          locationController: _locationController,
+                          participantLimitController:
+                              _participantLimitController,
+                          waitlistLimitController: _waitlistLimitController,
+                          selectedDate: _selectedDate,
+                          selectedTime: _selectedTime,
+                          onSelectDate: () => _selectDate(context),
+                          onSelectTime: () => _selectTime(context),
+                          accessType: _accessType,
+                          onAccessTypeChanged: (v) => setState(() {
+                            _accessType = v ?? AccessType.public;
+                            _onChanged();
+                          }),
+                          waitlistEnabled: _waitlistEnabled,
+                          onWaitlistChanged: (v) => setState(() {
+                            _waitlistEnabled = v;
+                            _validateWaitlistLimit();
+                            _onChanged();
+                          }),
+                          visibility: _visibility,
+                          onVisibilityChanged: (v) => setState(() {
+                            _visibility = v ?? VisibilityOption.everyone;
+                            _onChanged();
+                          }),
+                          participantLimitError: _participantLimitError,
+                          waitlistLimitError: _waitlistLimitError,
+                          titleError: _titleError,
+                          descriptionError: _descriptionError,
+                          membershipType: _membershipType,
+                          isMonetized: _isMonetized,
+                          price: _price,
+                          onIsMonetizedChanged: (val) => setState(() {
+                            _isMonetized = val;
+                            _onChanged();
+                          }),
+                          onPriceChanged: (val) => setState(() {
+                            _price = val;
+                            _onChanged();
+                          }),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed:
-                      !_hasChanged || !_isFormValid ? null : _updateEvent,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isFormValid && _hasChanged ? _updateEvent : null,
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 15, horizontal: 30),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: Text(
                     locale.translate(section, 'update_event'),
                     style: const TextStyle(fontSize: 18),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(height: 24),
+          ],
         ),
       ),
     );
