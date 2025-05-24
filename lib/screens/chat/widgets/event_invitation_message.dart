@@ -55,10 +55,13 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
     final event = Event.fromMap(doc.id, doc.data() as Map<String, dynamic>);
 
     if (event.participants.contains(uid)) {
-      setState(() {
-        _canJoin = false;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _canJoin = false;
+          _isLoading = false;
+        });
+      }
+
       return;
     }
 
@@ -73,19 +76,23 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
     final acceptedBy =
         List<String>.from(messageData?['data']?['acceptedBy'] ?? []);
 
-    setState(() {
-      _canJoin = !acceptedBy.contains(uid);
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _canJoin = !acceptedBy.contains(uid);
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _handleJoin() async {
     if (currentUser == null) return;
     final uid = currentUser!.uid;
 
-    setState(() {
-      _isJoining = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isJoining = true;
+      });
+    }
 
     await _eventService.registerForEvent(widget.eventId, uid);
 
@@ -101,10 +108,12 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
 
     widget.onJoinedCallback?.call();
 
-    setState(() {
-      _canJoin = false;
-      _isJoining = false;
-    });
+    if (mounted) {
+      setState(() {
+        _canJoin = false;
+        _isJoining = false;
+      });
+    }
 
     AppSnackBar.show(
       context,
