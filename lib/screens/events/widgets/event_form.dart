@@ -3,7 +3,7 @@ import 'package:elitara/models/currency.dart';
 import 'package:elitara/models/event_price.dart';
 import 'package:elitara/models/membership_type.dart';
 import 'package:elitara/models/visibility_option.dart';
-import 'package:elitara/screens/events/widgets/monetiziation_dialog.dart';
+import 'package:elitara/screens/events/widgets/monetization_dialog.dart';
 import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
