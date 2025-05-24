@@ -296,8 +296,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ),
       ),
     );
-
-    _loadInitialChats();
   }
 
   Widget _buildDeleteDialog(
