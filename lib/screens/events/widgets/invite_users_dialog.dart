@@ -252,13 +252,17 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
                                         strokeWidth: 2),
                                   );
                                 } else if (isParticipant) {
-                                  trailing = Text(
-                                    locale.translate(section, 'already_joined'),
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 14,
+                                  trailing = TextButton(
+                                    onPressed: null,
+                                    child: Text(
+                                      locale.translate(
+                                          section, 'already_joined'),
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 14,
+                                      ),
+                                      textAlign: TextAlign.right,
                                     ),
-                                    textAlign: TextAlign.right,
                                   );
                                 } else if (isInvited) {
                                   trailing = TextButton(
