@@ -137,9 +137,13 @@ class _MonetizationDialogState extends State<MonetizationDialog> {
                             labelText: localeProvider.translate(
                                 section, 'currency_label'),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(12.0),
                             ),
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 16, horizontal: 12),
                           ),
+                          borderRadius: BorderRadius.circular(12.0),
+                          elevation: 4,
                         ),
                         const SizedBox(height: 20),
                       ],

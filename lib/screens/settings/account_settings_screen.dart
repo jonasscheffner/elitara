@@ -189,7 +189,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 controller: _usernameController,
                 decoration: InputDecoration(
                   labelText: localeProvider.translate(section, 'username'),
-                  border: const OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
                 ),
               ),
               if (usernameError != null)
@@ -205,7 +209,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 controller: _emailController,
                 decoration: InputDecoration(
                   labelText: localeProvider.translate(section, 'email'),
-                  border: const OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
@@ -222,7 +230,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: localeProvider.translate(section, 'password_hint'),
-                  border: const OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 12.0),
                 ),
                 obscureText: true,
               ),
