@@ -260,8 +260,6 @@ class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
                           widget.section, 'gold_feature_1'),
                       localeProvider.translate(
                           widget.section, 'gold_feature_2'),
-                      localeProvider.translate(
-                          widget.section, 'gold_feature_3'),
                     ],
                     color: Colors.amber.shade300,
                     icon: Icons.star,
