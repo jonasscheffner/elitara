@@ -120,7 +120,7 @@
     }
   },
   "event_validation": {
-    "title_too_long": "Der Titel darf maximal 30 Zeichen lang sein.",
+    "title_too_long": "Der Titel darf maximal 50 Zeichen lang sein.",
     "description_too_long": "Die Beschreibung darf maximal 500 Zeichen lang sein.",
     "participant_limit_invalid": "Ungültige Zahl",
     "participant_limit_min": "Limit muss mindestens 1 sein",
