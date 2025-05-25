@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/models/event.dart';
 import 'package:elitara/models/access_type.dart';
 import 'package:elitara/models/membership_type.dart';
+import 'package:elitara/models/visibility_option.dart';
 import 'package:elitara/services/chat_service.dart';
 import 'package:elitara/services/membership_service.dart';
 import 'package:elitara/utils/app_snack_bar.dart';
@@ -180,6 +181,11 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
 
   List<Event> get _filteredEvents {
     var filtered = _events;
+
+    filtered = filtered.where((ev) {
+      if (ev.visibility == VisibilityOption.everyone) return true;
+      return _isParticipating[ev.id] == true;
+    }).toList();
 
     if (_showOnlyParticipatingEvents) {
       filtered =
