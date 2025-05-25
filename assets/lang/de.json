@@ -268,7 +268,9 @@
       "view_event": "Event ansehen",
       "joined_successfully": "Du bist dem Event beigetreten!",
       "event_full": "Das Event ist voll",
-      "event_not_found": "Event nicht gefunden"
+      "event_not_found": "Event nicht gefunden",
+      "already_accepted": "Einladung wurde bereits angenommen",
+      "invitation_revoked": "Einladung zurückgezogen"
     }
   },
   "invite_users": {
@@ -279,6 +281,9 @@
     "already_participant": "Bereits Teilnehmer",
     "no_users_found": "Keine Nutzer gefunden",
     "close": "Schließen",
-    "invite_success": "Einladung erfolgreich gesendet"
+    "invite_success": "Einladung erfolgreich gesendet",
+    "revoke_success": "Einladung wurde zurückgezogen",
+    "revoke_invitation": "Einladung zurückziehen",
+    "already_joined": "Bereits beigetreten"
   }
 }

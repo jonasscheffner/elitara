@@ -32,7 +32,7 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
   final InvitationService _invitationService = InvitationService();
 
   List<QueryDocumentSnapshot> _searchResults = [];
-  Set<String> _invitedUserIds = {};
+  Map<String, String> _pendingInvitationsByUserId = {};
   final Set<String> _loadingUserIds = {};
   DocumentSnapshot? _lastDocument;
   bool _isLoading = false;
@@ -58,9 +58,9 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
   }
 
   Future<void> _loadInvitedUsers() async {
-    final ids =
-        await _invitationService.getInvitedUserIdsForEvent(widget.eventId);
-    setState(() => _invitedUserIds = ids);
+    final map =
+        await _invitationService.getPendingInvitationsForEvent(widget.eventId);
+    setState(() => _pendingInvitationsByUserId = map);
   }
 
   Future<void> _searchUsers(String term) async {
@@ -82,7 +82,7 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
     });
 
     final current = FirebaseAuth.instance.currentUser!.uid;
-    final exclude = {current, ...widget.currentParticipants};
+    final exclude = {current};
 
     final results = await _userService.searchUsersByFilters(
       searchTerm: term,
@@ -104,7 +104,7 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
     setState(() => _isLoadingMore = true);
 
     final current = FirebaseAuth.instance.currentUser!.uid;
-    final exclude = {current, ...widget.currentParticipants};
+    final exclude = {current};
 
     final more = await _userService.searchUsersByFilters(
       searchTerm: _searchController.text.trim(),
@@ -127,10 +127,8 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
       eventId: widget.eventId,
       eventTitle: widget.eventTitle,
     );
-    setState(() {
-      _invitedUserIds.add(uid);
-      _loadingUserIds.remove(uid);
-    });
+    await _loadInvitedUsers();
+    setState(() => _loadingUserIds.remove(uid));
 
     final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
     AppSnackBar.show(
@@ -161,145 +159,179 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
     final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
 
     return GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        behavior: HitTestBehavior.opaque,
-        child: Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: SizedBox(
-            width: 400,
-            height: 500,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Stack(
-                children: [
-                  Column(
-                    children: [
-                      SearchFilter(
-                        focusNode: _searchFocusNode,
-                        section: section,
-                        controller: _searchController,
-                        onChanged: _searchUsers,
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: (_searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {
-                                    _searchResults.clear();
-                                    _lastDocument = null;
-                                    _hasMore = true;
-                                  });
-                                  _resetScroll();
-                                },
-                              )
-                            : null),
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: _searchResults.isEmpty
-                            ? Center(
-                                child: Text(
-                                  locale.translate(section, 'title'),
-                                  style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey),
-                                  textAlign: TextAlign.center,
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: SizedBox(
+          width: 400,
+          height: 500,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Stack(
+              children: [
+                Column(
+                  children: [
+                    SearchFilter(
+                      focusNode: _searchFocusNode,
+                      section: section,
+                      controller: _searchController,
+                      onChanged: _searchUsers,
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: (_searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchResults.clear();
+                                  _lastDocument = null;
+                                  _hasMore = true;
+                                });
+                                _resetScroll();
+                              },
+                            )
+                          : null),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _searchResults.isEmpty
+                          ? Center(
+                              child: Text(
+                                locale.translate(section, 'title'),
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
                                 ),
-                              )
-                            : ListView.builder(
-                                keyboardDismissBehavior:
-                                    ScrollViewKeyboardDismissBehavior.onDrag,
-                                controller: _scrollController,
-                                padding: EdgeInsets.zero,
-                                itemCount: _searchResults.length +
-                                    (_isLoadingMore ? 1 : 0),
-                                itemBuilder: (ctx, idx) {
-                                  if (idx == _searchResults.length &&
-                                      _isLoadingMore) {
-                                    return const Center(
-                                      child: Padding(
-                                        padding:
-                                            EdgeInsets.symmetric(vertical: 12),
-                                        child: SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                              strokeWidth: 2),
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  final doc = _searchResults[idx];
-                                  final data =
-                                      doc.data() as Map<String, dynamic>;
-                                  final userId = doc.id;
-                                  final name = data['displayName'] ?? 'Unknown';
-                                  final invited =
-                                      _invitedUserIds.contains(userId);
-
-                                  return ListTile(
-                                    title: Tooltip(
-                                      message: name,
-                                      child: Text(
-                                        name,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
+                                textAlign: TextAlign.center,
+                              ),
+                            )
+                          : ListView.builder(
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.onDrag,
+                              controller: _scrollController,
+                              padding: EdgeInsets.zero,
+                              itemCount: _searchResults.length +
+                                  (_isLoadingMore ? 1 : 0),
+                              itemBuilder: (ctx, idx) {
+                                if (idx == _searchResults.length &&
+                                    _isLoadingMore) {
+                                  return const Center(
+                                    child: Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 12),
+                                      child: SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
                                       ),
                                     ),
-                                    trailing: invited
-                                        ? Text(
-                                            locale.translate(
-                                                section, 'already_invited'),
-                                            style: const TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 14),
-                                          )
-                                        : _loadingUserIds.contains(userId)
-                                            ? const SizedBox(
-                                                width: 20,
-                                                height: 20,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                        strokeWidth: 2),
-                                              )
-                                            : TextButton(
-                                                onPressed: () =>
-                                                    _sendInvitation(userId),
-                                                child: Text(
-                                                  locale.translate(
-                                                      section, 'invite_button'),
-                                                  style: const TextStyle(
-                                                      fontSize: 14),
-                                                ),
-                                              ),
                                   );
-                                },
-                              ),
-                      ),
-                      const SizedBox(height: 16),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(
-                            locale.translate(section, 'close'),
-                            style: const TextStyle(fontSize: 16),
-                          ),
+                                }
+
+                                final doc = _searchResults[idx];
+                                final data = doc.data() as Map<String, dynamic>;
+                                final userId = doc.id;
+                                final name = data['displayName'] ?? 'Unknown';
+
+                                final isParticipant =
+                                    widget.currentParticipants.contains(userId);
+                                final invitationId =
+                                    _pendingInvitationsByUserId[userId];
+                                final isInvited = invitationId != null;
+
+                                Widget trailing;
+
+                                if (_loadingUserIds.contains(userId)) {
+                                  trailing = const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  );
+                                } else if (isParticipant) {
+                                  trailing = Text(
+                                    locale.translate(section, 'already_joined'),
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                    ),
+                                    textAlign: TextAlign.right,
+                                  );
+                                } else if (isInvited) {
+                                  trailing = TextButton(
+                                    onPressed: () async {
+                                      setState(
+                                          () => _loadingUserIds.add(userId));
+                                      await _invitationService
+                                          .revokeInvitationById(invitationId!);
+                                      await _loadInvitedUsers();
+                                      setState(
+                                          () => _loadingUserIds.remove(userId));
+
+                                      AppSnackBar.show(
+                                        context,
+                                        locale.translate(
+                                            section, 'revoke_success'),
+                                        type: SnackBarType.success,
+                                      );
+                                    },
+                                    child: Text(
+                                      locale.translate(
+                                          section, 'revoke_invitation'),
+                                      style: const TextStyle(fontSize: 14),
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  );
+                                } else {
+                                  trailing = TextButton(
+                                    onPressed: () => _sendInvitation(userId),
+                                    child: Text(
+                                      locale.translate(
+                                          section, 'invite_button'),
+                                      style: const TextStyle(fontSize: 14),
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  );
+                                }
+
+                                return ListTile(
+                                  title: Tooltip(
+                                    message: name,
+                                    child: Text(
+                                      name,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                  trailing: trailing,
+                                );
+                              }),
+                    ),
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          locale.translate(section, 'close'),
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ),
-                    ],
-                  ),
-                  if (_isLoading)
-                    const Center(
-                      child: CircularProgressIndicator(),
                     ),
-                ],
-              ),
+                  ],
+                ),
+                if (_isLoading)
+                  const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+              ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

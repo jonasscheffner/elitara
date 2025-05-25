@@ -7,7 +7,9 @@ class Message {
   final String text;
   final DateTime timestamp;
   final MessageType type;
-  final Map<String, dynamic>? data;
+  final String? invitationId;
+  final String? eventId;
+  final String? eventTitle;
 
   Message({
     this.id,
@@ -15,7 +17,9 @@ class Message {
     required this.text,
     required this.timestamp,
     this.type = MessageType.text,
-    this.data,
+    this.invitationId,
+    this.eventId,
+    this.eventTitle,
   });
 
   factory Message.fromSnapshot(DocumentSnapshot doc) {
@@ -24,22 +28,23 @@ class Message {
       id: doc.id,
       senderId: data['senderId'] ?? '',
       text: data['text'] ?? '',
-      timestamp: data['timestamp']?.toDate() ?? DateTime.now(),
+      timestamp: (data['timestamp'] as Timestamp).toDate(),
       type: MessageType.fromString(data['type'] ?? 'text'),
-      data:
-          data['data'] != null ? Map<String, dynamic>.from(data['data']) : null,
+      invitationId: data['invitationId'],
+      eventId: data['eventId'],
+      eventTitle: data['eventTitle'],
     );
   }
 
   factory Message.fromDocument(Map<String, dynamic> data) {
     return Message(
-      id: data['id'] ?? '',
       senderId: data['senderId'] ?? '',
       text: data['text'] ?? '',
-      timestamp: data['timestamp']?.toDate() ?? DateTime.now(),
+      timestamp: (data['timestamp'] as Timestamp).toDate(),
       type: MessageType.fromString(data['type'] ?? 'text'),
-      data:
-          data['data'] != null ? Map<String, dynamic>.from(data['data']) : null,
+      invitationId: data['invitationId'],
+      eventId: data['eventId'],
+      eventTitle: data['eventTitle'],
     );
   }
 
@@ -49,7 +54,9 @@ class Message {
       'text': text,
       'timestamp': timestamp,
       'type': type.toShortString(),
-      'data': data,
+      'invitationId': invitationId,
+      'eventId': eventId,
+      'eventTitle': eventTitle,
     };
   }
 }

@@ -198,10 +198,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             Widget messageContent;
 
                             if (message.type == MessageType.eventInvitation &&
-                                message.data != null) {
+                                message.invitationId != null &&
+                                message.eventId != null &&
+                                message.eventTitle != null) {
                               messageContent = EventInvitationMessage(
-                                eventId: message.data!['eventId'] ?? '',
-                                eventTitle: message.data!['eventTitle'] ?? '',
                                 chatId: _chatId!,
                                 messageId: message.id!,
                                 isSender: isCurrentUser,

@@ -268,7 +268,9 @@
       "view_event": "View Event",
       "joined_successfully": "You have joined the event!",
       "event_full": "The event is full",
-      "event_not_found": "Event not found"
+      "event_not_found": "Event not found",
+      "already_accepted": "Invitation already accepted",
+      "invitation_revoked": "Invitation revoked"
     }
   },
   "invite_users": {
@@ -279,6 +281,9 @@
     "already_participant": "Already participant",
     "no_users_found": "No users found",
     "close": "Close",
-    "invite_success": "Invitation sent successfully"
+    "invite_success": "Invitation sent successfully",
+    "revoke_success": "Invitation was revoked",
+    "revoke_invitation": "Revoke invitation",
+    "already_joined": "Already joined"
   }
 }

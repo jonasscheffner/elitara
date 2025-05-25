@@ -1,16 +1,15 @@
-import 'package:elitara/utils/app_snack_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
-import 'package:elitara/localization/locale_provider.dart';
-import 'package:elitara/models/event.dart';
+import 'package:elitara/models/invitation.dart';
+import 'package:elitara/models/message.dart';
+import 'package:elitara/services/invitation_service.dart';
 import 'package:elitara/services/event_service.dart';
 import 'package:elitara/screens/events/event_detail_screen.dart';
+import 'package:elitara/utils/app_snack_bar.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:elitara/localization/locale_provider.dart';
 
 class EventInvitationMessage extends StatefulWidget {
-  final String eventId;
-  final String eventTitle;
   final String chatId;
   final String messageId;
   final bool isSender;
@@ -19,8 +18,6 @@ class EventInvitationMessage extends StatefulWidget {
 
   const EventInvitationMessage({
     Key? key,
-    required this.eventId,
-    required this.eventTitle,
     required this.chatId,
     required this.messageId,
     required this.isSender,
@@ -33,87 +30,66 @@ class EventInvitationMessage extends StatefulWidget {
 
 class _EventInvitationMessageState extends State<EventInvitationMessage> {
   final _eventService = EventService();
+  final _invitationService = InvitationService();
   final currentUser = FirebaseAuth.instance.currentUser;
 
+  Message? _message;
+  InvitationStatus? _invitationStatus;
   bool _isLoading = true;
-  bool _canJoin = false;
   bool _isJoining = false;
 
   @override
   void initState() {
     super.initState();
-    _checkJoinStatus();
+    _loadMessageAndStatus();
   }
 
-  Future<void> _checkJoinStatus() async {
+  Future<void> _loadMessageAndStatus() async {
     if (currentUser == null) return;
 
-    final uid = currentUser!.uid;
-    final doc = await _eventService.getEvent(widget.eventId);
-    if (!doc.exists) return;
-
-    final event = Event.fromMap(doc.id, doc.data() as Map<String, dynamic>);
-
-    if (event.participants.contains(uid)) {
-      if (mounted) {
-        setState(() {
-          _canJoin = false;
-          _isLoading = false;
-        });
-      }
-
-      return;
-    }
-
-    final messageDoc = await FirebaseFirestore.instance
+    final msgDoc = await FirebaseFirestore.instance
         .collection('chats')
         .doc(widget.chatId)
         .collection('messages')
         .doc(widget.messageId)
         .get();
 
-    final messageData = messageDoc.data();
-    final acceptedBy =
-        List<String>.from(messageData?['data']?['acceptedBy'] ?? []);
+    final message = Message.fromSnapshot(msgDoc);
 
-    if (mounted) {
+    if (message.invitationId == null) {
       setState(() {
-        _canJoin = !acceptedBy.contains(uid);
+        _message = message;
+        _invitationStatus = null;
         _isLoading = false;
       });
+      return;
     }
+
+    final invitation =
+        await _invitationService.getInvitationById(message.invitationId!);
+
+    setState(() {
+      _message = message;
+      _invitationStatus = invitation?.status;
+      _isLoading = false;
+    });
   }
 
   Future<void> _handleJoin() async {
-    if (currentUser == null) return;
-    final uid = currentUser!.uid;
+    if (currentUser == null || _message?.invitationId == null) return;
 
-    if (mounted) {
-      setState(() {
-        _isJoining = true;
-      });
-    }
+    setState(() => _isJoining = true);
 
-    await _eventService.registerForEvent(widget.eventId, uid);
-
-    final messageRef = FirebaseFirestore.instance
-        .collection('chats')
-        .doc(widget.chatId)
-        .collection('messages')
-        .doc(widget.messageId);
-
-    await messageRef.update({
-      'data.acceptedBy': FieldValue.arrayUnion([uid])
-    });
+    await _eventService.registerForEvent(_message!.eventId!, currentUser!.uid);
+    await _invitationService
+        .markInvitationAcceptedById(_message!.invitationId!);
 
     widget.onJoinedCallback?.call();
 
-    if (mounted) {
-      setState(() {
-        _canJoin = false;
-        _isJoining = false;
-      });
-    }
+    setState(() {
+      _invitationStatus = InvitationStatus.accepted;
+      _isJoining = false;
+    });
 
     AppSnackBar.show(
       context,
@@ -141,7 +117,7 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
           elevation: 3,
           child: Padding(
             padding: const EdgeInsets.all(14),
-            child: _isLoading
+            child: _isLoading || _message == null
                 ? const Center(
                     child: SizedBox(
                       height: 40,
@@ -160,53 +136,34 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        widget.eventTitle,
+                        _message!.eventTitle ?? 'Event',
                         style: const TextStyle(fontSize: 15),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 12),
                       Row(
-                        mainAxisAlignment: widget.isSender
-                            ? MainAxisAlignment.end
-                            : MainAxisAlignment.spaceBetween,
                         children: [
-                          if (!widget.isSender && _canJoin)
-                            ElevatedButton.icon(
-                              onPressed: _isJoining ? null : _handleJoin,
-                              icon: _isJoining
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation(
-                                            Colors.white),
-                                      ),
-                                    )
-                                  : const Icon(Icons.check),
-                              label: Text(locale.translate(
-                                  widget.section, 'join_event')),
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 10),
-                                textStyle: const TextStyle(fontSize: 14),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                          if (!widget.isSender)
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: _buildStatusWidget(locale),
                               ),
                             ),
                           OutlinedButton.icon(
                             onPressed: () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    EventDetailScreen(eventId: widget.eventId),
+                                builder: (_) => EventDetailScreen(
+                                    eventId: _message!.eventId!),
                               ),
                             ),
                             icon: const Icon(Icons.visibility_outlined),
                             label: Text(
-                                locale.translate(widget.section, 'view_event')),
+                              locale.translate(widget.section, 'view_event'),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 10),
@@ -217,12 +174,57 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
                             ),
                           ),
                         ],
-                      ),
+                      )
                     ],
                   ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildStatusWidget(LocaleProvider locale) {
+    switch (_invitationStatus) {
+      case InvitationStatus.accepted:
+        return Text(
+          locale.translate(widget.section, 'already_accepted'),
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.orange,
+          ),
+        );
+      case InvitationStatus.revoked:
+        return Text(
+          locale.translate(widget.section, 'invitation_revoked'),
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.red,
+          ),
+        );
+      case InvitationStatus.pending:
+        return ElevatedButton.icon(
+          onPressed: _isJoining ? null : _handleJoin,
+          icon: _isJoining
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                  ),
+                )
+              : const Icon(Icons.check),
+          label: Text(locale.translate(widget.section, 'join_event')),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            textStyle: const TextStyle(fontSize: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 }
