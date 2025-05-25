@@ -36,25 +36,36 @@ class AuthService {
         });
       }
     } catch (e) {
+      print("$e");
       throw e;
     }
   }
 
   Future<bool> checkUsernameExists(String username) async {
-    final result = await _firestore
-        .collection('users')
-        .where('displayName', isEqualTo: username)
-        .limit(1)
-        .get();
-    return result.docs.isNotEmpty;
+    try {
+      final result = await _firestore
+          .collection('users')
+          .where('displayName', isEqualTo: username)
+          .limit(1)
+          .get();
+
+      return result.docs.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
   }
 
   Future<bool> checkEmailExists(String email) async {
-    final result = await _firestore
-        .collection('users')
-        .where('email', isEqualTo: email)
-        .limit(1)
-        .get();
-    return result.docs.isNotEmpty;
+    try {
+      final result = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+
+      return result.docs.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
   }
 }
