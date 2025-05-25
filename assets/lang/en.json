@@ -90,7 +90,7 @@
       "price_label": "Price",
       "currency_label": "Currency",
       "confirm": "Confirm",
-      "priceErrorWithCurrency": "Minimum amount is 5 {{currency}}",
+      "priceErrorWithCurrency": "Minimum amount is 5 {currency}",
       "cancel": "Cancel",
       "enable_fee": "Enable participation fee"
     },
@@ -279,6 +279,7 @@
     "already_invited": "Already invited",
     "already_participant": "Already participant",
     "no_users_found": "No users found",
-    "close": "Close"
+    "close": "Close",
+    "invite_success": "Invitation sent successfully"
   }
 }

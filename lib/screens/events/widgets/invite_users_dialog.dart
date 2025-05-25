@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elitara/services/user_service.dart';
 import 'package:elitara/services/invitation_service.dart';
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/widgets/search_filter.dart';
@@ -130,6 +131,13 @@ class _InviteUsersDialogState extends State<InviteUsersDialog> {
       _invitedUserIds.add(uid);
       _loadingUserIds.remove(uid);
     });
+
+    final locale = Localizations.of<LocaleProvider>(context, LocaleProvider)!;
+    AppSnackBar.show(
+      context,
+      locale.translate(section, 'invite_success'),
+      type: SnackBarType.success,
+    );
   }
 
   void _resetScroll() {

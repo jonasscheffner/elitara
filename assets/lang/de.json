@@ -90,7 +90,7 @@
       "price_label": "Preis",
       "currency_label": "Währung",
       "confirm": "Bestätigen",
-      "priceErrorWithCurrency": "Der Mindestbetrag beträgt 5 {{currency}}",
+      "priceErrorWithCurrency": "Der Mindestbetrag beträgt 5 {currency}",
       "cancel": "Abbrechen",
       "enable_fee": "Teilnahmegebühr aktivieren"
     },
@@ -172,7 +172,7 @@
       "close": "Schließen"
     },
     "cancel_event": "Event absagen",
-    "event_canceled": "Event wurde abgesagt",
+    "event_canceled": "Event wurde erfolgreich abgesagt",
     "cancel_confirmation_dialog": {
       "title": "Bestätigen",
       "content": "Möchten Sie das Event wirklich absagen?",
@@ -279,6 +279,7 @@
     "already_invited": "Bereits eingeladen",
     "already_participant": "Bereits Teilnehmer",
     "no_users_found": "Keine Nutzer gefunden",
-    "close": "Schließen"
+    "close": "Schließen",
+    "invite_success": "Einladung erfolgreich gesendet"
   }
 }

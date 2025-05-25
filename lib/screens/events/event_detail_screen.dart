@@ -778,7 +778,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 AppSnackBar.show(
                                   context,
                                   locale.translate(section, 'event_canceled'),
-                                  type: SnackBarType.warning,
+                                  type: SnackBarType.success,
                                 );
 
                                 Navigator.pop(context);
