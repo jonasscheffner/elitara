@@ -141,77 +141,85 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
           elevation: 3,
           child: Padding(
             padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  locale.translate(widget.section, 'event_invitation_title'),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 17),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  widget.eventTitle,
-                  style: const TextStyle(fontSize: 15),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                if (!_isLoading)
-                  Row(
-                    mainAxisAlignment: widget.isSender
-                        ? MainAxisAlignment.end
-                        : MainAxisAlignment.spaceBetween,
+            child: _isLoading
+                ? const Center(
+                    child: SizedBox(
+                      height: 40,
+                      width: 40,
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (!widget.isSender && _canJoin)
-                        ElevatedButton.icon(
-                          onPressed: _isJoining ? null : _handleJoin,
-                          icon: _isJoining
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor:
-                                        AlwaysStoppedAnimation(Colors.white),
-                                  ),
-                                )
-                              : const Icon(Icons.check),
-                          label: Text(
-                              locale.translate(widget.section, 'join_event')),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
-                            textStyle: const TextStyle(fontSize: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                      Text(
+                        locale.translate(
+                            widget.section, 'event_invitation_title'),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 17),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        widget.eventTitle,
+                        style: const TextStyle(fontSize: 15),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: widget.isSender
+                            ? MainAxisAlignment.end
+                            : MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (!widget.isSender && _canJoin)
+                            ElevatedButton.icon(
+                              onPressed: _isJoining ? null : _handleJoin,
+                              icon: _isJoining
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation(
+                                            Colors.white),
+                                      ),
+                                    )
+                                  : const Icon(Icons.check),
+                              label: Text(locale.translate(
+                                  widget.section, 'join_event')),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 10),
+                                textStyle: const TextStyle(fontSize: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          OutlinedButton.icon(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    EventDetailScreen(eventId: widget.eventId),
+                              ),
+                            ),
+                            icon: const Icon(Icons.visibility_outlined),
+                            label: Text(
+                                locale.translate(widget.section, 'view_event')),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              textStyle: const TextStyle(fontSize: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                           ),
-                        ),
-                      OutlinedButton.icon(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                EventDetailScreen(eventId: widget.eventId),
-                          ),
-                        ),
-                        icon: const Icon(Icons.visibility_outlined),
-                        label: Text(
-                            locale.translate(widget.section, 'view_event')),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10),
-                          textStyle: const TextStyle(fontSize: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
-              ],
-            ),
           ),
         ),
       ),
