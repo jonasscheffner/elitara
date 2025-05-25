@@ -257,10 +257,12 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
               ),
               IconButton(
                 icon: const Icon(Icons.settings),
-                onPressed: () {
+                onPressed: () async {
                   FocusScope.of(context).unfocus();
                   _searchController.clear();
-                  Navigator.pushNamed(context, '/settingsMenu');
+                  await Navigator.pushNamed(context, '/settingsMenu');
+
+                  _loadMembership();
                 },
               ),
             ],
