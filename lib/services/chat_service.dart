@@ -7,6 +7,16 @@ class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<List<Chat>> getUserChats(String userId) {
+    assert(() {
+      _firestore
+          .collection('chats')
+          .where('participants', arrayContains: userId)
+          .orderBy('lastUpdated', descending: true)
+          .limit(1)
+          .get();
+      return true;
+    }());
+
     return _firestore
         .collection('chats')
         .where('participants', arrayContains: userId)
@@ -14,7 +24,7 @@ class ChatService {
         .snapshots()
         .map((querySnapshot) {
       return querySnapshot.docs.map((doc) {
-        return Chat.fromDocument(doc.id, doc.data() as Map<String, dynamic>);
+        return Chat.fromDocument(doc.id, doc.data());
       }).where((chat) {
         bool deleted = chat.isDeleted[userId] ?? false;
         DateTime? clearedAt = chat.lastClearedAt[userId];
