@@ -167,6 +167,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         }
 
                         return ListView.builder(
+                          keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior.onDrag,
                           controller: _scrollController,
                           itemCount: messages.length,
                           itemBuilder: (context, index) {
