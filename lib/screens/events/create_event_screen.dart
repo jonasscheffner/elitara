@@ -164,7 +164,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       price: _price,
     );
 
-    await _eventService.createEvent(newEvent.toMap());
+    final eventId = await _eventService.createEvent(newEvent.toMap());
 
     AppSnackBar.show(
       context,
@@ -172,7 +172,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       type: SnackBarType.success,
     );
 
-    Navigator.pop(context);
+    Navigator.pushReplacementNamed(
+      context,
+      '/eventDetail',
+      arguments: eventId,
+    );
   }
 
   Future<void> _selectDate(BuildContext context) async {

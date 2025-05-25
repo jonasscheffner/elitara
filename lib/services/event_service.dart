@@ -60,8 +60,9 @@ class EventService {
         .update({'status': EventStatus.canceled.value});
   }
 
-  Future<DocumentReference> createEvent(Map<String, dynamic> eventData) async {
-    return await _firestore.collection('events').add(eventData);
+  Future<String> createEvent(Map<String, dynamic> eventData) async {
+    final docRef = await _firestore.collection('events').add(eventData);
+    return docRef.id;
   }
 
   Future<void> registerForEvent(String eventId, String uid) async {
