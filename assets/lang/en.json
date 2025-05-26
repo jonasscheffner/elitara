@@ -62,7 +62,6 @@
     "filter_own_events": "Show only my events",
     "filter_participating_events": "Show only participating events",
     "upgrade_required_create": "You need a Gold or Platinum membership to create events",
-    "upgrade_required_messages": "You need a Gold or Platinum membership to send messages",
     "limit_reached_gold": "You have reached your event creation limit for this month",
     "platinum_organizer": "Platinum Organizer"
   },
@@ -262,6 +261,8 @@
     "type_a_message": "Type a message",
     "send": "Send",
     "search": "Search users...",
+    "chat_locked_message": "🔒 Message – Upgrade required",
+    "upgrade_required_messages": "You need a Gold or Platinum membership to send messages",
     "event_invitation": {
       "event_invitation_title": "Event Invitation",
       "join_event": "Join",

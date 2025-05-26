@@ -231,17 +231,6 @@ class _EventFeedScreenState extends State<EventFeedScreen> with RouteAware {
                       FocusScope.of(context).unfocus();
                       _searchController.clear();
 
-                      if (_membership == null ||
-                          _membership == MembershipType.guest) {
-                        AppSnackBar.show(
-                          context,
-                          locale.translate(
-                              section, 'upgrade_required_messages'),
-                          type: SnackBarType.warning,
-                        );
-                        return;
-                      }
-
                       await Navigator.pushNamed(context, '/chatList');
                       _checkUnreadChats();
                     },

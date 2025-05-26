@@ -2,13 +2,15 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
+import 'package:elitara/models/membership_type.dart';
+import 'package:elitara/services/membership_service.dart';
+import 'package:elitara/utils/app_snack_bar.dart';
 import 'package:elitara/utils/localized_date_time_formatter.dart';
 import 'package:elitara/widgets/search_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:elitara/localization/locale_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:intl/intl.dart';
 import '../../services/chat_service.dart';
 import '../../services/user_service.dart';
 import '../../models/chat.dart';
@@ -29,7 +31,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   final TextEditingController _searchController = TextEditingController();
   final LayerLink _layerLink = LayerLink();
   Timer? _debounce;
-  Stream<List<Chat>>? _chatStream;
+  MembershipType? _membership = MembershipType.guest;
 
   OverlayEntry? _overlayEntry;
   final List<QueryDocumentSnapshot> _searchResults = [];
@@ -50,7 +52,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   void initState() {
     super.initState();
     _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-
+    _loadMembership();
     _loadInitialChats();
 
     _searchController.addListener(() {
@@ -83,6 +85,34 @@ class _ChatListScreenState extends State<ChatListScreen> {
           _searchController.text.trim().isEmpty) {
         _loadMoreChats();
       }
+    });
+  }
+
+  Future<void> _refreshChats() async {
+    final QuerySnapshot snapshot =
+        await _chatService.getInitialChats(_currentUserId);
+
+    final newChats = snapshot.docs.map((doc) {
+      return Chat.fromDocument(
+          doc.id, doc.data() as Map<String, dynamic>, _currentUserId);
+    }).where((chat) {
+      final deleted = chat.isDeleted[_currentUserId] ?? false;
+      final clearedAt = chat.lastClearedAt[_currentUserId];
+      if (deleted && clearedAt != null) {
+        return chat.lastUpdated.isAfter(clearedAt);
+      }
+      return !deleted;
+    }).toList();
+
+    setState(() {
+      _chats = newChats;
+    });
+  }
+
+  Future<void> _loadMembership() async {
+    final membership = await MembershipService().getCurrentMembership();
+    setState(() {
+      _membership = membership;
     });
   }
 
@@ -213,7 +243,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
     if (!mounted) return;
     if (querySnapshot.docs.isNotEmpty) {
       List<Chat> chats = querySnapshot.docs.map((doc) {
-        return Chat.fromDocument(doc.id, doc.data() as Map<String, dynamic>);
+        return Chat.fromDocument(
+            doc.id, doc.data() as Map<String, dynamic>, _currentUserId);
       }).toList();
 
       chats = chats.where((chat) {
@@ -252,7 +283,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
     if (querySnapshot.docs.isNotEmpty) {
       List<Chat> moreChats = querySnapshot.docs.map((doc) {
-        return Chat.fromDocument(doc.id, doc.data() as Map<String, dynamic>);
+        return Chat.fromDocument(
+            doc.id, doc.data() as Map<String, dynamic>, _currentUserId);
       }).toList();
 
       moreChats = moreChats.where((chat) {
@@ -280,12 +312,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
     _removeOverlay();
     _searchController.clear();
     FocusScope.of(context).unfocus();
-    String? chatId =
-        await _chatService.getExistingChat(_currentUserId, otherUserId);
 
-    final Chat? existingChat = _chats.firstWhereOrNull((c) => c.id == chatId);
-    if (existingChat != null && chatId != null) {
-      await _chatService.markChatRead(chatId, _currentUserId);
+    final Chat? existingChat = _chats.firstWhereOrNull(
+      (c) => c.participants.contains(otherUserId),
+    );
+
+    String? chatId = existingChat?.id;
+
+    chatId ??= await _chatService.getExistingChat(_currentUserId, otherUserId);
+
+    if (chatId != null) {
+      unawaited(_chatService.markChatRead(chatId, _currentUserId));
     }
 
     await Navigator.push(
@@ -297,6 +334,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ),
       ),
     );
+
+    _refreshChats();
   }
 
   Widget _buildDeleteDialog(
@@ -443,17 +482,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 final otherUserId = chat.participants
                                     .firstWhere((p) => p != _currentUserId,
                                         orElse: () => '');
-                                final DateTime? lastRead =
-                                    chat.lastReadAt[_currentUserId];
-                                final lastMsg = chat.lastMessage;
-                                bool hasUnread = false;
-
-                                if (lastMsg != null &&
-                                    lastMsg.senderId != _currentUserId &&
-                                    (lastRead == null ||
-                                        lastMsg.timestamp.isAfter(lastRead))) {
-                                  hasUnread = true;
-                                }
 
                                 return Slidable(
                                   key: ValueKey(chat.id),
@@ -498,7 +526,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: ListTile(
-                                      leading: hasUnread
+                                      leading: chat.hasUnread
                                           ? Container(
                                               width: 10,
                                               height: 10,
@@ -512,11 +540,19 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                         uid: otherUserId,
                                         style: const TextStyle(fontSize: 16),
                                       ),
-                                      subtitle: Text(
-                                        chat.lastMessage?.text ?? '',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                      subtitle: _membership ==
+                                              MembershipType.guest
+                                          ? Text(
+                                              localeProvider.translate(section,
+                                                  'chat_locked_message'),
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            )
+                                          : Text(
+                                              chat.lastMessage?.text ?? '',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
                                       trailing: Text(
                                         LocalizedDateTimeFormatter
                                             .getChatListFormattedDate(
@@ -524,7 +560,19 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                         style: const TextStyle(
                                             fontSize: 12, color: Colors.grey),
                                       ),
-                                      onTap: () => _onChatTap(otherUserId),
+                                      onTap: () {
+                                        if (_membership ==
+                                            MembershipType.guest) {
+                                          AppSnackBar.show(
+                                            context,
+                                            localeProvider.translate(section,
+                                                'upgrade_required_messages'),
+                                            type: SnackBarType.warning,
+                                          );
+                                          return;
+                                        }
+                                        _onChatTap(otherUserId);
+                                      },
                                     ),
                                   ),
                                 );

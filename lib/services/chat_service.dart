@@ -24,7 +24,7 @@ class ChatService {
         .snapshots()
         .map((querySnapshot) {
       return querySnapshot.docs.map((doc) {
-        return Chat.fromDocument(doc.id, doc.data());
+        return Chat.fromDocument(doc.id, doc.data(), userId);
       }).where((chat) {
         bool deleted = chat.isDeleted[userId] ?? false;
         DateTime? clearedAt = chat.lastClearedAt[userId];
@@ -34,6 +34,36 @@ class ChatService {
         return !deleted;
       }).toList();
     });
+  }
+
+  bool shouldMarkUnread(Map<String, dynamic> data, String userId) {
+    final Timestamp? lastUpdatedTs = data['lastUpdated'];
+    final Timestamp? lastReadTs = data['lastReadAt']?[userId];
+    final lastUpdated = lastUpdatedTs?.toDate();
+    final lastRead = lastReadTs?.toDate();
+
+    final isDeleted = (data['isDeleted'] ?? {})[userId] ?? false;
+    final clearedAtRaw = (data['lastClearedAt'] ?? {})[userId];
+    DateTime? clearedAt;
+    if (clearedAtRaw != null) {
+      clearedAt = clearedAtRaw is Timestamp
+          ? clearedAtRaw.toDate()
+          : DateTime.tryParse(clearedAtRaw.toString());
+    }
+
+    final lastMessage = data['lastMessage'];
+    final isOwnLastMessage =
+        lastMessage != null && lastMessage['senderId'] == userId;
+    if (isOwnLastMessage) return false;
+
+    if (isDeleted && clearedAt != null) {
+      if (lastUpdated == null || lastUpdated.isBefore(clearedAt)) {
+        return false;
+      }
+    }
+
+    return lastUpdated != null &&
+        (lastRead == null || lastUpdated.isAfter(lastRead));
   }
 
   Stream<List<Message>> getMessages(String chatId, String userId) {
@@ -129,12 +159,31 @@ class ChatService {
       final Timestamp? lastReadTs =
           data['lastReadAt'] != null ? data['lastReadAt'][userId] : null;
 
-      if (lastUpdatedTs != null) {
-        final lastUpdated = lastUpdatedTs.toDate();
-        final lastRead = lastReadTs?.toDate();
-        if (lastRead == null || lastUpdated.isAfter(lastRead)) {
-          return true;
+      final Map<String, dynamic>? lastMessage = data['lastMessage'];
+
+      if (lastMessage != null && lastMessage['senderId'] == userId) continue;
+
+      final lastUpdated = lastUpdatedTs?.toDate();
+      final lastRead = lastReadTs?.toDate();
+
+      final isDeleted = (data['isDeleted'] ?? {})[userId] ?? false;
+      final clearedAtRaw = (data['lastClearedAt'] ?? {})[userId];
+      DateTime? clearedAt;
+      if (clearedAtRaw != null) {
+        clearedAt = clearedAtRaw is Timestamp
+            ? clearedAtRaw.toDate()
+            : DateTime.tryParse(clearedAtRaw.toString());
+      }
+
+      if (isDeleted && clearedAt != null) {
+        if (lastUpdated == null || lastUpdated.isBefore(clearedAt)) {
+          continue;
         }
+      }
+
+      if (lastUpdated != null &&
+          (lastRead == null || lastUpdated.isAfter(lastRead))) {
+        return true;
       }
     }
 

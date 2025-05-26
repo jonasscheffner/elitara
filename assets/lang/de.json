@@ -62,7 +62,6 @@
     "filter_own_events": "Nur meine Events anzeigen",
     "filter_participating_events": "Nur teilgenommene Events anzeigen",
     "upgrade_required_create": "Du benötigst eine Gold- oder Platin-Mitgliedschaft, um Events zu erstellen",
-    "upgrade_required_messages": "Du benötigst eine Gold- oder Platin-Mitgliedschaft, um Nachrichten zu senden",
     "limit_reached_gold": "Du hast dein Limit für Event-Erstellungen in diesem Monat erreicht",
     "platinum_organizer": "Platin-Veranstalter"
   },
@@ -262,6 +261,8 @@
     "type_a_message": "Nachricht eingeben",
     "send": "Senden",
     "search": "Nutzer suchen...",
+    "chat_locked_message": "🔒 Nachricht – Upgrade erforderlich",
+    "upgrade_required_messages": "Du benötigst eine Gold- oder Platin-Mitgliedschaft, um Nachrichten zu senden",
     "event_invitation": {
       "event_invitation_title": "Event Einladung",
       "join_event": "Beitreten",

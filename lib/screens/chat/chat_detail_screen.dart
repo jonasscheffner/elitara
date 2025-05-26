@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:elitara/models/message_type.dart';
 import 'package:elitara/screens/chat/widgets/chat_input_widget.dart';
 import 'package:elitara/screens/chat/widgets/event_invitation_message.dart';
@@ -81,20 +82,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       _chatId =
           await _chatService.createChat(_currentUserId, widget.otherUserId);
       _messagesStream = _chatService.getMessages(_chatId!, _currentUserId);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _chatService.markChatRead(_chatId!, _currentUserId);
-      });
       if (_isMounted) {
         setState(() {});
       }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _chatService.markChatRead(_chatId!, _currentUserId);
+      });
     }
 
-    await _chatService.sendMessage(_chatId!, msg);
-    if (_isMounted) {
-      _messageController.clear();
-    }
+    _messageController.clear();
+    setState(() => _isMessageValid = false);
 
-    await _chatService.markChatRead(_chatId!, _currentUserId);
+    unawaited(_chatService.sendMessage(_chatId!, msg));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {

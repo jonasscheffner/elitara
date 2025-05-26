@@ -57,6 +57,7 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
     final message = Message.fromSnapshot(msgDoc);
 
     if (message.invitationId == null) {
+      if (!mounted) return;
       setState(() {
         _message = message;
         _invitationStatus = null;
@@ -68,6 +69,7 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
     final invitation =
         await _invitationService.getInvitationById(message.invitationId!);
 
+    if (!mounted) return;
     setState(() {
       _message = message;
       _invitationStatus = invitation?.status;
@@ -78,6 +80,7 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
   Future<void> _handleJoin() async {
     if (currentUser == null || _message?.invitationId == null) return;
 
+    if (!mounted) return;
     setState(() => _isJoining = true);
 
     await _eventService.registerForEvent(_message!.eventId!, currentUser!.uid);
@@ -86,6 +89,7 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
 
     widget.onJoinedCallback?.call();
 
+    if (!mounted) return;
     setState(() {
       _invitationStatus = InvitationStatus.accepted;
       _isJoining = false;
