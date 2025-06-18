@@ -275,6 +275,10 @@ class _ParticipantListDialogState extends State<ParticipantListDialog> {
                                         _removeParticipant(p.uid);
                                       }
                                     },
+                                    onCanceled: () {
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus();
+                                    },
                                     itemBuilder: (_) {
                                       final items = <PopupMenuEntry<String>>[];
 
