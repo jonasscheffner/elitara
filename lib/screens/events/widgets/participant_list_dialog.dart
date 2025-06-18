@@ -257,73 +257,64 @@ class _ParticipantListDialogState extends State<ParticipantListDialog> {
                                 final isSelf = p.uid == currentUserId;
 
                                 Widget? trailing;
-                                if (!isSelf && p.uid != widget.hostId) {
-                                  if (_isCurrentUserHost) {
-                                    trailing = PopupMenuButton<String>(
-                                      onSelected: (value) async {
-                                        if (value == 'make_cohost') {
-                                          _makeCoHost(p.uid);
-                                        } else if (value == 'remove_cohost') {
-                                          _removeCoHost(p.uid);
-                                        } else if (value ==
-                                            'remove_participant') {
-                                          _removeParticipant(p.uid);
-                                        } else if (value == 'start_chat') {
-                                          await _openChatWithUser(p.uid);
-                                          return;
-                                        }
-                                      },
-                                      itemBuilder: (_) {
-                                        final items =
-                                            <PopupMenuEntry<String>>[];
+                                if (!isSelf) {
+                                  trailing = PopupMenuButton<String>(
+                                    onSelected: (value) async {
+                                      if (value == 'start_chat') {
+                                        await _openChatWithUser(p.uid);
+                                      } else if (value == 'make_cohost' &&
+                                          _isCurrentUserHost) {
+                                        _makeCoHost(p.uid);
+                                      } else if (value == 'remove_cohost' &&
+                                          _isCurrentUserHost) {
+                                        _removeCoHost(p.uid);
+                                      } else if (value ==
+                                              'remove_participant' &&
+                                          (_isCurrentUserHost ||
+                                              _isCurrentUserCoHost)) {
+                                        _removeParticipant(p.uid);
+                                      }
+                                    },
+                                    itemBuilder: (_) {
+                                      final items = <PopupMenuEntry<String>>[];
 
-                                        if (isCoHost) {
-                                          items.add(PopupMenuItem(
-                                            value: 'remove_cohost',
-                                            child: Text(locale.translate(
-                                                section, 'remove_cohost')),
-                                          ));
-                                        } else {
-                                          items.add(PopupMenuItem(
-                                            value: 'make_cohost',
-                                            child: Text(locale.translate(
-                                                section, 'make_cohost')),
-                                          ));
-                                        }
-
-                                        items.add(PopupMenuItem(
-                                          value: 'remove_participant',
-                                          child: Text(locale.translate(
-                                              section, 'remove_participant')),
-                                        ));
-
-                                        items.add(PopupMenuItem(
+                                      items.add(
+                                        PopupMenuItem(
                                           value: 'start_chat',
                                           child: Text(locale.translate(
                                               section, 'start_chat')),
-                                        ));
+                                        ),
+                                      );
 
-                                        return items;
-                                      },
-                                    );
-                                  } else if (_isCurrentUserCoHost) {
-                                    trailing = PopupMenuButton<String>(
-                                      onSelected: (value) {
-                                        if (value == 'remove_participant') {
-                                          _removeParticipant(p.uid);
+                                      if (_isCurrentUserHost ||
+                                          _isCurrentUserCoHost) {
+                                        if (_isCurrentUserHost) {
+                                          if (isCoHost) {
+                                            items.add(PopupMenuItem(
+                                              value: 'remove_cohost',
+                                              child: Text(locale.translate(
+                                                  section, 'remove_cohost')),
+                                            ));
+                                          } else {
+                                            items.add(PopupMenuItem(
+                                              value: 'make_cohost',
+                                              child: Text(locale.translate(
+                                                  section, 'make_cohost')),
+                                            ));
+                                          }
                                         }
-                                      },
-                                      itemBuilder: (_) => [
-                                        PopupMenuItem(
+
+                                        items.add(PopupMenuItem(
                                           value: 'remove_participant',
                                           child: Text(locale.translate(
                                               section, 'remove_participant')),
-                                        ),
-                                      ],
-                                    );
-                                  }
-                                }
+                                        ));
+                                      }
 
+                                      return items;
+                                    },
+                                  );
+                                }
                                 return GestureDetector(
                                   behavior: HitTestBehavior.opaque,
                                   onTap: () async {
