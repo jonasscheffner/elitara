@@ -122,11 +122,14 @@ class _EventInvitationMessageState extends State<EventInvitationMessage> {
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: _isLoading || _message == null
-                ? const Center(
-                    child: SizedBox(
-                      height: 40,
-                      width: 40,
-                      child: CircularProgressIndicator(),
+                ? const SizedBox(
+                    height: 110,
+                    child: Center(
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: CircularProgressIndicator(),
+                      ),
                     ),
                   )
                 : Column(

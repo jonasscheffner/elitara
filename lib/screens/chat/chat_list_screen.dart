@@ -81,8 +81,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       if (_chatScrollController.position.pixels >=
               _chatScrollController.position.maxScrollExtent - 100 &&
           !_isLoadingMoreChats &&
-          _hasMoreChats &&
-          _searchController.text.trim().isEmpty) {
+          _hasMoreChats) {
         _loadMoreChats();
       }
     });
@@ -371,41 +370,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  Widget _buildFilteredChatList() {
-    final localeProvider =
-        Localizations.of<LocaleProvider>(context, LocaleProvider)!;
-
-    if (_isLoadingUsers) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_searchResults.isEmpty) {
-      return Center(
-        child: Text(localeProvider.translate(section, 'no_chats')),
-      );
-    }
-
-    return ListView.builder(
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) {
-        final data = _searchResults[index].data() as Map<String, dynamic>;
-        final String uid = data['uid'] ?? '';
-        final String displayName = data['displayName'] ?? 'Unknown';
-
-        if (uid == _currentUserId) return const SizedBox.shrink();
-
-        return ListTile(
-          title: Text(displayName),
-          onTap: () {
-            _removeOverlay();
-            _onChatTap(uid);
-            _searchController.clear();
-          },
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final localeProvider =
@@ -418,45 +382,47 @@ class _ChatListScreenState extends State<ChatListScreen> {
         appBar: AppBar(
           title: Text(localeProvider.translate(section, 'title')),
         ),
-        body: Column(
+        body: Stack(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: CompositedTransformTarget(
-                link: _layerLink,
-                child: SearchFilter(
-                  section: section,
-                  controller: _searchController,
-                  onChanged: (_) {},
-                  suffixIcon: _isLoadingUsers
-                      ? const Padding(
-                          padding: EdgeInsets.all(10.0),
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        )
-                      : (_searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                _removeOverlay();
-                                setState(() {
-                                  _isLoadingUsers = false;
-                                  _searchResults.clear();
-                                });
-                              },
+            Column(
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  child: CompositedTransformTarget(
+                    link: _layerLink,
+                    child: SearchFilter(
+                      section: section,
+                      controller: _searchController,
+                      onChanged: (_) {},
+                      suffixIcon: _isLoadingUsers
+                          ? const Padding(
+                              padding: EdgeInsets.all(10.0),
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              ),
                             )
-                          : null),
+                          : (_searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _removeOverlay();
+                                    setState(() {
+                                      _isLoadingUsers = false;
+                                      _searchResults.clear();
+                                    });
+                                  },
+                                )
+                              : null),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            Expanded(
-              child: _searchController.text.trim().isNotEmpty
-                  ? _buildFilteredChatList()
-                  : _isLoadingChats
+                Expanded(
+                  child: _isLoadingChats
                       ? const Center(child: CircularProgressIndicator())
                       : _chats.isEmpty
                           ? Center(
@@ -578,7 +544,48 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 );
                               },
                             ),
+                ),
+              ],
             ),
+            // Im Stack-Widget den entsprechenden Teil anpassen:
+            if (_searchController.text.isNotEmpty && _searchResults.isNotEmpty)
+              Positioned(
+                top: 70,
+                left: 16,
+                right: 16,
+                child: Material(
+                  elevation: 4.0,
+                  borderRadius: BorderRadius.circular(12),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 250),
+                    child: ListView.builder(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        final data = _searchResults[index].data()
+                            as Map<String, dynamic>;
+                        final String uid = data['uid'] ?? '';
+                        final String displayName =
+                            data['displayName'] ?? 'Unknown';
+                        if (uid == _currentUserId) {
+                          return const SizedBox.shrink();
+                        }
+                        return ListTile(
+                          title: Text(displayName),
+                          onTap: () {
+                            _removeOverlay();
+                            _onChatTap(uid);
+                            _searchController.clear();
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

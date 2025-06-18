@@ -20,29 +20,37 @@ class ChatDetailScreen extends StatefulWidget {
   _ChatDetailScreenState createState() => _ChatDetailScreenState();
 }
 
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
+class _ChatDetailScreenState extends State<ChatDetailScreen>
+    with WidgetsBindingObserver {
   final String section = 'chat';
   final ChatService _chatService = ChatService();
   final TextEditingController _messageController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
+  late final ScrollController _scrollController;
   Stream<List<Message>>? _messagesStream;
   late String _currentUserId;
   String? _chatId;
   bool _isMessageValid = false;
   bool _isMounted = true;
-
-  bool _hasAutoScrolledInitially = false;
+  int _lastMessageCount = 0;
+  double _lastKeyboardInset = 0.0;
+  double? _lastScrollOffsetBeforeKeyboard;
+  bool _userScrolledWhileKeyboardOpen = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _scrollController = ScrollController();
+
     _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
     _chatId = widget.chatId;
 
     if (_chatId != null) {
       _messagesStream = _chatService.getMessages(_chatId!, _currentUserId);
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _chatService.markChatRead(_chatId!, _currentUserId);
+        if (_isMounted && _chatId != null) {
+          _chatService.markChatRead(_chatId!, _currentUserId);
+        }
       });
     }
 
@@ -62,10 +70,38 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _isMounted = false;
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    if (!_isMounted || !_scrollController.hasClients) return;
+
+    final newInset = MediaQuery.of(context).viewInsets.bottom;
+    final delta = newInset - _lastKeyboardInset;
+    _lastKeyboardInset = newInset;
+
+    if (delta == 0) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isMounted || !_scrollController.hasClients) return;
+
+      if (newInset > 0) {
+        _lastScrollOffsetBeforeKeyboard = _scrollController.offset;
+        _userScrolledWhileKeyboardOpen = false;
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      } else {
+        if (!_userScrolledWhileKeyboardOpen &&
+            _lastScrollOffsetBeforeKeyboard != null) {
+          _scrollController.jumpTo(_lastScrollOffsetBeforeKeyboard!);
+        }
+        _lastScrollOffsetBeforeKeyboard = null;
+      }
+    });
   }
 
   Future<void> _sendMessage() async {
@@ -87,24 +123,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _chatService.markChatRead(_chatId!, _currentUserId);
+        if (_isMounted && _chatId != null) {
+          _chatService.markChatRead(_chatId!, _currentUserId);
+        }
       });
     }
 
     _messageController.clear();
-    setState(() => _isMessageValid = false);
+    if (_isMounted) {
+      setState(() => _isMessageValid = false);
+    }
 
     unawaited(_chatService.sendMessage(_chatId!, msg));
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
   }
 
   @override
@@ -140,19 +170,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         }
 
                         final messages = snapshot.data ?? [];
-
-                        if (!_hasAutoScrolledInitially && messages.isNotEmpty) {
+                        if (messages.length != _lastMessageCount) {
+                          _lastMessageCount = messages.length;
                           WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (_scrollController.hasClients) {
-                              _scrollController.jumpTo(
+                            if (_isMounted && _scrollController.hasClients) {
+                              _scrollController.animateTo(
                                 _scrollController.position.maxScrollExtent,
+                                duration: const Duration(milliseconds: 120),
+                                curve: Curves.easeOut,
                               );
-                              _hasAutoScrolledInitially = true;
                             }
                           });
                         }
 
-                        if (messages.isNotEmpty) {
+                        if (messages.isNotEmpty && _chatId != null) {
                           final lastMessage = messages.last;
                           if (lastMessage.senderId != _currentUserId) {
                             _chatService.markChatRead(_chatId!, _currentUserId);
@@ -167,8 +198,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         }
 
                         return ListView.builder(
-                          keyboardDismissBehavior:
-                              ScrollViewKeyboardDismissBehavior.onDrag,
+                          physics: const AlwaysScrollableScrollPhysics(
+                              parent: ClampingScrollPhysics()),
                           controller: _scrollController,
                           itemCount: messages.length,
                           itemBuilder: (context, index) {
@@ -262,10 +293,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       },
                     ),
             ),
-            ChatInputWidget(
-              controller: _messageController,
-              onSend: _sendMessage,
-              isMessageValid: _isMessageValid,
+            GestureDetector(
+              onVerticalDragUpdate: (details) {
+                if (details.primaryDelta != null && details.primaryDelta! > 8) {
+                  FocusScope.of(context).unfocus();
+                }
+              },
+              behavior: HitTestBehavior.translucent,
+              child: ChatInputWidget(
+                controller: _messageController,
+                onSend: _sendMessage,
+                isMessageValid: _isMessageValid,
+              ),
             ),
           ],
         ),
