@@ -213,6 +213,12 @@ class _MembershipSettingsScreenState extends State<MembershipSettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(localeProvider.translate(widget.section, 'title')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop(true);
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

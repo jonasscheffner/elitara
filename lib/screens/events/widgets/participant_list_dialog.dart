@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,6 +7,7 @@ import 'package:elitara/widgets/search_filter.dart';
 import 'package:elitara/screens/events/widgets/user_display_name.dart';
 import 'package:elitara/services/user_service.dart';
 import 'package:elitara/services/event_service.dart';
+import 'package:elitara/screens/chat/chat_detail_screen.dart';
 
 class ParticipantListDialog extends StatefulWidget {
   final String eventId;
@@ -45,6 +47,7 @@ class _ParticipantListDialogState extends State<ParticipantListDialog> {
   bool _hasMore = false;
   bool _isLoading = true;
   bool _isFiltering = false;
+  bool _hasReturnedFromChat = false;
 
   @override
   void initState() {
@@ -53,10 +56,10 @@ class _ParticipantListDialogState extends State<ParticipantListDialog> {
     _searchController.addListener(_onSearchChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(_searchFocusNode);
+      if (!_hasReturnedFromChat && mounted) {
+        FocusScope.of(context).requestFocus(_searchFocusNode);
+      }
     });
-
-    _searchController.addListener(_onSearchChanged);
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
@@ -73,6 +76,33 @@ class _ParticipantListDialogState extends State<ParticipantListDialog> {
     _searchFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openChatWithUser(String uid) async {
+    final currentFocus = FocusManager.instance.primaryFocus;
+    if (currentFocus != null) {
+      currentFocus.unfocus();
+      await Future.delayed(const Duration(milliseconds: 10));
+    }
+
+    if (mounted) {
+      setState(() => _hasReturnedFromChat = true);
+    }
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatDetailScreen(otherUserId: uid),
+        fullscreenDialog: false,
+      ),
+    );
+
+    if (mounted) {
+      setState(() => _hasReturnedFromChat = false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        FocusScope.of(context).unfocus();
+      });
+    }
   }
 
   Future<void> _loadAllParticipants() async {
@@ -230,7 +260,7 @@ class _ParticipantListDialogState extends State<ParticipantListDialog> {
                                 if (!isSelf && p.uid != widget.hostId) {
                                   if (_isCurrentUserHost) {
                                     trailing = PopupMenuButton<String>(
-                                      onSelected: (value) {
+                                      onSelected: (value) async {
                                         if (value == 'make_cohost') {
                                           _makeCoHost(p.uid);
                                         } else if (value == 'remove_cohost') {
@@ -238,27 +268,43 @@ class _ParticipantListDialogState extends State<ParticipantListDialog> {
                                         } else if (value ==
                                             'remove_participant') {
                                           _removeParticipant(p.uid);
+                                        } else if (value == 'start_chat') {
+                                          await _openChatWithUser(p.uid);
+                                          return;
                                         }
                                       },
-                                      itemBuilder: (_) => [
-                                        if (isCoHost)
-                                          PopupMenuItem(
+                                      itemBuilder: (_) {
+                                        final items =
+                                            <PopupMenuEntry<String>>[];
+
+                                        if (isCoHost) {
+                                          items.add(PopupMenuItem(
                                             value: 'remove_cohost',
                                             child: Text(locale.translate(
                                                 section, 'remove_cohost')),
-                                          )
-                                        else
-                                          PopupMenuItem(
+                                          ));
+                                        } else {
+                                          items.add(PopupMenuItem(
                                             value: 'make_cohost',
                                             child: Text(locale.translate(
                                                 section, 'make_cohost')),
-                                          ),
-                                        PopupMenuItem(
+                                          ));
+                                        }
+
+                                        items.add(PopupMenuItem(
                                           value: 'remove_participant',
                                           child: Text(locale.translate(
                                               section, 'remove_participant')),
-                                        ),
-                                      ],
+                                        ));
+
+                                        items.add(PopupMenuItem(
+                                          value: 'start_chat',
+                                          child: Text(locale.translate(
+                                              section, 'start_chat')),
+                                        ));
+
+                                        return items;
+                                      },
                                     );
                                   } else if (_isCurrentUserCoHost) {
                                     trailing = PopupMenuButton<String>(
@@ -278,44 +324,63 @@ class _ParticipantListDialogState extends State<ParticipantListDialog> {
                                   }
                                 }
 
-                                return ListTile(
-                                  title: RichText(
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    text: TextSpan(
-                                      style: DefaultTextStyle.of(context).style,
-                                      children: [
-                                        WidgetSpan(
-                                          child: UserDisplayName(
-                                            uid: p.uid,
-                                            style:
-                                                const TextStyle(fontSize: 16),
-                                          ),
-                                          alignment:
-                                              PlaceholderAlignment.middle,
-                                        ),
-                                        if (isHost)
-                                          TextSpan(
-                                            text:
-                                                ' (${locale.translate(section, 'host_label')})',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
+                                return GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () async {
+                                    await Navigator.push(
+                                      context,
+                                      CupertinoPageRoute(
+                                        builder: (context) => ChatDetailScreen(
+                                            otherUserId: p.uid),
+                                      ),
+                                    );
+                                  },
+                                  child: ListTile(
+                                    onTap: () async {
+                                      if (p.uid ==
+                                          FirebaseAuth.instance.currentUser
+                                              ?.uid) return;
+                                      _openChatWithUser(p.uid);
+                                    },
+                                    title: RichText(
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      text: TextSpan(
+                                        style:
+                                            DefaultTextStyle.of(context).style,
+                                        children: [
+                                          WidgetSpan(
+                                            child: UserDisplayName(
+                                              uid: p.uid,
+                                              style:
+                                                  const TextStyle(fontSize: 16),
                                             ),
+                                            alignment:
+                                                PlaceholderAlignment.middle,
                                           ),
-                                        if (!isHost && isCoHost)
-                                          TextSpan(
-                                            text:
-                                                ' (${locale.translate(section, 'co_host_label')})',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
+                                          if (isHost)
+                                            TextSpan(
+                                              text:
+                                                  ' (${locale.translate(section, 'host_label')})',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
-                                          ),
-                                      ],
+                                          if (!isHost && isCoHost)
+                                            TextSpan(
+                                              text:
+                                                  ' (${locale.translate(section, 'co_host_label')})',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                     ),
+                                    trailing: trailing,
                                   ),
-                                  trailing: trailing,
                                 );
                               },
                             ),

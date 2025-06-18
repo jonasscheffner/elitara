@@ -12,6 +12,12 @@ class AppInfoScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(localeProvider.translate(section, 'title')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop(true);
+          },
+        ),
       ),
       body: Center(
         child: Text(

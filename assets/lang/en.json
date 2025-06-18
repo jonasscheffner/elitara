@@ -153,6 +153,7 @@
     "waitlist": "Waitlist",
     "participant_list_dialog": {
       "search_label": "Search participants",
+      "start_chat": "Send message",
       "make_cohost": "Make co-host",
       "remove_cohost": "Remove co-host",
       "remove_participant": "Remove participant",
