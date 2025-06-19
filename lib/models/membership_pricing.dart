@@ -5,11 +5,11 @@ extension MembershipPricing on MembershipType {
   double getPrice(PlanPeriod period) {
     switch (this) {
       case MembershipType.guest:
-        return period == PlanPeriod.monthly ? 9.99 : 99.99;
+        return period == PlanPeriod.monthly ? 4.99 : 49.99;
       case MembershipType.gold:
-        return period == PlanPeriod.monthly ? 29.99 : 299.99;
+        return period == PlanPeriod.monthly ? 14.99 : 149.99;
       case MembershipType.platinum:
-        return period == PlanPeriod.monthly ? 99.99 : 999.99;
+        return period == PlanPeriod.monthly ? 49.99 : 499.99;
     }
   }
 }
