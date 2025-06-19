@@ -50,6 +50,7 @@ dependencies:
   rxdart: ^0.28.0
   collection: ^1.19.1
   uni_links: ^0.5.1
+  stripe_sdk: ^5.0.0
 
 dev_dependencies:
   flutter_test:

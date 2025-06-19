@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:stripe_sdk/stripe_sdk.dart';
 import 'package:uni_links/uni_links.dart';
 import 'localization/locale_provider.dart';
 import 'screens/welcome_screen.dart';
@@ -26,6 +27,9 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+  Stripe.init(
+      'pk_test_51RbU4rFtzsPyF8cw89n04DGVCrn8khxGsfYeDlJRf0dXrWPPz1Q4kptQdeqOkIP2Rv8Rh64rhfFMSrHbHn4sdR2a00qINWaDMa');
 
   bool isDarkMode = await _getSavedTheme();
   String languageCode = await _getSavedLanguageCode();
